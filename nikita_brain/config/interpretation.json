@@ -1,0 +1,64 @@
+{
+    "commandTurnHead": {
+        "doing": [ "beweg", "dreh", "drehe", "sieh", "sehe", "schau", "schaue" ],
+        "bodyPart": [ "kopf", "lidar" ],
+        "direction": [ "links", "rechts" ]
+    },
+    "commandWatch": {
+        "doing": [ "sieh", "schau", "schaue", "sehe", "seh" ],
+        "pronoun": [ "dich" ],
+        "preposition": [ "um" ]
+    },
+    "commandMove": {
+        "doing": [ "fahr", "fahre", "beweg", "drehe" ],
+        "orientation": [ "vorn", "hinten", "links", "rechts" ]
+    },
+    "commandStandup": {
+        "doing": [ "steh", "stehe" ],
+        "preposition": [ "auf" ]
+    },
+    "commandLaydown": {
+        "doing": [ "leg", "lege", "setz" ],
+        "pronoun": [ "dich" ],
+        "preposition": [ "hin" ]
+    },
+    "commandTransport": {
+        "doing": [ "geh", "mach" ],
+        "noun": [ "transport" ]
+    },
+    "commandTestBody": {
+        "doing": [ "test", "teste" ],
+        "bodyPart": [ "body", "rumpf" ]
+    },
+    "commandTestLegs": {
+        "doing": [ "test", "teste" ],
+        "bodyPart": [ "bein", "beine" ]
+    },
+    "tellMeSupplyVoltage": {
+        "doing": [ "sag", "ist" ],
+        "noun": [ "batterie", "spannung" ],
+        "bodyPart": [ "versorgung" ]
+    },
+    "tellMeServoVoltage": {
+        "doing": [ "sag", "ist" ],
+        "noun": [ "batterie", "spannung" ],
+        "bodyPart": [ "servo" ]
+    },
+    "tellMeServoTemperature": {
+        "doing": [ "sag", "ist" ],
+        "noun": [ "temperatur", "warm" ],
+        "bodyPart": [ "servo" ]
+    },
+    "musicOn": {
+        "doing": [ "spiel", "spiele", "sing", "singe" ],
+        "noun": [ "musik", "lied" ]
+    },
+    "musicOff": {
+        "doing": [ "stop", "stoppe", "halt" ],
+        "noun": [ "musik", "lied" ]
+    },
+    "talk": {
+        "doing": [ "sag", "sage", "sprich" ],
+        "noun": [ "wort" ]
+    }
+}

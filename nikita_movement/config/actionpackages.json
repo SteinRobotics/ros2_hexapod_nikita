@@ -1,0 +1,94 @@
+{
+    "EXAMPLE": [
+        {
+            "head": [ { "yaw": -20.0 }, { "pitch": 0.0 } ],
+            "body": [ { "orientation": [ { "roll": 0.0 }, { "pitch": 0.0 }, { "yaw": 20.0 } ] },
+                { "direction": [ { "x": 0.0 }, { "y": 0.0 }, { "z": 0.0 } ] } ],
+            "factorDuration": 0.5
+        },
+        {
+            "head": [ { "yaw": 0.0 }, { "pitch": 0.0 } ],
+            "legs": [ { "RightFront": [ { "coxa": 0.0 }, { "femur": 0.0 }, { "tibia": 0.0 } ] }, { "LeftFront": [ { "coxa": 0.0 }, { "femur": 20.0 }, { "tibia": -40.0 } ] } ],
+            "factorDuration": 0.5
+        }
+    ],
+    "HIGH_FIVE": [
+        {
+            "head": [ { "yaw": 0.0 }, { "pitch": -20.0 } ],
+            "legs": [ { "RightFront": [ { "coxa": 20.0 }, { "femur": 50.0 }, { "tibia": 60.0 } ] } ],
+            "factorDuration": 0.333
+        },
+        {
+            "factorDuration": 0.333
+        },
+        {
+            "head": [ { "yaw": 0.0 }, { "pitch": -20.0 } ],
+            "legs": [ { "RightFront": [ { "coxa": 20.0 }, { "femur": 50.0 }, { "tibia": 60.0 } ] } ],
+            "factorDuration": 0.333
+        }
+    ],
+    "WATCH": [
+        {
+            "head": [ { "yaw": -40.0 }, { "pitch": 0.0 } ],
+            "factorDuration": 0.25
+        },
+        {
+            "head": [ { "yaw": 0.0 }, { "pitch": 0.0 } ],
+            "factorDuration": 0.25
+        },
+        {
+            "head": [ { "yaw": 40.0 }, { "pitch": 0.0 } ],
+            "factorDuration": 0.25
+        },
+        {
+            "head": [ { "yaw": 0.0 }, { "pitch": 0.0 } ],
+            "factorDuration": 0.25
+        }
+    ],
+    "LOOK_RIGHT": [
+        {
+            "head": [ { "yaw": 30.0 }, { "pitch": 0.0 } ],
+            "body": [ { "orientation": [ { "roll": 0.0 }, { "pitch": 0.0 }, { "yaw": 20.0 } ] },
+                { "direction": [ { "x": 0.0 }, { "y": 0.0 }, { "z": 0.0 } ] } ],
+            "factorDuration": 0.33
+        },
+        {
+            "factorDuration": 0.33
+        },
+        {
+            "head": [ { "yaw": 0.0 }, { "pitch": 0.0 } ],
+            "body": [ { "orientation": [ { "roll": 0.0 }, { "pitch": 0.0 }, { "yaw": 0.0 } ] },
+                { "direction": [ { "x": 0.0 }, { "y": 0.0 }, { "z": 0.0 } ] } ],
+            "factorDuration": 0.33
+        }
+    ],
+    "LOOK_LEFT": [
+        {
+            "head": [ { "yaw": -30.0 }, { "pitch": 0.0 } ],
+            "body": [ { "orientation": [ { "roll": 0.0 }, { "pitch": 0.0 }, { "yaw": -20.0 } ] },
+                { "direction": [ { "x": 0.0 }, { "y": 0.0 }, { "z": 0.0 } ] } ],
+            "factorDuration": 0.33
+        },
+        {
+            "factorDuration": 0.33
+        },
+        {
+            "head": [ { "yaw": 0.0 }, { "pitch": 0.0 } ],
+            "body": [ { "orientation": [ { "roll": 0.0 }, { "pitch": 0.0 }, { "yaw": 0.0 } ] },
+                { "direction": [ { "x": 0.0 }, { "y": 0.0 }, { "z": 0.0 } ] } ],
+            "factorDuration": 0.33
+        }
+    ],
+    "CLAP": [
+        {
+            "head": [ { "yaw": -20.0 }, { "pitch": 0.0 } ],
+            "body": [ { "orientation": [ { "yaw": 0.0 }, { "pitch": 0.0 } ] }, { "direction": [ { "x": 0.0 }, { "y": 0.0 }, { "z": 0.0 } ] } ],
+            "factorDuration": 0.33
+        },
+        {
+            "head": [ { "yaw": -20.0 }, { "pitch": 0.0 } ],
+            "body": [ { "orientation": [ { "yaw": 0.0 }, { "pitch": 0.0 } ] }, { "direction": [ { "x": 0.0 }, { "y": 0.0 }, { "z": 0.0 } ] } ],
+            "factorDuration": 0.33
+        }
+    ]
+}

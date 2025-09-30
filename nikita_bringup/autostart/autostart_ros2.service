@@ -1,0 +1,28 @@
+# to be placed in /etc/systemd/system/autostart_ros2.service
+# sudo systemctl enable autostart_ros2.service
+# sudo systemctl list-units
+# sudo systemctl start autostart_ros2
+# sudo systemctl status autostart_ros2
+# sudo systemctl disable autostart_ros2.service
+# sudo systemctl is-enabled autostart_ros2.service
+# systemctl daemon-reload'
+
+#https://github.com/Fixit-Davide/ros-systemctl
+
+[Unit]
+Description=Autostart ROS Service UNIT
+Wants=network-online.target
+After=network-online.target multi-user.target
+#After=multi-user.target
+
+[Service]
+User=nikita
+Group=nikita
+ExecStart=/bin/bash -c 'source /home/nikita/Workspace/colcon_nikita/install/setup.bash; ros2 launch nikita_bringup target_launch.py;'
+Type=idle
+#WorkingDirectory=/root
+# EnvironmentFile=/root/ros_autostart/ros_env
+# ExecStart=/root/ros_autostart/autostart_ros.sh
+
+[Install]
+WantedBy=multi-user.target

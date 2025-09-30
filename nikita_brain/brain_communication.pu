@@ -1,0 +1,24 @@
+@startuml
+participant Brain
+participant CCommunication
+actor Person
+
+Brain -> CCommunication: request_listening(True)
+Brain <- CCommunication: communication_status(STT_OFFLINE_ACTIVE)
+CCommunication <- Person: calling(robotname)
+CCommunication -> CCommunication: callback_robotname_recognized()
+CCommunication -> Person: tts("ja, bitte")
+Brain <- CCommunication: communication_status(CommunicationStatus.TTS_ACTIVE)
+CCommunication -> CCommunication: callback_robotname_response_done()
+Brain <- CCommunication: communication_status(CommunicationStatus.STT_ONLINE_ACTIVE)
+CCommunication <- Person: calling("spiele musik")
+CCommunication -> CCommunication: callback_done("spiele musik")
+Brain <- CCommunication: speech_recognition_online("spiele musik")
+Brain <- CCommunication: communication_status(CommunicationStatus.OFF)
+
+
+Brain -> CCommunication: request_music(song)
+' Brain -> CCommunication: request_music("STOP")
+' Brain -> CCommunication: request_talking(text)
+' Brain -> CCommunication: request_chat()
+@enduml

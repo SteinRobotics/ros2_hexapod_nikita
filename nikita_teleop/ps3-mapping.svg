@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="550" viewBox="0 0 1000 550">
+  <g id="组_54" data-name="组 54" transform="translate(18 836)">
+    <rect id="矩形_1" data-name="矩形 1" width="1000" height="550" transform="translate(-18 -836)" fill="#fff"/>
+    <g id="组_35" data-name="组 35" transform="translate(406.842 -444.121)">
+      <path id="PS3" d="M582.429,197.961a26.466,26.466,0,1,1,26.453-26.449,26.466,26.466,0,0,1-26.453,26.449M534.95,245.444a26.465,26.465,0,1,1,26.44-26.453,26.465,26.465,0,0,1-26.44,26.453Zm-47.522-47.483a26.466,26.466,0,1,1,26.478-26.449,26.466,26.466,0,0,1-26.478,26.449ZM448.9,297.553a41.246,41.246,0,1,1,41.24-41.244A41.247,41.247,0,0,1,448.9,297.553Zm-49.563-113.9a2.751,2.751,0,0,1-.875.126,4.968,4.968,0,0,1-5-4.966v-12.87c0-3.02,2.859-5.665,5.784-4.872L426,168.34a3.093,3.093,0,0,1,2.287,2.984,5.008,5.008,0,0,1-4.41,4.966Zm-42.914,78.111a34.624,34.624,0,1,1,34.609-34.645A34.624,34.624,0,0,1,356.424,261.763Zm-38.262-83.592a4.99,4.99,0,0,1-4.984,5H291.441a4.977,4.977,0,0,1-4.988-5V167.824a4.989,4.989,0,0,1,4.987-4.989h21.737a4.989,4.989,0,0,1,4.984,4.989ZM264.29,297.553a41.246,41.246,0,1,1,41.24-41.244A41.247,41.247,0,0,1,264.29,297.553ZM219.334,195.161c-5.791,0-19.907-1.558-24.11-3.652-3.894-1.949-10.951-11.6-13.27-14.851a2.951,2.951,0,0,1-.426-.61,3.039,3.039,0,0,1-.3-1.706,2.564,2.564,0,0,1,.206-.911,2.72,2.72,0,0,1,.522-.858c2.349-3.285,9.376-12.905,13.27-14.851,4.2-2.107,18.32-3.623,24.11-3.623.668,0,1.278.029,1.762.064,10.14.7,10.14,14.544,10.14,20.422,0,5.966,0,19.782-10.14,20.515C220.612,195.131,220,195.161,219.334,195.161Zm-22.281,23.985c-.729,10.14-14.548,10.14-20.456,10.14h-.031c-5.9,0-19.752,0-20.456-10.14-.391-5.394,1.432-21.582,3.562-25.879,1.948-3.895,11.6-10.957,14.887-13.267a1.21,1.21,0,0,1,.361-.278,2.857,2.857,0,0,1,2.042-.449,2.572,2.572,0,0,1,1.1.336,2.649,2.649,0,0,1,.581.391c3.285,2.345,12.9,9.372,14.816,13.267C195.626,197.564,197.443,213.752,197.053,219.146ZM132.041,195.1c-10.109-.733-10.109-14.549-10.141-20.456.032-5.937.032-19.752,10.165-20.481.491-.035,1.094-.064,1.769-.064,5.749,0,19.878,1.516,24.11,3.652,3.888,1.917,10.95,11.566,13.264,14.851a3.963,3.963,0,0,1,.367.52,3,3,0,0,1,.367,1.735,3.222,3.222,0,0,1-.463,1.433,1.664,1.664,0,0,1-.271.368c-2.314,3.284-9.376,12.9-13.264,14.851-4.2,2.094-18.362,3.652-24.11,3.652C133.16,195.161,132.556,195.131,132.041,195.1Zm24.069-65.016c.7-10.111,14.555-10.111,20.42-10.141,5.974.029,19.794.029,20.516,10.141.368,5.414-1.42,21.61-3.592,25.9-1.948,3.9-11.592,10.969-14.853,13.272a3.519,3.519,0,0,1-.816.52,3.4,3.4,0,0,1-1.219.213h-.182a2.7,2.7,0,0,1-1.215-.338,2.176,2.176,0,0,1-.61-.4c-3.255-2.3-12.939-9.372-14.887-13.272-2.13-4.286-3.953-20.481-3.562-25.9ZM534.95,97.546a26.757,26.757,0,0,1,7.273,1.019,26.485,26.485,0,1,1-7.273-1.019Zm97.183,74.424c-2.491-18.636-10.376-53.055-44.347-76.679L579.5,63.4s-.852-7.885-11.2-13.669c0,0,.61-5.392-8.921-7.883S527.7,34.593,501.8,43.3c0,0-3.959,1.036-3.746,6.818,0,0-12.206,6.032-14.705,17.2-2.5,11.206-5.818,25.3-5.818,25.3H235.285s-3.32-14.093-5.818-25.3c-2.464-11.164-14.7-17.2-14.7-17.2.207-5.783-3.746-6.818-3.746-6.818-25.9-8.708-48.064-3.955-57.588-1.456s-8.921,7.883-8.921,7.883C134.167,55.513,133.338,63.4,133.338,63.4L125.033,95.29c-33.964,23.624-41.85,58.044-44.341,76.679-2.475,18.656-18.635,141.323-19.878,155.806-1.249,14.516-2.078,68.79,47.661,76.673C158.21,412.3,184.3,367.134,184.3,367.134l33.57-58.2c75,58.2,110.643-20.938,110.643-20.938H384.3s35.648,79.136,110.649,20.938l33.57,58.2s26.115,45.169,75.856,37.314c49.7-7.883,48.88-62.176,47.632-76.673-1.245-14.513-17.409-137.15-19.877-155.806Z" transform="translate(-283.292 -303.204)" fill="none" stroke="#999" stroke-miterlimit="10" stroke-width="5" fill-rule="evenodd"/>
+      <g id="组_1" data-name="组 1" transform="translate(196.682 -190.699)">
+        <text id="Y" transform="translate(49.858 18.78)" fill="#707070" font-size="20" font-family="SourceHanSansCN-Medium, Source Han Sans CN" font-weight="500"><tspan x="0" y="0">Y</tspan></text>
+        <text id="X" transform="translate(0.858 66.78)" fill="#707070" font-size="22" font-family="SourceHanSansCN-Medium, Source Han Sans CN" font-weight="500"><tspan x="0" y="0">X</tspan></text>
+        <text id="B" transform="translate(94.858 66.78)" fill="#707070" font-size="23" font-family="SourceHanSansCN-Medium, Source Han Sans CN" font-weight="500"><tspan x="0" y="0">B</tspan></text>
+        <text id="A" transform="translate(47.858 113.78)" fill="#707070" font-size="23" font-family="SourceHanSansCN-Medium, Source Han Sans CN" font-weight="500"><tspan x="0" y="0">A</tspan></text>
+      </g>
+    </g>
+    <g id="组_48" data-name="组 48" transform="translate(156.5 512.5)">
+      <g id="组_39" data-name="组 39" transform="translate(525.743 -1260.852)">
+        <line id="直线_43" data-name="直线 43" y1="24.119" x2="20.973" transform="translate(0 16.553)" fill="none" stroke="#707070" stroke-width="2"/>
+        <line id="直线_42" data-name="直线 42" x1="176.176" transform="translate(20.973 15.504)" fill="none" stroke="#707070" stroke-width="2"/>
+        <text id="R1" transform="translate(206.757 19.352)" fill="#707070" font-size="22" font-family="SourceHanSansCN-Medium, Source Han Sans CN" font-weight="500"><tspan x="0" y="0">R1</tspan></text>
+      </g>
+      <g id="组_37" data-name="组 37" transform="translate(291.909 -1031.03)">
+        <line id="直线_46" data-name="直线 46" y2="166.738" transform="translate(31.984 0)" fill="none" stroke="#707070" stroke-width="2"/>
+        <text id="HOME" transform="translate(0 190.506)" fill="#707070" font-size="21" font-family="SourceHanSansCN-Regular, Source Han Sans CN"><tspan x="0" y="0">HOME</tspan></text>
+      </g>
+      <g id="组_52" data-name="组 52" transform="translate(-147 -1097.041)">
+        <line id="直线_47" data-name="直线 47" x1="136.378" transform="translate(98 11.011)" fill="none" stroke="#707070" stroke-width="2"/>
+        <text id="Dpad" transform="translate(41 18)" fill="#707070" font-size="21" font-family="SourceHanSansCN-Regular, Source Han Sans CN"><tspan x="0" y="0">Dpad</tspan></text>
+      </g>
+      <g id="组_42" data-name="组 42" transform="translate(-105.767 -1255.91)">
+        <path id="路径_6" data-name="路径 6" d="M0,0,24.119,24.119" transform="translate(200.534 9.611)" fill="none" stroke="#707070" stroke-width="2"/>
+        <path id="路径_5" data-name="路径 5" d="M0,0H169.884" transform="translate(30.649 10.66)" fill="none" stroke="#707070" stroke-width="2"/>
+        <text id="L1" transform="translate(0.267 19.41)" fill="#707070" font-size="22" font-family="SourceHanSansCN-Medium, Source Han Sans CN" font-weight="500"><tspan x="0" y="0">L1</tspan></text>
+      </g>
+      <g id="组_45" data-name="组 45" transform="translate(-105.767 -1304.5)">
+        <path id="路径_14" data-name="路径 14" d="M0,0,73.407,73.407" transform="translate(203.68 8.914)" fill="none" stroke="#707070" stroke-width="2"/>
+        <path id="路径_15" data-name="路径 15" d="M0,0H169.884" transform="translate(33.795 8.914)" fill="none" stroke="#707070" stroke-width="2"/>
+        <text id="L2" transform="translate(0.267 19)" fill="#707070" font-size="22" font-family="SourceHanSansCN-Medium, Source Han Sans CN" font-weight="500"><tspan x="0" y="0">L2</tspan></text>
+      </g>
+      <g id="组_51" data-name="组 51" transform="translate(230.038 -1270.126)">
+        <line id="直线_8" data-name="直线 8" y1="141.088" transform="translate(36.179 28.272)" fill="none" stroke="#707070" stroke-width="2"/>
+        <text id="SELECT" transform="translate(0 18)" fill="#707070" font-size="21" font-family="SourceHanSansCN-Medium, Source Han Sans CN" font-weight="500"><tspan x="0" y="0">SELECT</tspan></text>
+      </g>
+      <g id="组_49" data-name="组 49" transform="translate(474.358 -1298.533)">
+        <line id="直线_40" data-name="直线 40" y1="68.163" x2="50.336" transform="translate(0 10.19)" fill="none" stroke="#707070" stroke-width="2"/>
+        <line id="直线_41" data-name="直线 41" x2="197.15" transform="translate(50.336 10.19)" fill="none" stroke="#707070" stroke-width="2"/>
+        <text id="R2" transform="translate(258.141 19.033)" fill="#707070" font-size="22" font-family="SourceHanSansCN-Medium, Source Han Sans CN" font-weight="500"><tspan x="0" y="0">R2</tspan></text>
+      </g>
+      <g id="组_50" data-name="组 50" transform="translate(350.521 -1269.078)">
+        <line id="直线_9" data-name="直线 9" y1="143.186" transform="translate(30.936 27.223)" fill="none" stroke="#707070" stroke-width="2"/>
+        <text id="START" transform="translate(0 18)" fill="#707070" font-size="21" font-family="SourceHanSansCN-Medium, Source Han Sans CN" font-weight="500"><tspan x="0" y="0">START</tspan></text>
+      </g>
+      <g id="组_38" data-name="组 38" transform="translate(411.816 -1001.151)">
+        <path id="路径_17" data-name="路径 17" d="M219.834,0H0" transform="translate(39.849 38.849)" fill="none" stroke="#707070" stroke-width="2"/>
+        <text id="Right_Joystick" data-name="Right Stick" transform="translate(264.612 45.838)" fill="#707070" font-size="21" font-family="SourceHanSansCN-Regular, Source Han Sans CN"><tspan x="0" y="0">Right Stick</tspan></text>
+        <line id="直线_45" data-name="直线 45" x2="40.374" y2="40.388" fill="none" stroke="#707070" stroke-width="2"/>
+      </g>
+      <g id="组_40" data-name="组 40" transform="translate(-155.476 -1050.085)">
+        <line id="直线_6" data-name="直线 6" x1="38.801" y1="38.801" transform="translate(347.634 11.011)" fill="none" stroke="#707070" stroke-width="2"/>
+        <text id="Left_Joystick" data-name="Left Stick" transform="translate(11 19)" fill="#707070" font-size="21" font-family="SourceHanSansCN-Regular, Source Han Sans CN"><tspan x="0" y="0">Left Stick</tspan></text>
+        <path id="路径_16" data-name="路径 16" d="M82.142,0H292.8" transform="translate(54.834 11.011)" fill="none" stroke="#707070" stroke-width="2"/>
+      </g>
+    </g>
+  </g>
+</svg>

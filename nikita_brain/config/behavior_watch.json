@@ -1,0 +1,37 @@
+{
+    "triggers": [
+        {
+            "joystick": "button_y",
+            "voice": {
+                "doing": [ "sieh", "schau", "schaue" ],
+                "pronoun": [ "dich" ],
+                "preposition": [ "um" ]
+            },
+            "navigation": {
+                "state": "idle"
+            },
+            "lidar": {
+                "distance": "> 0.5"
+            },
+            "battery": {
+                "change to state": "normal"
+            }
+        }
+    ],
+    "actions": [
+        {
+            "talking": "sehe mich um",
+            "music": "titel",
+            "head": [ { "yaw": -20.0 }, { "pitch": 0.0 } ],
+            "body": [ { "orientation": [ { "yaw": 0.0 }, { "pitch": 0.0 } ] }, { "direction": [ { "x": 0.0 }, { "y": 0.0 }, { "z": 0.0 } ] } ],
+            "legs": [ { "rightFront": [ { "coxa": 0.0 }, { "femur": 0.0 }, { "tibia": 0.0 } ] }, { "leftFront": [ { "coxa": 0.0 }, { "femur": 20.0 }, { "tibia": -40.0 } ] } ],
+            "velocity": { "x": 0.0, "y": 0.0, "z": 0.0, "duration": 0.0 }
+        },
+        {
+            "head": [ { "yaw": 20.0 }, { "pitch": 0.0 } ]
+        },
+        {
+            "head": [ { "yaw": 0.0 }, { "pitch": 0.0 } ]
+        }
+    ]
+}

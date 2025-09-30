@@ -1,0 +1,15 @@
+node_brain:
+  ros__parameters:
+    autostart_listening: false
+    activate_movement_waiting: false
+    velocity_factor_linear: 0.01
+    velocity_factor_rotation: 0.01
+    joystick_deadzone: 0.04
+    supply_voltage: 5.0
+    supply_voltage_low: 4.9
+    supply_voltage_critical_low: 4.8
+    servo_voltage: 11.1
+    servo_voltage_low: 10.8
+    servo_voltage_critical_low: 10.5
+    servo_temperature_high: 70.0
+    servo_temperature_critical_high: 75.0
