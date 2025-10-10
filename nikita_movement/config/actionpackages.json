@@ -10,6 +10,11 @@
             "head": [ { "yaw": 0.0 }, { "pitch": 0.0 } ],
             "legs": [ { "RightFront": [ { "coxa": 0.0 }, { "femur": 0.0 }, { "tibia": 0.0 } ] }, { "LeftFront": [ { "coxa": 0.0 }, { "femur": 20.0 }, { "tibia": -40.0 } ] } ],
             "factorDuration": 0.5
+        },
+        {
+            "head": [ { "yaw": 0.0 }, { "pitch": 0.0 } ],
+            "legs": [ { "All": [ { "coxa": 0.0 }, { "femur": 0.0 }, { "tibia": 0.0 } ] } ],
+            "factorDuration": 0.5
         }
     ],
     "HIGH_FIVE": [

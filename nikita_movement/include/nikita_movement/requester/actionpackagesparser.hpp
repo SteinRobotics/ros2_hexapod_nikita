@@ -20,7 +20,7 @@ class CActionPackage {
    public:
     std::optional<CHead> head;
     std::optional<CPose> body;
-    std::optional<std::map<ELegIndex, CLeg>> legs;
+    std::optional<std::map<ELegIndex, CLegAngles>> legAngles;
     double factorDuration = 1.0;
 };
 

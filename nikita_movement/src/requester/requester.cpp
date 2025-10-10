@@ -187,12 +187,15 @@ void CRequester::requestSequence(const MovementRequest& msg) {
     auto sequence = actionPackagesParser_->getRequests(msg.name);
 
     for (const auto& action : sequence) {
-        if (action.legs.has_value()) {
-            //     const auto& legData = action.legs.value();
-            //     auto leg = CLeg(CLegAngles(legData.coxa, legData.femur, legData.tibia), CPosition());
-            //     ELegIndex legIndex = leg.index;
-            //     kinematics_->setLegAngles(legIndex, leg);
-        } else if (action.body.has_value()) {
+        if (action.legAngles.has_value()) {
+            const auto& legAnglesMap = action.legAngles.value();
+            // Apply angles for all legs contained in the map
+            for (const auto& [legIndex, anglesData] : legAnglesMap) {
+                CLegAngles legAngles(anglesData.degCoxa, anglesData.degFemur, anglesData.degTibia);
+                kinematics_->setLegAngles(legIndex, legAngles);
+            }
+        }
+        if (action.body.has_value()) {
             kinematics_->moveBody(kinematics_->getLegsPositions(), *(action.body));
             // RCLCPP_INFO_STREAM(node_->get_logger(),
             //                    "CRequester::requestSequence: body: "

@@ -97,7 +97,7 @@ void CActionPackagesParser::parseStep(const json& step, std::vector<CActionPacka
             {"LeftMid", ELegIndex::LeftMid},       {"LeftBack", ELegIndex::LeftBack},
         };
 
-        std::map<ELegIndex, CLeg> legsMap;
+        std::map<ELegIndex, CLegAngles> legsMap;
         for (const auto& leg : step["legs"]) {
             for (auto it = leg.begin(); it != leg.end(); ++it) {
                 std::string legName = it.key();
@@ -108,12 +108,12 @@ void CActionPackagesParser::parseStep(const json& step, std::vector<CActionPacka
                         if (joint.contains("femur")) femur = joint["femur"];
                         if (joint.contains("tibia")) tibia = joint["tibia"];
                     }
-                    legsMap[legNameToIndex.at(legName)] = CLeg(CLegAngles(coxa, femur, tibia), CPosition());
+                    legsMap[legNameToIndex.at(legName)] = CLegAngles(coxa, femur, tibia);
                 }
             }
         }
         if (!legsMap.empty()) {
-            action.legs = legsMap;
+            action.legAngles = legsMap;
         }
     }
 
