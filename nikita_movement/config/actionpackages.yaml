@@ -1,0 +1,367 @@
+# Presets and anchors for common poses
+presets:
+  standing_legs: &standing_legs
+    All: { coxa: 0.0, femur: 2.28, tibia: 7.7 }
+
+  laydown_legs: &laydown_legs
+    All: { coxa: 0.0, femur: 71.0, tibia: -53.0 }
+
+  head_neutral: &head_neutral
+    yaw: 0.0
+    pitch: 0.0
+
+  head_look_left: &head_look_left
+    yaw: -30.0
+    pitch: 0.0
+
+  head_look_right: &head_look_right
+    yaw: 30.0
+    pitch: 0.0
+
+  body_neutral: &body_neutral
+    - orientation:
+        - roll: 0.0
+        - pitch: 0.0
+        - yaw: 0.0
+    - direction:
+        - x: 0.0
+        - y: 0.0
+        - z: 0.0
+
+# Sequences
+EXAMPLE:
+  - head:
+      - *head_look_left
+    body:
+      - orientation:
+          - roll: 0.0
+          - pitch: 0.0
+          - yaw: 20.0
+      - direction:
+          - x: 0.0
+          - y: 0.0
+          - z: 0.0
+    factorDuration: 0.5
+
+  - head:
+      - *head_neutral
+    legs:
+      - RightFront:
+          - coxa: 0.0
+          - femur: 0.0
+          - tibia: 0.0
+      - LeftFront:
+          - coxa: 0.0
+          - femur: 20.0
+          - tibia: -40.0
+    factorDuration: 0.5
+
+  - head:
+      - *head_neutral
+    legs:
+      - <<: *standing_legs
+    factorDuration: 0.5
+
+HIGH_FIVE:
+  - head:
+      - yaw: 0.0
+      - pitch: -20.0
+    legs:
+      - RightFront:
+          - coxa: 20.0
+          - femur: 50.0
+          - tibia: 60.0
+    factorDuration: 0.333
+
+  - factorDuration: 0.333
+
+  - head:
+      - yaw: 0.0
+      - pitch: -20.0
+    legs:
+      - RightFront:
+          - coxa: 20.0
+          - femur: 50.0
+          - tibia: 60.0
+    factorDuration: 0.333
+
+WATCH:
+  - head:
+      - yaw: -40.0
+      - pitch: 0.0
+    factorDuration: 0.25
+
+  - head:
+      - yaw: 0.0
+      - pitch: 0.0
+    factorDuration: 0.25
+
+  - head:
+      - yaw: 40.0
+      - pitch: 0.0
+    factorDuration: 0.25
+
+  - head:
+      - yaw: 0.0
+      - pitch: 0.0
+    factorDuration: 0.25
+
+LOOK_RIGHT:
+  - head:
+      - *head_look_right
+    body:
+      - *body_neutral
+    factorDuration: 0.33
+
+  - factorDuration: 0.33
+
+  - head:
+      - *head_neutral
+    body:
+    - *body_neutral
+    factorDuration: 0.33
+
+LOOK_LEFT:
+  - head:
+      - *head_look_left
+    body:
+    - orientation:
+      - roll: 0.0
+      - pitch: 0.0
+      - yaw: -20.0
+    - direction:
+      - x: 0.0
+      - y: 0.0
+      - z: 0.0
+    factorDuration: 0.33
+
+  - factorDuration: 0.33
+
+  - head:
+      - *head_neutral
+    body:
+    - *body_neutral
+    factorDuration: 0.33
+
+CLAP:
+  - head:
+      - yaw: -20.0
+      - pitch: 0.0
+    body:
+      - *body_neutral
+    factorDuration: 0.33
+
+  - head:
+      - yaw: -20.0
+      - pitch: 0.0
+    body:
+      - orientation:
+          - yaw: 0.0
+          - pitch: 0.0
+      - direction:
+          - x: 0.0
+          - y: 0.0
+          - z: 0.0
+    factorDuration: 0.33
+
+# Convenience sequences using the new presets
+STAND:
+  - legs:
+      - <<: *standing_legs
+    factorDuration: 0.5
+
+LAYDOWN:
+  - legs:
+      - <<: *laydown_legs
+    factorDuration: 0.5
+EXAMPLE:
+  - head:
+      - yaw: -20.0
+      - pitch: 0.0
+    body:
+      - orientation:
+          - roll: 0.0
+          - pitch: 0.0
+          - yaw: 20.0
+      - direction:
+          - x: 0.0
+          - y: 0.0
+          - z: 0.0
+    factorDuration: 0.5
+
+  - head:
+      - yaw: 0.0
+      - pitch: 0.0
+    legs:
+      - RightFront:
+          - coxa: 0.0
+          - femur: 0.0
+          - tibia: 0.0
+      - LeftFront:
+          - coxa: 0.0
+          - femur: 20.0
+          - tibia: -40.0
+    factorDuration: 0.5
+
+  - head:
+      - yaw: 0.0
+      - pitch: 0.0
+    footPositions:
+      - RightFront:
+        - x: 0.092
+        - y: 0.092
+        - z: -0.05
+      - RightMid:
+        - x: 0.0
+        - y: 0.13
+        - z: -0.05
+      - RightBack:
+        - x: -0.092
+        - y: 0.092
+        - z: -0.05
+      - LeftFront:
+        - x: 0.092
+        - y: -0.092
+        - z: -0.05
+      - LeftMid:
+        - x: 0.0
+        - y: -0.13
+        - z: -0.05
+      - LeftBack:
+        - x: -0.092
+        - y: -0.092
+        - z: -0.05
+    factorDuration: 0.5
+
+HIGH_FIVE:
+  - head:
+      - yaw: 0.0
+      - pitch: -20.0
+    legs:
+      - RightFront:
+          - coxa: 20.0
+          - femur: 50.0
+          - tibia: 60.0
+    factorDuration: 0.333
+
+  - factorDuration: 0.333
+
+  - head:
+      - yaw: 0.0
+      - pitch: -20.0
+    legs:
+      - RightFront:
+          - coxa: 20.0
+          - femur: 50.0
+          - tibia: 60.0
+    factorDuration: 0.333
+
+WATCH:
+  - head:
+      - yaw: -40.0
+      - pitch: 0.0
+    factorDuration: 0.25
+
+  - head:
+      - yaw: 0.0
+      - pitch: 0.0
+    factorDuration: 0.25
+
+  - head:
+      - yaw: 40.0
+      - pitch: 0.0
+    factorDuration: 0.25
+
+  - head:
+      - yaw: 0.0
+      - pitch: 0.0
+    factorDuration: 0.25
+
+LOOK_RIGHT:
+  - head:
+      - yaw: 30.0
+      - pitch: 0.0
+    body:
+      - orientation:
+          - roll: 0.0
+          - pitch: 0.0
+          - yaw: 20.0
+      - direction:
+          - x: 0.0
+          - y: 0.0
+          - z: 0.0
+    factorDuration: 0.33
+
+  - factorDuration: 0.33
+
+  - head:
+      - yaw: 0.0
+      - pitch: 0.0
+    body:
+      - orientation:
+          - roll: 0.0
+          - pitch: 0.0
+          - yaw: 0.0
+      - direction:
+          - x: 0.0
+          - y: 0.0
+          - z: 0.0
+    factorDuration: 0.33
+
+LOOK_LEFT:
+  - head:
+      - yaw: -30.0
+      - pitch: 0.0
+    body:
+      - orientation:
+          - roll: 0.0
+          - pitch: 0.0
+          - yaw: -20.0
+      - direction:
+          - x: 0.0
+          - y: 0.0
+          - z: 0.0
+    factorDuration: 0.33
+
+  - factorDuration: 0.33
+
+  - head:
+      - yaw: 0.0
+      - pitch: 0.0
+    body:
+      - orientation:
+          - roll: 0.0
+          - pitch: 0.0
+          - yaw: 0.0
+      - direction:
+          - x: 0.0
+          - y: 0.0
+          - z: 0.0
+    factorDuration: 0.33
+
+CLAP:
+  - head:
+      - yaw: -20.0
+      - pitch: 0.0
+    body:
+      - orientation:
+          - yaw: 0.0
+          - pitch: 0.0
+      - direction:
+          - x: 0.0
+          - y: 0.0
+          - z: 0.0
+    factorDuration: 0.33
+
+  - head:
+      - yaw: -20.0
+      - pitch: 0.0
+    body:
+      - orientation:
+          - yaw: 0.0
+          - pitch: 0.0
+      - direction:
+          - x: 0.0
+          - y: 0.0
+          - z: 0.0
+    factorDuration: 0.33

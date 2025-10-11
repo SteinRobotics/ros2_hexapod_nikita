@@ -16,7 +16,7 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(nikita_interfaces REQUIRED)
-find_package(nlohmann_json REQUIRED) # nlohmann_json -> sudo apt install nlohmann-json3-dev
+find_package(yaml-cpp REQUIRED)
 
 
 ## set sources
@@ -34,7 +34,11 @@ add_executable(node_movement
   src/node_movement.cpp
   ${SOURCES}
 )
-ament_target_dependencies(node_movement rclcpp std_msgs geometry_msgs std_srvs ament_index_cpp nikita_interfaces nlohmann_json)
+ament_target_dependencies(node_movement rclcpp std_msgs geometry_msgs std_srvs ament_index_cpp nikita_interfaces)
+
+target_link_libraries(node_movement
+  yaml-cpp::yaml-cpp
+)
 
 include_directories(
   include/nikita_movement/

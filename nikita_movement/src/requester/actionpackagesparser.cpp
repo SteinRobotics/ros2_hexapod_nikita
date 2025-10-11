@@ -4,38 +4,44 @@
 
 #include "requester/actionpackagesparser.hpp"
 
-using json = nlohmann::json;
+#include <yaml-cpp/yaml.h>
 
 CActionPackagesParser::CActionPackagesParser(std::shared_ptr<rclcpp::Node> node) : node_(node) {
-    readJson();
+    readYaml();
 }
 
-void CActionPackagesParser::readJson() {
+void CActionPackagesParser::readYaml() {
     std::string package_share_directory = ament_index_cpp::get_package_share_directory("nikita_movement");
-    std::string file_path = package_share_directory + "/config/actionpackages.json";
-    json json_data;
-    std::ifstream json_file(file_path);
-
-    if (!json_file.is_open()) {
-        RCLCPP_ERROR_STREAM(node_->get_logger(), "Unable to open file: " << file_path);
-        return;
-    }
+    std::string yaml_path = package_share_directory + "/config/actionpackages.yaml";
 
     try {
-        json_file >> json_data;
-        json_file.close();
+        YAML::Node yaml_data = YAML::LoadFile(yaml_path);
+
+        for (const auto& it : yaml_data) {
+            std::string key = it.first.as<std::string>();
+            // Only parse top-level entries that are sequences (action package lists).
+            // Skip entries like 'presets' which are mappings and not action sequences.
+            if (!it.second.IsSequence()) {
+                RCLCPP_DEBUG_STREAM(node_->get_logger(), "Skipping non-sequence top-level key: " << key);
+                continue;
+            }
+            std::vector<CActionPackage> actionPackage;
+            for (const auto& step : it.second) {
+                // each step should be a map describing head/body/legs/footPositions
+                if (!step.IsMap()) {
+                    RCLCPP_WARN_STREAM(node_->get_logger(),
+                                       "Skipping invalid step (not a map) in package: " << key);
+                    continue;
+                }
+                parseYamlStep(step, actionPackage);
+            }
+            actionPackages_[key] = actionPackage;
+        }
     } catch (const std::exception& e) {
-        RCLCPP_ERROR_STREAM(node_->get_logger(), "Error parsing : " << file_path << e.what());
+        RCLCPP_ERROR_STREAM(node_->get_logger(), "Error parsing YAML: " << yaml_path << " : " << e.what());
         return;
     }
 
-    for (const auto& [key, value] : json_data.items()) {
-        std::vector<CActionPackage> actionPackage;
-        for (const auto& step : value) {
-            parseStep(step, actionPackage);
-        }
-        actionPackages_[key] = actionPackage;
-    }
     RCLCPP_INFO_STREAM(node_->get_logger(), "Loaded " << actionPackages_.size() << " action packages.");
     RCLCPP_INFO_STREAM(node_->get_logger(), "keys:");
     for (const auto& [key, _] : actionPackages_) {
@@ -43,46 +49,47 @@ void CActionPackagesParser::readJson() {
     }
 }
 
-void CActionPackagesParser::parseStep(const json& step, std::vector<CActionPackage>& actionPackage) {
+void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
+                                          std::vector<CActionPackage>& actionPackage) {
     CActionPackage action;
 
-    // Parse "duration"
-    if (step.contains("factorDuration")) {
-        action.factorDuration = step["factorDuration"];
+    // Parse "factorDuration"
+    if (step["factorDuration"]) {
+        action.factorDuration = step["factorDuration"].as<double>();
     } else {
         RCLCPP_ERROR_STREAM(
             node_->get_logger(),
-            "CActionPackagesParser::parseStep: 'factorDuration' not found, defaulting to 1.0");
+            "CActionPackagesParser::parseYamlStep: 'factorDuration' not found, defaulting to 1.0");
         action.factorDuration = 1.0;
     }
 
     // Parse "head"
-    if (step.contains("head")) {
+    if (step["head"]) {
         double yaw = 0.0, pitch = 0.0;
         for (const auto& headEntry : step["head"]) {
-            if (headEntry.contains("yaw")) yaw = headEntry["yaw"];
-            if (headEntry.contains("pitch")) pitch = headEntry["pitch"];
+            if (headEntry["yaw"]) yaw = headEntry["yaw"].as<double>();
+            if (headEntry["pitch"]) pitch = headEntry["pitch"].as<double>();
         }
         action.head = CHead(yaw, pitch);
     }
 
     // Parse "body"
-    if (step.contains("body")) {
+    if (step["body"]) {
         double roll = 0.0, pitch = 0.0, yaw = 0.0;
         double x = 0.0, y = 0.0, z = 0.0;
         for (const auto& bodyEntry : step["body"]) {
-            if (bodyEntry.contains("orientation")) {
+            if (bodyEntry["orientation"]) {
                 for (const auto& orientationEntry : bodyEntry["orientation"]) {
-                    if (orientationEntry.contains("roll")) roll = orientationEntry["roll"];
-                    if (orientationEntry.contains("pitch")) pitch = orientationEntry["pitch"];
-                    if (orientationEntry.contains("yaw")) yaw = orientationEntry["yaw"];
+                    if (orientationEntry["roll"]) roll = orientationEntry["roll"].as<double>();
+                    if (orientationEntry["pitch"]) pitch = orientationEntry["pitch"].as<double>();
+                    if (orientationEntry["yaw"]) yaw = orientationEntry["yaw"].as<double>();
                 }
             }
-            if (bodyEntry.contains("direction")) {
+            if (bodyEntry["direction"]) {
                 for (const auto& directionEntry : bodyEntry["direction"]) {
-                    if (directionEntry.contains("x")) x = directionEntry["x"];
-                    if (directionEntry.contains("y")) y = directionEntry["y"];
-                    if (directionEntry.contains("z")) z = directionEntry["z"];
+                    if (directionEntry["x"]) x = directionEntry["x"].as<double>();
+                    if (directionEntry["y"]) y = directionEntry["y"].as<double>();
+                    if (directionEntry["z"]) z = directionEntry["z"].as<double>();
                 }
             }
         }
@@ -90,7 +97,7 @@ void CActionPackagesParser::parseStep(const json& step, std::vector<CActionPacka
     }
 
     // Parse "legs"
-    if (step.contains("legs")) {
+    if (step["legs"]) {
         const std::map<std::string, ELegIndex> legNameToIndex = {
             {"RightFront", ELegIndex::RightFront}, {"RightMid", ELegIndex::RightMid},
             {"RightBack", ELegIndex::RightBack},   {"LeftFront", ELegIndex::LeftFront},
@@ -99,14 +106,25 @@ void CActionPackagesParser::parseStep(const json& step, std::vector<CActionPacka
 
         std::map<ELegIndex, CLegAngles> legsMap;
         for (const auto& leg : step["legs"]) {
-            for (auto it = leg.begin(); it != leg.end(); ++it) {
-                std::string legName = it.key();
-                if (legNameToIndex.count(legName)) {
+            for (const auto& it : leg) {
+                std::string legName = it.first.as<std::string>();
+                // support special key "All" to apply the same angles to every leg
+                if (legName == "All") {
                     double coxa = 0.0, femur = 0.0, tibia = 0.0;
-                    for (const auto& joint : it.value()) {
-                        if (joint.contains("coxa")) coxa = joint["coxa"];
-                        if (joint.contains("femur")) femur = joint["femur"];
-                        if (joint.contains("tibia")) tibia = joint["tibia"];
+                    for (const auto& joint : it.second) {
+                        if (joint["coxa"]) coxa = joint["coxa"].as<double>();
+                        if (joint["femur"]) femur = joint["femur"].as<double>();
+                        if (joint["tibia"]) tibia = joint["tibia"].as<double>();
+                    }
+                    for (const auto& [name, idx] : legNameToIndex) {
+                        legsMap[idx] = CLegAngles(coxa, femur, tibia);
+                    }
+                } else if (legNameToIndex.count(legName)) {
+                    double coxa = 0.0, femur = 0.0, tibia = 0.0;
+                    for (const auto& joint : it.second) {
+                        if (joint["coxa"]) coxa = joint["coxa"].as<double>();
+                        if (joint["femur"]) femur = joint["femur"].as<double>();
+                        if (joint["tibia"]) tibia = joint["tibia"].as<double>();
                     }
                     legsMap[legNameToIndex.at(legName)] = CLegAngles(coxa, femur, tibia);
                 }
@@ -117,7 +135,44 @@ void CActionPackagesParser::parseStep(const json& step, std::vector<CActionPacka
         }
     }
 
-    // Add the filled action to the vector
+    // Parse "footPositions"
+    if (step["footPositions"]) {
+        const std::map<std::string, ELegIndex> legNameToIndex = {
+            {"RightFront", ELegIndex::RightFront}, {"RightMid", ELegIndex::RightMid},
+            {"RightBack", ELegIndex::RightBack},   {"LeftFront", ELegIndex::LeftFront},
+            {"LeftMid", ELegIndex::LeftMid},       {"LeftBack", ELegIndex::LeftBack},
+        };
+
+        std::map<ELegIndex, CPosition> posMap;
+        for (const auto& leg : step["footPositions"]) {
+            for (const auto& it : leg) {
+                std::string legName = it.first.as<std::string>();
+                if (legName == "All") {
+                    double x = 0.0, y = 0.0, z = 0.0;
+                    for (const auto& coord : it.second) {
+                        if (coord["x"]) x = coord["x"].as<double>();
+                        if (coord["y"]) y = coord["y"].as<double>();
+                        if (coord["z"]) z = coord["z"].as<double>();
+                    }
+                    for (const auto& [name, idx] : legNameToIndex) {
+                        posMap[idx] = CPosition(x, y, z);
+                    }
+                } else if (legNameToIndex.count(legName)) {
+                    double x = 0.0, y = 0.0, z = 0.0;
+                    for (const auto& coord : it.second) {
+                        if (coord["x"]) x = coord["x"].as<double>();
+                        if (coord["y"]) y = coord["y"].as<double>();
+                        if (coord["z"]) z = coord["z"].as<double>();
+                    }
+                    posMap[legNameToIndex.at(legName)] = CPosition(x, y, z);
+                }
+            }
+        }
+        if (!posMap.empty()) {
+            action.footPositions = posMap;
+        }
+    }
+
     actionPackage.push_back(action);
 }
 

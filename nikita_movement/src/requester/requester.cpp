@@ -195,6 +195,13 @@ void CRequester::requestSequence(const MovementRequest& msg) {
                 kinematics_->setLegAngles(legIndex, legAngles);
             }
         }
+        if (action.footPositions.has_value()) {
+            const auto& footPositionsMap = action.footPositions.value();
+            // Apply positions for all legs contained in the map
+            for (const auto& [legIndex, positionData] : footPositionsMap) {
+                kinematics_->setCartesianFeet(legIndex, positionData);
+            }
+        }
         if (action.body.has_value()) {
             kinematics_->moveBody(kinematics_->getLegsPositions(), *(action.body));
             // RCLCPP_INFO_STREAM(node_->get_logger(),
