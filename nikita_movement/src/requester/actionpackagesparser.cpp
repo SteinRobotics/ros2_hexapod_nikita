@@ -63,12 +63,18 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
         action.factorDuration = 1.0;
     }
 
-    // Parse "head"
+    // Parse "head" (accept either a sequence of maps or a single map)
     if (step["head"]) {
         double yaw = 0.0, pitch = 0.0;
-        for (const auto& headEntry : step["head"]) {
-            if (headEntry["yaw"]) yaw = headEntry["yaw"].as<double>();
-            if (headEntry["pitch"]) pitch = headEntry["pitch"].as<double>();
+        YAML::Node headNode = step["head"];
+        if (headNode.IsSequence()) {
+            for (const auto& headEntry : headNode) {
+                if (headEntry["yaw"]) yaw = headEntry["yaw"].as<double>();
+                if (headEntry["pitch"]) pitch = headEntry["pitch"].as<double>();
+            }
+        } else if (headNode.IsMap()) {
+            if (headNode["yaw"]) yaw = headNode["yaw"].as<double>();
+            if (headNode["pitch"]) pitch = headNode["pitch"].as<double>();
         }
         action.head = CHead(yaw, pitch);
     }
@@ -77,19 +83,43 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
     if (step["body"]) {
         double roll = 0.0, pitch = 0.0, yaw = 0.0;
         double x = 0.0, y = 0.0, z = 0.0;
-        for (const auto& bodyEntry : step["body"]) {
+        YAML::Node bodyNode = step["body"];
+        // body can be a sequence of maps (current style) or a single map
+        std::vector<YAML::Node> bodyEntries;
+        if (bodyNode.IsSequence()) {
+            for (const auto& n : bodyNode) bodyEntries.push_back(n);
+        } else if (bodyNode.IsMap()) {
+            bodyEntries.push_back(bodyNode);
+        }
+
+        for (const auto& bodyEntry : bodyEntries) {
+            // orientation may be a sequence of single-key maps or a single map
             if (bodyEntry["orientation"]) {
-                for (const auto& orientationEntry : bodyEntry["orientation"]) {
-                    if (orientationEntry["roll"]) roll = orientationEntry["roll"].as<double>();
-                    if (orientationEntry["pitch"]) pitch = orientationEntry["pitch"].as<double>();
-                    if (orientationEntry["yaw"]) yaw = orientationEntry["yaw"].as<double>();
+                YAML::Node orientNode = bodyEntry["orientation"];
+                if (orientNode.IsSequence()) {
+                    for (const auto& orientationEntry : orientNode) {
+                        if (orientationEntry["roll"]) roll = orientationEntry["roll"].as<double>();
+                        if (orientationEntry["pitch"]) pitch = orientationEntry["pitch"].as<double>();
+                        if (orientationEntry["yaw"]) yaw = orientationEntry["yaw"].as<double>();
+                    }
+                } else if (orientNode.IsMap()) {
+                    if (orientNode["roll"]) roll = orientNode["roll"].as<double>();
+                    if (orientNode["pitch"]) pitch = orientNode["pitch"].as<double>();
+                    if (orientNode["yaw"]) yaw = orientNode["yaw"].as<double>();
                 }
             }
             if (bodyEntry["direction"]) {
-                for (const auto& directionEntry : bodyEntry["direction"]) {
-                    if (directionEntry["x"]) x = directionEntry["x"].as<double>();
-                    if (directionEntry["y"]) y = directionEntry["y"].as<double>();
-                    if (directionEntry["z"]) z = directionEntry["z"].as<double>();
+                YAML::Node dirNode = bodyEntry["direction"];
+                if (dirNode.IsSequence()) {
+                    for (const auto& directionEntry : dirNode) {
+                        if (directionEntry["x"]) x = directionEntry["x"].as<double>();
+                        if (directionEntry["y"]) y = directionEntry["y"].as<double>();
+                        if (directionEntry["z"]) z = directionEntry["z"].as<double>();
+                    }
+                } else if (dirNode.IsMap()) {
+                    if (dirNode["x"]) x = dirNode["x"].as<double>();
+                    if (dirNode["y"]) y = dirNode["y"].as<double>();
+                    if (dirNode["z"]) z = dirNode["z"].as<double>();
                 }
             }
         }
