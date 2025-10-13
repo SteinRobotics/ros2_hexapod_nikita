@@ -168,7 +168,13 @@ void CCoordinator::speechRecognized(std::string text) {
     } else if (command == "commandWatch") {
         submitRequestMove(MovementRequest::WATCH, 5000, "ich schaue mich um", Prio::High);
     } else if (command == "commandTurnHead") {
-        if (textInterpreter_->lettersIdentified("liks", identifiedWords)) {
+        RCLCPP_INFO_STREAM(node_->get_logger(), "identifiedWords: " << identifiedWords.size());
+        for (size_t i = 0; i < identifiedWords.size(); ++i) {
+            RCLCPP_INFO_STREAM(node_->get_logger(),
+                               "identifiedWords[" << i << "]: " << identifiedWords[i].value);
+        }
+
+        if (textInterpreter_->lettersIdentified("links", identifiedWords)) {
             submitRequestMove(MovementRequest::LOOK_LEFT, 3000, "ich schaue nach links", Prio::High);
         } else if (textInterpreter_->lettersIdentified("rechts", identifiedWords)) {
             submitRequestMove(MovementRequest::LOOK_RIGHT, 3000, "ich schaue nach rechts", Prio::High);

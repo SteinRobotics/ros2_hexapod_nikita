@@ -120,15 +120,7 @@ LOOK_RIGHT:
 
 LOOK_LEFT:
   - head: *head_look_left
-    body:
-      orientation:
-        roll: 0.0
-        pitch: 0.0
-        yaw: -20.0
-      direction:
-        x: 0.0
-        y: 0.0
-        z: 0.0
+    body: *body_neutral
     factorDuration: 0.33
 
   - factorDuration: 0.33

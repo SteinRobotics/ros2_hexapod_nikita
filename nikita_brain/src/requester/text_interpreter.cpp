@@ -63,11 +63,11 @@ void CTextInterpreter::readInterpretation() {
             interpretations_[key].wordType2WordIndices[wordType] = indicesForWordType;
         }
     }
-    // for debugging:
+    // // for debugging:
     // RCLCPP_INFO_STREAM(node_->get_logger(), "*** vocabulary_: ***");
     // for (const auto& [key, value] : vocabulary_) {
-    //     RCLCPP_INFO_STREAM(node_->get_logger(), value.value << ", index: " << value.index << ", type: "
-    //                                                         << value.type);
+    //     RCLCPP_INFO_STREAM(node_->get_logger(),
+    //                        value.value << ", index: " << value.index << ", type: " << value.type);
     // }
     // RCLCPP_INFO_STREAM(node_->get_logger(), "*** interpretations_: ***");
     // for (const auto& [key, value] : interpretations_) {
@@ -138,20 +138,18 @@ std::string CTextInterpreter::searchInterpretation(const std::vector<CWord>& ide
 
         uint32_t numberOfWordTypesFound = 0;
         for (const auto& [wordType, indices] : interpretation.wordType2WordIndices) {
+            bool foundThisWordType = false;
             for (const auto& word : identifiedWords) {
-                if (word.type != wordType) {
-                    continue;
-                }
                 if (isIndexIn(word.index, indices)) {
-                    RCLCPP_INFO_STREAM(node_->get_logger(),
-                                       "found word: " << word.value << " for wordType: " << wordType);
-                    numberOfWordTypesFound++;
+                    RCLCPP_INFO_STREAM(node_->get_logger(), "found word: |" << word.value
+                                                                            << "| for wordType: " << wordType
+                                                                            << " with index: " << word.index);
+                    foundThisWordType = true;
+                    break;  // only count this wordType once
                 }
-                //  else {
-                //     RCLCPP_INFO_STREAM(node_->get_logger(),
-                //                        "word: " << word.value << " not found for wordType: " << wordType
-                //                                 << " with index: " << word.index);
-                // }
+            }
+            if (foundThisWordType) {
+                numberOfWordTypesFound++;
             }
             if (numberOfWordTypesFound == interpretation.wordType2WordIndices.size()) {
                 return key;

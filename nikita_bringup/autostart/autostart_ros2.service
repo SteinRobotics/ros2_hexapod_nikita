@@ -16,9 +16,9 @@ After=network-online.target multi-user.target
 #After=multi-user.target
 
 [Service]
-User=nikita
-Group=nikita
-ExecStart=/bin/bash -c 'source /home/nikita/Workspace/colcon_nikita/install/setup.bash; ros2 launch nikita_bringup target_launch.py;'
+User=piroschka
+Group=piroschka
+ExecStart=/bin/bash -c 'source /home/piroschka/Workspace/colcon_nikita/install/setup.bash; ros2 launch nikita_bringup target_launch.py;'
 Type=idle
 #WorkingDirectory=/root
 # EnvironmentFile=/root/ros_autostart/ros_env

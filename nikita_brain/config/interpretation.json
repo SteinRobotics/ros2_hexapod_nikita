@@ -1,7 +1,7 @@
 {
     "commandTurnHead": {
-        "doing": [ "beweg", "dreh", "drehe", "sieh", "sehe", "schau", "schaue" ],
-        "bodyPart": [ "kopf", "lidar" ],
+        "doing": [ "sieh", "sehe", "schau", "schaue" ],
+        "preposition": [ "nach" ],
         "direction": [ "links", "rechts" ]
     },
     "commandWatch": {
@@ -11,7 +11,7 @@
     },
     "commandMove": {
         "doing": [ "fahr", "fahre", "beweg", "drehe" ],
-        "orientation": [ "vorn", "hinten", "links", "rechts" ]
+        "direction": [ "vorn", "hinten", "links", "rechts" ]
     },
     "commandStandup": {
         "doing": [ "steh", "stehe" ],
