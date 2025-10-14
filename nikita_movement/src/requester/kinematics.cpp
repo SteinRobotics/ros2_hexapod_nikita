@@ -76,7 +76,8 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     //       y <- |
     // z up -> +
     RCLCPP_INFO_STREAM(node_->get_logger(), "intialize legs current values");
-    intializeLegs(legs_, INIT_FOOT_POS_X, INIT_FOOT_POS_Y, INIT_FOOT_POS_Z);
+    // this is not the inital position, but the standing position
+    intializeLegs(legs_, STANDING_FOOT_POS_X, STANDING_FOOT_POS_Y, STANDING_FOOT_POS_Z);
     RCLCPP_INFO_STREAM(node_->get_logger(), "intialize legs for standing position");
     intializeLegs(legsStanding_, STANDING_FOOT_POS_X, STANDING_FOOT_POS_Y, STANDING_FOOT_POS_Z);
     RCLCPP_INFO_STREAM(node_->get_logger(), "intialize legs for laydown position");

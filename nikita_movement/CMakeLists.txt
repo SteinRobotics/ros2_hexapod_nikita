@@ -17,6 +17,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(nikita_interfaces REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(ament_cmake_gtest REQUIRED)
 
 
 ## set sources
@@ -53,5 +54,17 @@ install(DIRECTORY
   config
   DESTINATION share/${PROJECT_NAME}/
 )
+
+# Unit tests
+if(BUILD_TESTING)
+  ament_add_gtest(test_kinematics
+    test/test_kinematics.cpp
+    src/requester/kinematics.cpp
+  )
+  if(TARGET test_kinematics)
+    ament_target_dependencies(test_kinematics rclcpp nikita_interfaces)
+    target_include_directories(test_kinematics PRIVATE include/nikita_movement include/nikita_movement/requester)
+  endif()
+endif()
 
 ament_package()

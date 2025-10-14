@@ -22,14 +22,6 @@ node_movement:
 
 
     # sin(45°) and cos(45°) = 0.7071
-
-    # Initial foot positions
-    # RightFront:	angles: 0°, 2.3°, 7.7°	| x: 0.092, y: 0.092, z: -0.050
-    # RightMid:  	angles: 0°, 2.3°, 7.6°	| x: 0.000, y: 0.130, z: -0.050
-    INIT_FOOT_POS_X: [ 0.092,    0.0, -0.092,  0.092,    0.0, -0.092]
-    INIT_FOOT_POS_Y: [ 0.092,  0.130,  0.092, -0.092, -0.130, -0.092]
-    INIT_FOOT_POS_Z: [-0.050, -0.050, -0.050, -0.050, -0.050, -0.050]
-
     # Reference foot positions for standing
     # RightFront:	angles: 0°, 2.3°, 7.7°	| x: 0.092, y: 0.092, z: -0.050
     # RightMid:  	angles: 0°, 2.3°, 7.6°	| x: 0.000, y: 0.130, z: -0.050
@@ -45,9 +37,9 @@ node_movement:
     LAYDOWN_FOOT_POS_Z: [ 0.010,  0.010,  0.010,  0.010,  0.010,  0.010]
 
     # for gaits
-    LEG_LIFT_HEIGHT: 0.03      # [m]   // -0.05 + 0.03 = -0.01
-    GAIT_STEP_LENGTH: 0.025    # [m]
-    FACTOR_VELOCITY_TO_GAIT_CYCLE_TIME: 30.0      # [s²/m] ??
+    LEG_LIFT_HEIGHT: 0.025      # [m]   // -0.05 + 0.025 = -0.025
+    GAIT_STEP_LENGTH: 0.03     # [m]
+    FACTOR_VELOCITY_TO_GAIT_CYCLE_TIME: 40.0      # [s²/m] ??
 
     BODY_MAX_ROLL: 20.0  # deg
     BODY_MAX_PITCH: 20.0 # deg
