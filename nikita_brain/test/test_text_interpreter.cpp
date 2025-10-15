@@ -48,7 +48,7 @@ TEST_F(TextInterpreterTest, CommandWatch) {
 }
 
 TEST_F(TextInterpreterTest, CommandStandup) {
-    std::string text = "steh auf";
+    std::string text = "steh jetzt auf";
     auto words = interpreter_->parseText(text);
     // "steh auf" is two tokens
     EXPECT_EQ(words.size(), 2u);

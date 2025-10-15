@@ -270,13 +270,10 @@ void CKinematics::setLegAngles(const ELegIndex index, const CLegAngles& angles) 
                                                 << ", z: " << leg.footPos_.z);
 }
 
-CPose& CKinematics::getBody() {
-    return body_;
-}
-
-CLeg& CKinematics::getLeg(ELegIndex index) {
-    return legs_[index];
-}
+// getBody() and getLeg() were removed from the public API because callers
+// in the workspace use the other accessors (getLegs(), getLegsPositions(),
+// getLegsAngles()) which return the required data. Keeping the definitions
+// would leave dead code in the implementation.
 
 std::map<ELegIndex, CLeg>& CKinematics::getLegs() {
     return legs_;
