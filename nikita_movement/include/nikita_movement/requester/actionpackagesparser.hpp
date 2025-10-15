@@ -22,7 +22,6 @@ class CActionPackage {
     std::optional<CHead> head;
     std::optional<CPose> body;
     std::optional<std::map<ELegIndex, CLegAngles>> legAngles;
-    // footPositions holds explicit Cartesian targets per leg (body frame)
     std::optional<std::map<ELegIndex, CPosition>> footPositions;
     double factorDuration = 1.0;
 };

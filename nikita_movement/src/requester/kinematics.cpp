@@ -17,10 +17,6 @@ inline double deg2rad(double degrees) {
 }
 
 CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node) : node_(node) {
-    for (const auto& [key, value] : legIndexToName) {
-        legNameToIndex[value] = key;
-    }
-
     LEG_NAMES = node->declare_parameter<std::vector<std::string>>("LEG_NAMES", std::vector<std::string>());
 
     COXA_LENGTH = node->declare_parameter<double>("COXA_LENGTH", rclcpp::PARAMETER_DOUBLE);

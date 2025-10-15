@@ -53,7 +53,6 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
                                           std::vector<CActionPackage>& actionPackage) {
     CActionPackage action;
 
-    // Parse "factorDuration"
     if (step["factorDuration"]) {
         action.factorDuration = step["factorDuration"].as<double>();
     } else {
@@ -63,7 +62,6 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
         action.factorDuration = 1.0;
     }
 
-    // Parse "head" (accept either a sequence of maps or a single map)
     if (step["head"]) {
         double yaw = 0.0, pitch = 0.0;
         YAML::Node headNode = step["head"];
@@ -79,7 +77,6 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
         action.head = CHead(yaw, pitch);
     }
 
-    // Parse "body"
     if (step["body"]) {
         double roll = 0.0, pitch = 0.0, yaw = 0.0;
         double x = 0.0, y = 0.0, z = 0.0;
@@ -126,14 +123,7 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
         action.body = CPose(x, y, z, roll, pitch, yaw);
     }
 
-    // Parse "legs"
     if (step["legs"]) {
-        const std::map<std::string, ELegIndex> legNameToIndex = {
-            {"RightFront", ELegIndex::RightFront}, {"RightMid", ELegIndex::RightMid},
-            {"RightBack", ELegIndex::RightBack},   {"LeftFront", ELegIndex::LeftFront},
-            {"LeftMid", ELegIndex::LeftMid},       {"LeftBack", ELegIndex::LeftBack},
-        };
-
         std::map<ELegIndex, CLegAngles> legsMap;
         for (const auto& leg : step["legs"]) {
             for (const auto& it : leg) {
@@ -165,14 +155,7 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
         }
     }
 
-    // Parse "footPositions"
     if (step["footPositions"]) {
-        const std::map<std::string, ELegIndex> legNameToIndex = {
-            {"RightFront", ELegIndex::RightFront}, {"RightMid", ELegIndex::RightMid},
-            {"RightBack", ELegIndex::RightBack},   {"LeftFront", ELegIndex::LeftFront},
-            {"LeftMid", ELegIndex::LeftMid},       {"LeftBack", ELegIndex::LeftBack},
-        };
-
         std::map<ELegIndex, CPosition> posMap;
         for (const auto& leg : step["footPositions"]) {
             for (const auto& it : leg) {

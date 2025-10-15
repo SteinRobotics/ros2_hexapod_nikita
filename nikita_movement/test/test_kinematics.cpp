@@ -5,7 +5,6 @@
 
 using namespace std;
 
-// Helper to create a dummy node for CKinematics
 std::shared_ptr<rclcpp::Node> makeNode() {
     if (!rclcpp::ok()) {
         rclcpp::init(0, nullptr);

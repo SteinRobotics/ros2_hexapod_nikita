@@ -13,6 +13,18 @@
 #include "nikita_interfaces/msg/pose.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+
+// future thoughts:
+// CBody has 1 CPose
+// CBody has 6 CLegs and 1 CHead
+// CLeg has 3 CJoints
+// CHead has 2 CJoints
+// CJoint has 1 degAngle, has 1 CPosition (x,y,z), has 1 index(Name)
+
+// or
+// CLeg has 3 Joints, each Joint has 1 parentJoint and 1 childJoint
+
+
 enum class ELegIndex {
     RightFront,
     RightMid,
@@ -20,6 +32,18 @@ enum class ELegIndex {
     LeftFront,
     LeftMid,
     LeftBack,
+};
+
+// TODO is there better way than using global variables?
+const std::map<const ELegIndex, const std::string> legIndexToName = {
+    {ELegIndex::RightFront, "RightFront"}, {ELegIndex::RightMid, "RightMid"},
+    {ELegIndex::RightBack, "RightBack"},   {ELegIndex::LeftFront, "LeftFront"},
+    {ELegIndex::LeftMid, "LeftMid"},       {ELegIndex::LeftBack, "LeftBack"},
+};
+const std::map<const std::string, const ELegIndex> legNameToIndex= {
+    {"RightFront", ELegIndex::RightFront}, {"RightMid", ELegIndex::RightMid},
+    {"RightBack", ELegIndex::RightBack},   {"LeftFront", ELegIndex::LeftFront},
+    { "LeftMid", ELegIndex::LeftMid},      { "LeftBack", ELegIndex::LeftBack},
 };
 
 class CPosition {
@@ -111,21 +135,19 @@ class CKinematics {
     ~CKinematics() = default;
 
     CLeg& setCartesianFeet(const ELegIndex index, const CPosition& targetFeetPos);
-    void calcLegInverseKinematics(const CPosition& targetFeetPos, CLeg& leg, const ELegIndex& legIndex);
-    void calcLegForwardKinematics(const CLegAngles target, CLeg& leg);
     void setLegAngles(const ELegIndex index, const CLegAngles& angles);
     void moveBody(const std::map<ELegIndex, CPosition>& footTargets,
-                  const CPose body = CPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
-
+        const CPose body = CPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+        
     void setHead(double degYaw, double degPitch) {
-        head_.degYaw = degYaw;
-        head_.degPitch = degPitch;
+            head_.degYaw = degYaw; 
+            head_.degPitch = degPitch;
     };
     void setHead(CHead head) {
-        head_.degYaw = head.degYaw;
+        head_.degYaw = head.degYaw; 
         head_.degPitch = head.degPitch;
     }
-
+    
     std::map<ELegIndex, CLeg> legs() {
         return legs_;
     };
@@ -135,7 +157,7 @@ class CKinematics {
     std::map<ELegIndex, CLeg> legsLayDown() {
         return legsLayDown_;
     };
-
+    
     std::map<ELegIndex, CPosition> getLegsPositions() const;
     std::map<ELegIndex, CPosition> getLegsStandingPositions() const;
     std::map<ELegIndex, CPosition> getLegsLayDownPositions() const;
@@ -145,51 +167,48 @@ class CKinematics {
     CLegAngles& getAngles(ELegIndex index);
     std::map<ELegIndex, CLegAngles> getLegsAngles();
     CPose& getBody();
-
+    
     CHead& getHead() {
         return head_;
     };
 
     // Parameters
     std::vector<std::string> LEG_NAMES;
-
+    
     double COXA_LENGTH = double(0);
     double COXA_HEIGHT = double(0);
     double FEMUR_LENGTH = double(0);
     double TIBIA_LENGTH = double(0);
-
+    
     std::vector<double> CENTER_TO_COXA_X;
     std::vector<double> CENTER_TO_COXA_Y;
     std::vector<double> OFFSET_COXA_ANGLE_DEG;
-
+    
     std::vector<double> INIT_FOOT_POS_X;
     std::vector<double> INIT_FOOT_POS_Y;
     std::vector<double> INIT_FOOT_POS_Z;
-
+    
     std::vector<double> STANDING_FOOT_POS_X;
     std::vector<double> STANDING_FOOT_POS_Y;
     std::vector<double> STANDING_FOOT_POS_Z;
-
+    
     std::vector<double> LAYDOWN_FOOT_POS_X;
     std::vector<double> LAYDOWN_FOOT_POS_Y;
     std::vector<double> LAYDOWN_FOOT_POS_Z;
-
+    
     double BODY_MAX_ROLL = double(0);
     double BODY_MAX_PITCH = double(0);
     double BODY_MAX_YAW = double(0);
     double HEAD_MAX_YAW = double(0);
     double HEAD_MAX_PITCH = double(0);
+    
 
-    std::map<ELegIndex, std::string> legIndexToName = {
-        {ELegIndex::RightFront, "RightFront"}, {ELegIndex::RightMid, "RightMid"},
-        {ELegIndex::RightBack, "RightBack"},   {ELegIndex::LeftFront, "LeftFront"},
-        {ELegIndex::LeftMid, "LeftMid"},       {ELegIndex::LeftBack, "LeftBack"},
-    };
-    std::map<std::string, ELegIndex> legNameToIndex;
-
-   private:
+    
+    private:
     void intializeLegs(std::map<ELegIndex, CLeg>& legs, std::vector<double>& posX, std::vector<double>& posY,
                        std::vector<double>& posZ);
+    void calcLegInverseKinematics(const CPosition& targetFeetPos, CLeg& leg, const ELegIndex& legIndex);
+    void calcLegForwardKinematics(const CLegAngles target, CLeg& leg);
     CPosition rotate(const CPosition& point, const COrientation& rot);
 
     std::shared_ptr<rclcpp::Node> node_;

@@ -353,7 +353,7 @@ void CRequester::requestTestLegs(const MovementRequest& msg) {
         ELegIndex legIndex = static_cast<ELegIndex>(idx);
 
         RCLCPP_INFO_STREAM(node_->get_logger(),
-                           "CRequester:: requestTestLegs: " << kinematics_->legIndexToName.at(legIndex));
+                           "CRequester:: requestTestLegs: " << legIndexToName.at(legIndex));
 
         CLegAngles legAngles = kinematics_->getAngles(legIndex);
         CLegAngles origLegAngles = legAngles;
