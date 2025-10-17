@@ -31,10 +31,6 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     OFFSET_COXA_ANGLE_DEG =
         node->declare_parameter<std::vector<double>>("OFFSET_COXA_ANGLE_DEG", std::vector<double>());
 
-    INIT_FOOT_POS_X = node->declare_parameter<std::vector<double>>("INIT_FOOT_POS_X", std::vector<double>());
-    INIT_FOOT_POS_Y = node->declare_parameter<std::vector<double>>("INIT_FOOT_POS_Y", std::vector<double>());
-    INIT_FOOT_POS_Z = node->declare_parameter<std::vector<double>>("INIT_FOOT_POS_Z", std::vector<double>());
-
     STANDING_FOOT_POS_X =
         node->declare_parameter<std::vector<double>>("STANDING_FOOT_POS_X", std::vector<double>());
     STANDING_FOOT_POS_Y =
@@ -87,6 +83,25 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     body_.orientation.yaw = 0.0;
 }
 
+void CKinematics::logLegsPositions(std::map<ELegIndex, CLeg>& legs) {
+    RCLCPP_INFO_STREAM(node_->get_logger(), "----------------------------------------");
+    for (const auto& [index, leg] : legs) {
+        logLegPosition(index, leg);
+    }
+    RCLCPP_INFO_STREAM(node_->get_logger(), "----------------------------------------");
+}
+
+void CKinematics::logLegPosition(const ELegIndex index, const CLeg& leg) {
+        RCLCPP_INFO_STREAM(node_->get_logger(),
+                           legIndexToName.at(index)
+                               << ": \tag: " << std::fixed << std::setprecision(3) << std::setw(3)
+                               << leg.angles_.degCoxa << "°, " << std::setw(3) << leg.angles_.degFemur
+                               << "°, " << std::setw(3) << leg.angles_.degTibia << "°\t| x: " << std::fixed
+                               << std::setprecision(3) << std::setw(3) << leg.footPos_.x
+                               << ", y: " << std::setw(3) << leg.footPos_.y << ", z: " << std::setw(3)
+                               << leg.footPos_.z);
+}
+
 void CKinematics::intializeLegs(std::map<ELegIndex, CLeg>& legs, std::vector<double>& posX,
                                 std::vector<double>& posY, std::vector<double>& posZ) {
     for (uint32_t i = 0; i < LEG_NAMES.size(); i++) {
@@ -100,18 +115,11 @@ void CKinematics::intializeLegs(std::map<ELegIndex, CLeg>& legs, std::vector<dou
 
         // calc the legs[legIndex].angles_
         calcLegInverseKinematics(legs[legIndex].footPos_, legs[legIndex], legIndex);
-
-        RCLCPP_INFO_STREAM(node_->get_logger(),
-                           legIndexToName.at(legIndex)
-                               << ": \tag: " << std::fixed << std::setprecision(0) << std::setw(3)
-                               << legs[legIndex].angles_.degCoxa << "°, " << std::setw(3)
-                               << legs[legIndex].angles_.degFemur << "°, " << std::setw(3)
-                               << legs[legIndex].angles_.degTibia << "°\t| x: " << std::fixed
-                               << std::setprecision(2) << std::setw(3) << legs[legIndex].footPos_.x
-                               << ", y: " << std::setw(3) << legs[legIndex].footPos_.y
-                               << ", z: " << std::setw(3) << legs[legIndex].footPos_.z);
     }
+    logLegsPositions(legs);
 }
+
+
 
 void CKinematics::moveBody(const std::map<ELegIndex, CPosition>& footTargets, const CPose body) {
     body_ = body;
@@ -122,16 +130,8 @@ void CKinematics::moveBody(const std::map<ELegIndex, CPosition>& footTargets, co
         CPosition legBase = rotate(coxaPosition, body.orientation) + body.position;
         CPosition footRel = footTarget - legBase;
         calcLegInverseKinematics(footRel, leg, legIndex);
-
-        RCLCPP_INFO_STREAM(node_->get_logger(),
-                           legIndexToName.at(legIndex)
-                               << ": \tag: " << std::fixed << std::setprecision(0) << std::setw(3)
-                               << leg.angles_.degCoxa << "°, " << std::setw(3) << leg.angles_.degFemur
-                               << "°, " << std::setw(3) << leg.angles_.degTibia << "°\t| x: " << std::fixed
-                               << std::setprecision(2) << std::setw(3) << leg.footPos_.x
-                               << ", y: " << std::setw(3) << leg.footPos_.y << ", z: " << std::setw(3)
-                               << leg.footPos_.z);
     }
+    logLegsPositions(legs_);
 }
 
 CPosition CKinematics::rotate(const CPosition& point, const COrientation& orientation) {
@@ -229,51 +229,27 @@ void CKinematics::calcLegForwardKinematics(const CLegAngles target, CLeg& leg) {
                                     TIBIA_LENGTH * sin(deg2rad(-90 + target.degFemur + target.degTibia)));
 }
 
-CLeg& CKinematics::setCartesianFeet(const ELegIndex legIndex, const CPosition& targetFeetPos) {
-    auto& leg = getLegs().at(legIndex);
-
-    calcLegInverseKinematics(targetFeetPos, leg, legIndex);
-
-    RCLCPP_INFO_STREAM(node_->get_logger(), "CKinematics::setCartesianFeet "
-                                                << legIndexToName.at(legIndex) << ", x: " << std::fixed
-                                                << std::setprecision(2) << leg.footPos_.x
-                                                << ", y: " << leg.footPos_.y << ", z: " << leg.footPos_.z);
-    RCLCPP_INFO_STREAM(node_->get_logger(),
-                       "CKinematics:: results to: " << legIndexToName.at(legIndex) << ", coxa: " << std::fixed
-                                                    << std::setprecision(2) << leg.angles_.degCoxa
-                                                    << ", femur: " << leg.angles_.degFemur
-                                                    << ", tibia: " << leg.angles_.degTibia);
-
-    return leg;
+void CKinematics::setSingleFeet(const ELegIndex legIndex, const CPosition& targetFeetPos) {
+    moveBody({{legIndex, targetFeetPos}}, body_);
 }
 
 void CKinematics::setLegAngles(const ELegIndex index, const CLegAngles& angles) {
     auto& leg = legs_.at(index);
 
-    RCLCPP_INFO_STREAM(node_->get_logger(), legIndexToName.at(index)
-                                                << " before " << std::fixed << std::setprecision(2)
-                                                << ":\tag: " << leg.angles_.degCoxa << "°, "
-                                                << leg.angles_.degFemur << "°, " << leg.angles_.degTibia
-                                                << "°\t| x: " << leg.footPos_.x << ", y: " << leg.footPos_.y
-                                                << ", z: " << leg.footPos_.z);
+    // transform to leg coordinate system by adding the angle psi
+    CLegAngles targetAngles = angles;
+    targetAngles.degCoxa += bodyCenterOffsets_[index].psi; 
+    
+    calcLegForwardKinematics(targetAngles, leg);
 
-    calcLegForwardKinematics(angles, leg);
-    // leg.angles_.degCoxa += bodyCenterOffsets_[index].psi;   // guess this is wrong?!!
+    // transform back to robot coordinate system by adding body center offset and subtracting psi
     leg.footPos_.x += bodyCenterOffsets_[index].x;
     leg.footPos_.y += bodyCenterOffsets_[index].y;
+    leg.angles_.degCoxa -= bodyCenterOffsets_[index].psi;
 
-    RCLCPP_INFO_STREAM(node_->get_logger(), legIndexToName.at(index)
-                                                << " after " << std::fixed << std::setprecision(2)
-                                                << ":\tag: " << leg.angles_.degCoxa << "°, "
-                                                << leg.angles_.degFemur << "°, " << leg.angles_.degTibia
-                                                << "°\t| x: " << leg.footPos_.x << ", y: " << leg.footPos_.y
-                                                << ", z: " << leg.footPos_.z);
+    RCLCPP_INFO_STREAM(node_->get_logger(), legIndexToName.at(index) << " setLegAngles to");
+    logLegPosition(index, leg);
 }
-
-// getBody() and getLeg() were removed from the public API because callers
-// in the workspace use the other accessors (getLegs(), getLegsPositions(),
-// getLegsAngles()) which return the required data. Keeping the definitions
-// would leave dead code in the implementation.
 
 std::map<ELegIndex, CLeg>& CKinematics::getLegs() {
     return legs_;

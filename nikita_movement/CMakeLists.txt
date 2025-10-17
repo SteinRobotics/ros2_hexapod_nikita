@@ -31,15 +31,20 @@ set(SOURCES
   src/handler/servohandler.cpp
 )
 
-add_executable(node_movement
-  src/node_movement.cpp
+add_library(nikita_movement_core
   ${SOURCES}
 )
-ament_target_dependencies(node_movement rclcpp std_msgs geometry_msgs std_srvs ament_index_cpp nikita_interfaces)
+target_include_directories(nikita_movement_core PUBLIC include/nikita_movement include/nikita_movement/requester)
+ament_target_dependencies(nikita_movement_core rclcpp std_msgs geometry_msgs std_srvs ament_index_cpp nikita_interfaces)
+target_link_libraries(nikita_movement_core yaml-cpp::yaml-cpp)
 
-target_link_libraries(node_movement
-  yaml-cpp::yaml-cpp
+add_executable(node_movement
+  src/node_movement.cpp
 )
+target_link_libraries(node_movement
+  nikita_movement_core
+)
+ament_target_dependencies(node_movement rclcpp)
 
 include_directories(
   include/nikita_movement/
@@ -59,11 +64,26 @@ install(DIRECTORY
 if(BUILD_TESTING)
   ament_add_gtest(test_kinematics
     test/test_kinematics.cpp
-    src/requester/kinematics.cpp
   )
   if(TARGET test_kinematics)
     ament_target_dependencies(test_kinematics rclcpp nikita_interfaces)
-    target_include_directories(test_kinematics PRIVATE include/nikita_movement include/nikita_movement/requester)
+    target_link_libraries(test_kinematics nikita_movement_core)
+  endif()
+
+  ament_add_gtest(test_actionpackagesparser
+    test/test_actionpackagesparser.cpp
+  )
+  if(TARGET test_actionpackagesparser)
+    ament_target_dependencies(test_actionpackagesparser rclcpp ament_index_cpp nikita_interfaces)
+    target_link_libraries(test_actionpackagesparser nikita_movement_core)
+  endif()
+
+  ament_add_gtest(test_requester
+    test/test_requester.cpp
+  )
+  if(TARGET test_requester)
+    ament_target_dependencies(test_requester rclcpp nikita_interfaces ament_index_cpp)
+    target_link_libraries(test_requester nikita_movement_core)
   endif()
 endif()
 

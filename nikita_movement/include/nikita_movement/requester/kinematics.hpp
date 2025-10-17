@@ -56,6 +56,17 @@ class CPosition {
         return {x - rhs.x, y - rhs.y, z - rhs.z};
     }
 
+    bool operator==(const CPosition &rhs) const {
+        return x == rhs.x && y == rhs.y && z == rhs.z;
+    }
+
+    bool operator!=(const CPosition &rhs) const { return !(*this == rhs); }
+
+    // approximate comparison with tolerance
+    static inline bool almostEqual(const CPosition &a, const CPosition &b, double tol) {
+        return (std::abs(a.x - b.x) <= tol) && (std::abs(a.y - b.y) <= tol) && (std::abs(a.z - b.z) <= tol);
+    }
+
     double x = double(0);
     double y = double(0);
     double z = double(0);
@@ -132,7 +143,7 @@ class CKinematics {
     CKinematics(std::shared_ptr<rclcpp::Node> node);
     ~CKinematics() = default;
 
-    CLeg& setCartesianFeet(const ELegIndex index, const CPosition& targetFeetPos);
+    void setSingleFeet(const ELegIndex index, const CPosition& targetFeetPos);
     void setLegAngles(const ELegIndex index, const CLegAngles& angles);
     void moveBody(const std::map<ELegIndex, CPosition>& footTargets,
                   const CPose body = CPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
@@ -151,15 +162,16 @@ class CKinematics {
     std::map<ELegIndex, CPosition> getLegsStandingPositions() const;
     std::map<ELegIndex, CPosition> getLegsLayDownPositions() const;
 
-    // Return a reference to a single leg (not currently used by callers)
-    // CLeg& getLeg(ELegIndex index);
     std::map<ELegIndex, CLeg>& getLegs();
     CLegAngles& getAngles(ELegIndex index);
     std::map<ELegIndex, CLegAngles> getLegsAngles();
-    // CPose& getBody();  // not used anywhere in the workspace
 
     CHead& getHead() {
         return head_;
+    };
+
+    CPose& getBody() {
+        return body_;
     };
 
     // Parameters
@@ -173,10 +185,6 @@ class CKinematics {
     std::vector<double> CENTER_TO_COXA_X;
     std::vector<double> CENTER_TO_COXA_Y;
     std::vector<double> OFFSET_COXA_ANGLE_DEG;
-
-    std::vector<double> INIT_FOOT_POS_X;
-    std::vector<double> INIT_FOOT_POS_Y;
-    std::vector<double> INIT_FOOT_POS_Z;
 
     std::vector<double> STANDING_FOOT_POS_X;
     std::vector<double> STANDING_FOOT_POS_Y;
@@ -195,6 +203,8 @@ class CKinematics {
    private:
     void intializeLegs(std::map<ELegIndex, CLeg>& legs, std::vector<double>& posX, std::vector<double>& posY,
                        std::vector<double>& posZ);
+    void logLegsPositions(std::map<ELegIndex, CLeg>& legs);
+    void logLegPosition(const ELegIndex index, const CLeg& leg);
     void calcLegInverseKinematics(const CPosition& targetFeetPos, CLeg& leg, const ELegIndex& legIndex);
     void calcLegForwardKinematics(const CLegAngles target, CLeg& leg);
     CPosition rotate(const CPosition& point, const COrientation& rot);

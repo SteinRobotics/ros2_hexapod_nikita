@@ -17,10 +17,10 @@ class CActionExecutor {
     CActionExecutor(std::shared_ptr<rclcpp::Node> node);
     virtual ~CActionExecutor() = default;
 
-    void request(std::vector<std::shared_ptr<CRequestBase>> requests_v);
-    void requestWithoutQueue(std::vector<std::shared_ptr<CRequestBase>> requests_v);
-    void cancelRunningRequest();
-    bool isDone();
+    virtual void request(std::vector<std::shared_ptr<CRequestBase>> requests_v);
+    virtual void requestWithoutQueue(std::vector<std::shared_ptr<CRequestBase>> requests_v);
+    virtual void cancelRunningRequest();
+    virtual bool isDone();
 
    private:
     void executeNextPendingRequest();

@@ -187,6 +187,10 @@ void CRequester::requestSequence(const MovementRequest& msg) {
     auto sequence = actionPackagesParser_->getRequests(msg.name);
 
     for (const auto& action : sequence) {
+
+        std::map<ELegIndex, CPosition> legPositions = kinematics_->getLegsPositions();
+        CPose bodyPos = kinematics_->getBody();
+
         if (action.legAngles.has_value()) {
             const auto& legAnglesMap = action.legAngles.value();
             // Apply angles for all legs contained in the map
@@ -197,28 +201,20 @@ void CRequester::requestSequence(const MovementRequest& msg) {
         }
         if (action.footPositions.has_value()) {
             const auto& footPositionsMap = action.footPositions.value();
-            // Apply positions for all legs contained in the map
             for (const auto& [legIndex, positionData] : footPositionsMap) {
-                kinematics_->setCartesianFeet(legIndex, positionData);
+                legPositions.at(legIndex) = positionData;
             }
         }
         if (action.body.has_value()) {
-            kinematics_->moveBody(kinematics_->getLegsPositions(), *(action.body));
-            // RCLCPP_INFO_STREAM(node_->get_logger(),
-            //                    "CRequester::requestSequence: body: "
-            //                        << action.body->position.x << ", " << action.body->position.y << ", "
-            //                        << action.body->position.z << ", " << action.body->orientation.roll << ", "
-            //                        << action.body->orientation.pitch << ", " << action.body->orientation.yaw);
+            auto bodyPos = CPose(action.body->position, action.body->orientation);
+        }
+        if (action.body.has_value() || action.footPositions.has_value()) {
+            kinematics_->moveBody(legPositions, bodyPos);
         }
         if (action.head.has_value()) {
             kinematics_->setHead(action.head->degYaw, action.head->degPitch);
-            // RCLCPP_INFO_STREAM(node_->get_logger(),
-            //                    "CRequester::requestSequence: head: " << action.head->degYaw << ", "
-            //                                                          << action.head->degPitch);
         }
         double duration_ms = msg.duration_ms * action.factorDuration;
-
-        // RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::requestSequence: duration: " << duration_ms);
 
         actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
                                   std::make_shared<CRequestHead>(kinematics_->getHead()),

@@ -2,6 +2,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "requester/kinematics.hpp"
+#include "test_helpers.hpp"
 
 using namespace std;
 
@@ -32,6 +33,7 @@ class KinematicsTest : public ::testing::Test {
 
         node_ = std::make_shared<rclcpp::Node>("test_kinematics_node", options);
         kin_ = std::make_unique<CKinematics>(node_);
+        cout << "KinematicsTest SetUp complete" << endl;
     }
 
     void TearDown() override {
@@ -46,52 +48,82 @@ class KinematicsTest : public ::testing::Test {
 };
 
 // Standing position
-// RightFront: 	ag:   0.0°,   2.3°,   7.7°	| x: 0.20, y: 0.16, z: -0.05
+// RightFront: 	ag: 0.000°, 2.276°, 7.704°	| x: 0.201, y: 0.160, z: -0.050
 
 // Laydown position
-// RightFront: 	ag:   0.0°,  71°, -53°	| x: 0.18, y: 0.14, z: 0.01
+// RightFront: 	ag: 0.000°, 70.723°, -53.320°	| x: 0.180, y: 0.139, z: 0.010
+
 
 TEST_F(KinematicsTest, setLegAngles) {
     // create target angles
     CLegAngles angles;
     angles.degCoxa = 0.0;
-    angles.degFemur = 2.3;
-    angles.degTibia = 7.7;
+    angles.degFemur = 2.276;
+    angles.degTibia =  7.704;
 
     kin_->setLegAngles(ELegIndex::RightFront, angles);
 
-    double expected_x = 0.109;
-    double expected_y = 0.1981404164812362;
-    double expected_z = -0.050;
+    CPosition footPosExpected;
+    footPosExpected.x = 0.201; // 0.092 + 0.109
+    footPosExpected.y = 0.160; // 0.092 + 0.068
+    footPosExpected.z = -0.050; // 0.045 - 0.095
 
     auto& leg = kin_->getLegs().at(ELegIndex::RightFront);
 
-    EXPECT_NEAR(leg.footPos_.x, expected_x, 1e-4);
-    EXPECT_NEAR(leg.footPos_.y, expected_y, 1e-4);
-    EXPECT_NEAR(leg.footPos_.z, expected_z, 1e-4);
+    expectPositionNear(footPosExpected, leg.footPos_, 1e-3, "setLegAngles position mismatch");
+    expectAnglesNear(angles, leg.angles_, 1e-3, "setLegAngles angles mismatch");
 }
 
-TEST_F(KinematicsTest, moveBody) {
-    std::map<ELegIndex, CPosition> footTargets;
-    footTargets[ELegIndex::RightFront] = CPosition(0.109, 0.1981404164812362, -0.050);
-
-    CPose body;
-    body.position.x = 0.0;
-    body.position.y = 0.0;
-    body.position.z = 0.0;
-    body.orientation.roll = 0.0;
-    body.orientation.pitch = 0.0;
-    body.orientation.yaw = 0.0;
-
-    kin_->moveBody(footTargets, body);
-
-    double expected_x = 0.109;
-    double expected_y = 0.1981404164812362;
-    double expected_z = -0.050;
-
+TEST_F(KinematicsTest, checkStandingPosition) {
+    kin_->moveBody(kin_->getLegsStandingPositions());
     auto& leg = kin_->getLegs().at(ELegIndex::RightFront);
 
-    EXPECT_NEAR(leg.footPos_.x, expected_x, 1e-4);
-    EXPECT_NEAR(leg.footPos_.y, expected_y, 1e-4);
-    EXPECT_NEAR(leg.footPos_.z, expected_z, 1e-4);
+    CPosition footPosExpected;
+    footPosExpected.x = 0.201; // 0.092 + 0.109
+    footPosExpected.y = 0.160; // 0.092 + 0.068
+    footPosExpected.z = -0.050; // 0.045 - 0.095
+
+    CLegAngles anglesExpected;
+    anglesExpected.degCoxa = 0.0;
+    anglesExpected.degFemur = 2.276;
+    anglesExpected.degTibia = 7.704;
+
+    expectPositionNear(footPosExpected, leg.footPos_, 1e-3, "standing position mismatch");
+    expectAnglesNear(anglesExpected, leg.angles_, 1e-3, "standing angles mismatch");
+}
+
+TEST_F(KinematicsTest, checkLaydownPosition) {
+    kin_->moveBody(kin_->getLegsLayDownPositions());
+    auto& leg = kin_->getLegs().at(ELegIndex::RightFront);
+
+    CPosition footPosExpected;
+    footPosExpected.x = 0.180; // 0.071 + 0.109
+    footPosExpected.y = 0.139; // 0.071 + 0.068
+    footPosExpected.z = 0.010;  // 0.045 - 0.035
+
+    CLegAngles anglesExpected;
+    anglesExpected.degCoxa = 0.0;
+    anglesExpected.degFemur = 70.723;
+    anglesExpected.degTibia = -53.320;
+
+    expectPositionNear(footPosExpected, leg.footPos_, 1e-3, "laydown position mismatch");
+    expectAnglesNear(anglesExpected, leg.angles_, 1e-3, "laydown angles mismatch");
+}
+
+TEST_F(KinematicsTest, checkSetFeet) {
+    CPosition targetPos;
+    targetPos.x = 0.201; // 0.092 + 0.109
+    targetPos.y = 0.160; // 0.092 + 0.068
+    targetPos.z = -0.050; // 0.045 - 0.095
+
+    kin_->setSingleFeet(ELegIndex::RightFront, targetPos);
+    auto& leg = kin_->getLegs().at(ELegIndex::RightFront);
+
+    CLegAngles anglesExpected;
+    anglesExpected.degCoxa = 0.0;
+    anglesExpected.degFemur = 2.276;
+    anglesExpected.degTibia = 7.704;
+
+    expectPositionNear(targetPos, leg.footPos_, 1e-3, "setFeet position mismatch");
+    expectAnglesNear(anglesExpected, leg.angles_, 1e-3, "setFeet angles mismatch");
 }
