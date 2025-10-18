@@ -56,14 +56,16 @@ class CPosition {
         return {x - rhs.x, y - rhs.y, z - rhs.z};
     }
 
-    bool operator==(const CPosition &rhs) const {
+    bool operator==(const CPosition& rhs) const {
         return x == rhs.x && y == rhs.y && z == rhs.z;
     }
 
-    bool operator!=(const CPosition &rhs) const { return !(*this == rhs); }
+    bool operator!=(const CPosition& rhs) const {
+        return !(*this == rhs);
+    }
 
     // approximate comparison with tolerance
-    static inline bool almostEqual(const CPosition &a, const CPosition &b, double tol) {
+    static inline bool almostEqual(const CPosition& a, const CPosition& b, double tol) {
         return (std::abs(a.x - b.x) <= tol) && (std::abs(a.y - b.y) <= tol) && (std::abs(a.z - b.z) <= tol);
     }
 
@@ -154,8 +156,7 @@ class CKinematics {
     };
     // set head by components
     void setHead(CHead head) {
-        head_.degYaw = head.degYaw;
-        head_.degPitch = head.degPitch;
+        head_ = head;
     }
 
     std::map<ELegIndex, CPosition> getLegsPositions() const;
@@ -216,8 +217,8 @@ class CKinematics {
     std::map<ELegIndex, CLeg> legsLayDown_;   // change to shared pointer and make const
     std::map<ELegIndex, CBodyCenterOffset> bodyCenterOffsets_;
 
-    CPose body_;
-    CHead head_;
+    CPose body_ = {};
+    CHead head_ = {};
 
     double sqFemurLength_ = 0.0;
     double sqTibiaLength_ = 0.0;

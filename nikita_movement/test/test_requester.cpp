@@ -92,12 +92,12 @@ TEST_F(RequesterTest, HandleLayDownRequest) {
     EXPECT_EQ(legs_map.size(), 6u);
     for (const auto& pair : legs_map) {
         const auto& angles = pair.second;
-        expectAnglesNear(angles, CLegAngles{0.0, 70.723, -53.320}, 1.0,
+        expectAnglesNear(CLegAngles{0.0, 70.723, -53.320}, angles, 1.0,
                          "Leg angles in LAYDOWN do not match expected values");
     }
 
     auto duration_ms = actionExecutor_->getDurationMs();
-    EXPECT_EQ(duration_ms, 1000u);
+    EXPECT_EQ(1000u, duration_ms);
     auto [degYaw, degPitch] = actionExecutor_->getHeadAngles();
     expectHeadNear(CHead{0.0, -20.0}, CHead{degYaw, degPitch}, 1.0,
                    "Head angles in LAYDOWN do not match expected values");
@@ -118,11 +118,11 @@ TEST_F(RequesterTest, HandleStandUpRequest) {
     EXPECT_EQ(legs_map.size(), 6u);
     for (const auto& pair : legs_map) {
         const auto& angles = pair.second;
-        expectAnglesNear(angles, CLegAngles{0.0, 2.276, 7.704}, 1.0,
+        expectAnglesNear(CLegAngles{0.0, 2.276, 7.704}, angles, 1.0,
                          "Leg angles in STAND_UP do not match expected values");
     }
     auto duration_ms = actionExecutor_->getDurationMs();
-    EXPECT_EQ(duration_ms, 1000u);
+    EXPECT_EQ(1000u, duration_ms);
     auto [degYaw, degPitch] = actionExecutor_->getHeadAngles();
     expectHeadNear(CHead{0.0, 0.0}, CHead{degYaw, degPitch}, 1.0,
                    "Head angles in STAND_UP do not match expected values");

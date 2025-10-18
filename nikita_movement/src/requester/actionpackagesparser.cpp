@@ -53,6 +53,8 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
                                           std::vector<CActionPackage>& actionPackage) {
     CActionPackage action;
 
+    // No debug dumps: keep output quiet in CI
+
     if (step["factorDuration"]) {
         action.factorDuration = step["factorDuration"].as<double>();
     } else {
@@ -65,6 +67,7 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
     if (step["head"]) {
         double yaw = 0.0, pitch = 0.0;
         YAML::Node headNode = step["head"];
+        // head node type diagnostics removed to reduce noise
         if (headNode.IsSequence()) {
             for (const auto& headEntry : headNode) {
                 if (headEntry["yaw"]) yaw = headEntry["yaw"].as<double>();
@@ -123,7 +126,7 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
         action.body = CPose(x, y, z, roll, pitch, yaw);
     }
 
-    if (step["legs"]) {
+    if (step["legAngles"]) {
         std::map<ELegIndex, CLegAngles> legsMap;
 
         // Recursive processor to handle maps, sequences, and YAML merge key '<<'
@@ -167,7 +170,7 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
             }
         };
 
-        processLegsNode(step["legs"]);
+        processLegsNode(step["legAngles"]);
         if (!legsMap.empty()) {
             action.legAngles = legsMap;
         }
@@ -222,7 +225,9 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
 
 std::vector<CActionPackage>& CActionPackagesParser::getRequests(const std::string& packageName) {
     if (actionPackages_.find(packageName) != actionPackages_.end()) {
-        return actionPackages_.at(packageName);
+        auto& vec = actionPackages_.at(packageName);
+        // No diagnostic logging here to keep test output clean
+        return vec;
     } else {
         RCLCPP_ERROR_STREAM(node_->get_logger(), "Action package not found: " << packageName);
         static std::vector<CActionPackage> empty_vector;

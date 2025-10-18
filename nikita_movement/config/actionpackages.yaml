@@ -1,6 +1,8 @@
 # Presets and anchors for common poses
+# Always combine body and footPositions OR use legAngles alone
+
 presets:
-  legs_standing: &legs_standing
+  legAngles_standing: &legAngles_standing
     All: { coxa: 0.0, femur: 2.276, tibia: 7.704 }
 
   footPositions_standing: &footPositions_standing
@@ -11,7 +13,7 @@ presets:
     LeftMid:    { x:  0.000, y: -0.218, z: -0.050 }
     LeftBack:   { x: -0.201, y: -0.160, z: -0.050 }
 
-  legs_laydown: &legs_laydown
+  legAngles_laydown: &legAngles_laydown
     All: { coxa: 0.0, femur: 70.723, tibia: -53.320 }
 
   footPositions_laydown: &footPositions_laydown
@@ -49,7 +51,7 @@ EXAMPLE:
     factorDuration: 0.5
 
   - head: *head_neutral
-    legs:
+    legAngles:
       RightFront: { coxa: 0.0, femur: 0.0, tibia: 0.0 }
       LeftFront: { coxa: 0.0, femur: 20.0, tibia: -40.0 }
     factorDuration: 0.5
@@ -61,18 +63,18 @@ EXAMPLE:
     factorDuration: 0.5
 
   - head: *head_neutral
-    legs: *legs_standing
+    legAngles: *legAngles_standing
     factorDuration: 0.5
 
 HIGH_FIVE:
   - head: { yaw: 0.0, pitch: -20.0 }
-    legs: { RightFront: { coxa: 20.0, femur: 50.0, tibia: 60.0 } }
+    legAngles: { RightFront: { coxa: 20.0, femur: 50.0, tibia: 60.0 } }
     factorDuration: 0.333
 
   - factorDuration: 0.333
 
   - head: { yaw: 0.0, pitch: -20.0 }
-    legs: { RightFront: { coxa: 20.0, femur: 50.0, tibia: 60.0 } }
+    legAngles: { RightFront: { coxa: 20.0, femur: 50.0, tibia: 60.0 } }
     factorDuration: 0.333
 
 WATCH:
@@ -121,12 +123,16 @@ CLAP:
 
 STAND_UP:
   - head: *head_neutral
-    body: *body_neutral
-    legs: *legs_standing
+    legAngles: *legAngles_standing
     factorDuration: 1.0
+
+# STAND_UP:
+#   - head: *head_neutral
+#     lbody: *body_neutral
+#     footPositions: *footPositions_standing
+#     factorDuration: 1.0
 
 LAYDOWN:
   - head: *head_look_up
-    body: *body_neutral
-    legs: *legs_laydown
+    legAngles: *legAngles_laydown
     factorDuration: 1.0

@@ -31,8 +31,8 @@ void CRequester::initializeRequestHandlers() {
              RCLCPP_INFO_STREAM(node_->get_logger(),
                                 "CRequester::onMovementRequest: NO_REQUEST: " << msg.name);
          }},
-        {MovementRequest::LAYDOWN, bind(&CRequester::requestLayDown)},
-        {MovementRequest::STAND_UP, bind(&CRequester::requestStandUp)},
+        {MovementRequest::LAYDOWN, bind(&CRequester::requestSequence)},
+        {MovementRequest::STAND_UP, bind(&CRequester::requestSequence)},
         {MovementRequest::WAITING, bind(&CRequester::requestWaiting)},
         {MovementRequest::MOVE, bind(&CRequester::requestMove)},
         {MovementRequest::MOVE_TO_STAND, bind(&CRequester::requestMoveToStand)},
@@ -53,26 +53,6 @@ void CRequester::initializeRequestHandlers() {
         {MovementRequest::CALIBRATE, bind(&CRequester::requestCalibrate)},
         // Add more handlers as needed
     };
-}
-
-void CRequester::requestLayDown(const MovementRequest& msg) {
-    activeRequest_ = MovementRequest::LAYDOWN;
-
-    kinematics_->setHead(0.0, -20.0);
-    kinematics_->moveBody(kinematics_->getLegsLayDownPositions());
-    actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                              std::make_shared<CRequestHead>(kinematics_->getHead()),
-                              std::make_shared<CRequestSendDuration>(msg.duration_ms)});
-}
-
-void CRequester::requestStandUp(const MovementRequest& msg) {
-    activeRequest_ = MovementRequest::STAND_UP;
-
-    kinematics_->setHead(0.0, 0.0);
-    kinematics_->moveBody(kinematics_->getLegsStandingPositions());
-    actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                              std::make_shared<CRequestHead>(kinematics_->getHead()),
-                              std::make_shared<CRequestSendDuration>(msg.duration_ms)});
 }
 
 void CRequester::requestMoveToStand(const MovementRequest& msg) {
@@ -152,42 +132,12 @@ void CRequester::requestMove(const MovementRequest& msg) {
     //                                             << velocity_.angular.z);
 }
 
-// void CRequester::requestLookSideways(const MovementRequest& msg) {
-//     float direction = 1.0;
-//     if (msg.type == MovementRequest::LOOK_RIGHT) {
-//         activeRequest_ = MovementRequest::LOOK_RIGHT;
-//     } else {
-//         activeRequest_ = MovementRequest::LOOK_LEFT;
-//         direction = -1.0;
-//     }
-//     auto requestedBody = CPose();
-//     requestedBody.orientation.yaw = direction * 20.0;
-//     kinematics_->setHead(direction * 30.0, 0.0);
-
-//     kinematics_->moveBody(kinematics_->getLegsStandingPositions(), requestedBody);
-//     actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-//                               std::make_shared<CRequestHead>(kinematics_->getHead()),
-//                               std::make_shared<CRequestSendDuration>(msg.duration_ms / 3)});
-
-//     // wait a bit
-//     actionExecutor_->request({std::make_shared<CRequestSendDuration>(msg.duration_ms / 3)});
-
-//     // move back to the neutral position
-//     requestedBody.orientation.yaw = 0.0;
-//     kinematics_->setHead(0.0, 0.0);
-//     kinematics_->moveBody(kinematics_->getLegsStandingPositions(), requestedBody);
-//     actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-//                               std::make_shared<CRequestHead>(kinematics_->getHead()),
-//                               std::make_shared<CRequestSendDuration>(msg.duration_ms / 3)});
-// }
-
 void CRequester::requestSequence(const MovementRequest& msg) {
     activeRequest_ = msg.type;
 
     auto sequence = actionPackagesParser_->getRequests(msg.name);
 
     for (const auto& action : sequence) {
-
         std::map<ELegIndex, CPosition> legPositions = kinematics_->getLegsPositions();
         CPose bodyPos = kinematics_->getBody();
 

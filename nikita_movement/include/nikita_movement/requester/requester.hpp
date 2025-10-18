@@ -38,8 +38,6 @@ class CRequester {
     rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr m_subMovementRequest;
 
     void initializeRequestHandlers();
-    void requestLayDown(const nikita_interfaces::msg::MovementRequest& msg);
-    void requestStandUp(const nikita_interfaces::msg::MovementRequest& msg);
     void requestWaiting(const nikita_interfaces::msg::MovementRequest& msg);
     void requestMove(const nikita_interfaces::msg::MovementRequest& msg);
     void requestMoveToStand(const nikita_interfaces::msg::MovementRequest& msg);

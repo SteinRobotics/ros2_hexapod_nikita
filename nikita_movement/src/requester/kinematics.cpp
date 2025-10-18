@@ -74,13 +74,6 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     intializeLegs(legsStanding_, STANDING_FOOT_POS_X, STANDING_FOOT_POS_Y, STANDING_FOOT_POS_Z);
     RCLCPP_INFO_STREAM(node_->get_logger(), "intialize legs for laydown position");
     intializeLegs(legsLayDown_, LAYDOWN_FOOT_POS_X, LAYDOWN_FOOT_POS_Y, LAYDOWN_FOOT_POS_Z);
-
-    body_.position.x = 0.0;
-    body_.position.y = 0.0;
-    body_.position.z = 0.0;
-    body_.orientation.roll = 0.0;
-    body_.orientation.pitch = 0.0;
-    body_.orientation.yaw = 0.0;
 }
 
 void CKinematics::logLegsPositions(std::map<ELegIndex, CLeg>& legs) {
@@ -120,6 +113,7 @@ void CKinematics::intializeLegs(std::map<ELegIndex, CLeg>& legs, std::vector<dou
 }
 
 void CKinematics::moveBody(const std::map<ELegIndex, CPosition>& footTargets, const CPose body) {
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Move body");
     body_ = body;
 
     for (auto& [legIndex, footTarget] : footTargets) {
