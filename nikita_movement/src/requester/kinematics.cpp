@@ -77,7 +77,7 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node) : node_(node) {
 
     body_.position.x = 0.0;
     body_.position.y = 0.0;
-    body_.position.z = 0.0;  // is this correct?
+    body_.position.z = 0.0;
     body_.orientation.roll = 0.0;
     body_.orientation.pitch = 0.0;
     body_.orientation.yaw = 0.0;
@@ -92,18 +92,18 @@ void CKinematics::logLegsPositions(std::map<ELegIndex, CLeg>& legs) {
 }
 
 void CKinematics::logLegPosition(const ELegIndex index, const CLeg& leg) {
-        RCLCPP_INFO_STREAM(node_->get_logger(),
-                           legIndexToName.at(index)
-                               << ": \tag: " << std::fixed << std::setprecision(3) << std::setw(3)
-                               << leg.angles_.degCoxa << "°, " << std::setw(3) << leg.angles_.degFemur
-                               << "°, " << std::setw(3) << leg.angles_.degTibia << "°\t| x: " << std::fixed
-                               << std::setprecision(3) << std::setw(3) << leg.footPos_.x
-                               << ", y: " << std::setw(3) << leg.footPos_.y << ", z: " << std::setw(3)
-                               << leg.footPos_.z);
+    RCLCPP_INFO_STREAM(node_->get_logger(),
+                       legIndexToName.at(index)
+                           << ": \tag: " << std::fixed << std::setprecision(3) << std::setw(3)
+                           << leg.angles_.degCoxa << "°, " << std::setw(3) << leg.angles_.degFemur << "°, "
+                           << std::setw(3) << leg.angles_.degTibia << "°\t| x: " << std::fixed
+                           << std::setprecision(3) << std::setw(3) << leg.footPos_.x << ", y: "
+                           << std::setw(3) << leg.footPos_.y << ", z: " << std::setw(3) << leg.footPos_.z);
 }
 
 void CKinematics::intializeLegs(std::map<ELegIndex, CLeg>& legs, std::vector<double>& posX,
                                 std::vector<double>& posY, std::vector<double>& posZ) {
+    // TODO change this and take the moveBody function instead, read the values from actionpackages.yaml
     for (uint32_t i = 0; i < LEG_NAMES.size(); i++) {
         auto& legName = LEG_NAMES.at(i);
         ELegIndex legIndex = legNameToIndex.at(legName);
@@ -118,8 +118,6 @@ void CKinematics::intializeLegs(std::map<ELegIndex, CLeg>& legs, std::vector<dou
     }
     logLegsPositions(legs);
 }
-
-
 
 void CKinematics::moveBody(const std::map<ELegIndex, CPosition>& footTargets, const CPose body) {
     body_ = body;
@@ -238,8 +236,8 @@ void CKinematics::setLegAngles(const ELegIndex index, const CLegAngles& angles) 
 
     // transform to leg coordinate system by adding the angle psi
     CLegAngles targetAngles = angles;
-    targetAngles.degCoxa += bodyCenterOffsets_[index].psi; 
-    
+    targetAngles.degCoxa += bodyCenterOffsets_[index].psi;
+
     calcLegForwardKinematics(targetAngles, leg);
 
     // transform back to robot coordinate system by adding body center offset and subtracting psi

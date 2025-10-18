@@ -21,6 +21,7 @@ node_movement:
     OFFSET_COXA_ANGLE_DEG: [45.0,   90.0,  135.0, -45.0,   -90.0, -135.0] 
 
 
+# TODO delete these values, use those from actionpackages.yaml
     # sin(45°) and cos(45°) = 0.7071
     # Reference foot positions for standing
     # RightFront:	angles: 0°, 2.3°, 7.7°	| x: 0.092, y: 0.092, z: -0.050

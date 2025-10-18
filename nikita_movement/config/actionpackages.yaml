@@ -4,23 +4,23 @@ presets:
     All: { coxa: 0.0, femur: 2.276, tibia: 7.704 }
 
   footPositions_standing: &footPositions_standing
-    RightFront: { x:  0.092, y:  0.092, z: -0.050 }
-    RightMid:   { x:  0.000, y:  0.130, z: -0.050 }
-    RightBack:  { x: -0.092, y:  0.092, z: -0.050 }
-    LeftFront:  { x:  0.092, y: -0.092, z: -0.050 }
-    LeftMid:    { x:  0.000, y: -0.130, z: -0.050 }
-    LeftBack:   { x: -0.092, y: -0.092, z: -0.050 }
+    RightFront: { x:  0.201, y:  0.160, z: -0.050 }
+    RightMid:   { x:  0.000, y:  0.218, z: -0.050 }
+    RightBack:  { x: -0.201, y:  0.160, z: -0.050 }
+    LeftFront:  { x:  0.201, y: -0.160, z: -0.050 }
+    LeftMid:    { x:  0.000, y: -0.218, z: -0.050 }
+    LeftBack:   { x: -0.201, y: -0.160, z: -0.050 }
 
   legs_laydown: &legs_laydown
     All: { coxa: 0.0, femur: 70.723, tibia: -53.320 }
 
   footPositions_laydown: &footPositions_laydown
-    RightFront: { x:  0.071, y:  0.071, z: 0.010 }
-    RightMid:   { x:  0.000, y:  0.100, z: 0.010 }
-    RightBack:  { x: -0.071, y:  0.071, z: 0.010 }
-    LeftFront:  { x:  0.071, y: -0.071, z: 0.010 }
-    LeftMid:    { x:  0.000, y: -0.100, z: 0.010 }
-    LeftBack:   { x: -0.071, y: -0.071, z: 0.010 }
+    RightFront: { x:  0.180, y:  0.139, z: 0.010 }
+    RightMid:   { x:  0.000, y:  0.188, z: 0.010 }
+    RightBack:  { x: -0.180, y:  0.139, z: 0.010 }
+    LeftFront:  { x:  0.180, y: -0.139, z: 0.010 }
+    LeftMid:    { x:  0.000, y: -0.188, z: 0.010 }
+    LeftBack:   { x: -0.180, y: -0.139, z: 0.010 }
 
   head_neutral: &head_neutral
     yaw: 0.0
