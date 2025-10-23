@@ -27,17 +27,17 @@ class RequestBase {
     RequestBase(float minDuration) : minDuration_(minDuration) {};
     virtual ~RequestBase() = default;
 
-    float minDuration() {
+    double minDuration() {
         return minDuration_;
     };
 
    protected:
-    float minDuration_ = float(0);
+    double minDuration_ = double(0);
 };
 
 class RequestSystem : public RequestBase {
    public:
-    RequestSystem(bool turnOffServoRelay, bool systemShutdown, float minDuration = 0.0)
+    RequestSystem(bool turnOffServoRelay, bool systemShutdown, double minDuration = 0.0)
         : RequestBase(minDuration), turnOffServoRelay_(turnOffServoRelay), systemShutdown_(systemShutdown) {
     }
     bool turnOffServoRelay() {
@@ -54,7 +54,7 @@ class RequestSystem : public RequestBase {
 
 class RequestTalking : public RequestBase {
    public:
-    RequestTalking(std::string text, std::string language = "de", float minDuration = 0.0)
+    RequestTalking(std::string text, std::string language = "de", double minDuration = 0.0)
         : RequestBase(minDuration), text_(text), language_(language) {
     }
     std::string text() {
@@ -71,7 +71,7 @@ class RequestTalking : public RequestBase {
 
 class RequestChat : public RequestBase {
    public:
-    RequestChat(std::string text, std::string language = "de", float minDuration = 0.0)
+    RequestChat(std::string text, std::string language = "de", double minDuration = 0.0)
         : RequestBase(minDuration), text_(text), language_(language) {
     }
     std::string text() {
@@ -88,7 +88,7 @@ class RequestChat : public RequestBase {
 
 class RequestMusic : public RequestBase {
    public:
-    RequestMusic(std::string song, int volumePercent = 50, float minDuration = 0.0)
+    RequestMusic(std::string song, int volumePercent = 50, double minDuration = 0.0)
         : RequestBase(minDuration), song_(song), volumePercent_(volumePercent) {
     }
     std::string song() {
@@ -105,7 +105,7 @@ class RequestMusic : public RequestBase {
 
 class RequestListening : public RequestBase {
    public:
-    RequestListening(bool active, float minDuration = 0.0) : RequestBase(minDuration), active_(active) {
+    RequestListening(bool active, double minDuration = 0.0) : RequestBase(minDuration), active_(active) {
     }
     bool active() {
         return active_;
@@ -118,7 +118,7 @@ class RequestListening : public RequestBase {
 class RequestMovementHead : public RequestBase {
    public:
     RequestMovementHead(float agHorizontal, float velHorizontal, float agVertical, float velVertical,
-                        float minDuration = 0.0)
+                        double minDuration = 0.0)
         : RequestBase(minDuration),
           agHorizontal_(agHorizontal),
           velHorizontal_(velHorizontal),
@@ -147,7 +147,7 @@ class RequestMovementHead : public RequestBase {
 
 class RequestMovementBody : public RequestBase {
    public:
-    RequestMovementBody(double velLinearX, double velLinearY, double velAngular, float minDuration = 0.0)
+    RequestMovementBody(double velLinearX, double velLinearY, double velAngular, double minDuration = 0.0)
         : RequestBase(minDuration),
           velLinearX_(velLinearX),
           velLinearY_(velLinearY),
@@ -171,7 +171,7 @@ class RequestMovementBody : public RequestBase {
 
 class CRequestMove : public RequestBase {
    public:
-    CRequestMove(nikita_interfaces::msg::MovementRequest movementRequest, float minDuration = 0.0)
+    CRequestMove(nikita_interfaces::msg::MovementRequest movementRequest, double minDuration = 0.0)
         : RequestBase(minDuration), movementRequest_(movementRequest) {
     }
     nikita_interfaces::msg::MovementRequest movementRequest() {
@@ -179,8 +179,7 @@ class CRequestMove : public RequestBase {
     };
 
    private:
-    nikita_interfaces::msg::MovementRequest movementRequest_ =
-        nikita_interfaces::msg::MovementRequest();
+    nikita_interfaces::msg::MovementRequest movementRequest_ = nikita_interfaces::msg::MovementRequest();
 };
 
 class IRequester {

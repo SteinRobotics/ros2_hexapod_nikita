@@ -38,143 +38,99 @@ CServoHandler::CServoHandler(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     pubServoRequest_ = node_->create_publisher<nikita_interfaces::msg::ServoRequest>("servo_request", 10);
 }
 
-void CServoHandler::setOnDoneCallback(std::function<void()> cb) {
-    doneCallback_ = cb;
-}
+// void CServoHandler::run(std::shared_ptr<CRequestSendDuration> request) {
+//     // RCLCPP_INFO_STREAM(node_->get_logger(),
+//     //                    "CServoHandler::run | CRequestSendDuration for " << request->durationMs() << "ms");
 
-void CServoHandler::run(std::shared_ptr<CRequestSendDuration> request) {
-    // RCLCPP_INFO_STREAM(node_->get_logger(),
-    //                    "CServoHandler::run | CRequestSendDuration for " << request->durationMs() << "ms");
+//     msgServoRequest_.header.stamp = node_->now();
+//     msgServoRequest_.time_to_reach_target_angles_ms = request->durationMs();
+//     pubServoRequest_->publish(msgServoRequest_);
 
-    msgServoRequest_.header.stamp = node_->now();
-    msgServoRequest_.time_to_reach_target_angles_ms = request->durationMs();
-    pubServoRequest_->publish(msgServoRequest_);
+//     if (request->blocking()) {
+//         callbackTimer_->start(request->durationMs(), std::bind(&CServoHandler::timerCallback, this), true);
+//     }
+// }
 
-    if (request->blocking()) {
-        callbackTimer_->start(request->durationMs(), std::bind(&CServoHandler::timerCallback, this), true);
-    }
-}
+void CServoHandler::run(CRequest request, bool blocking) {
+    // RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler::run | CRequest");
+    // set head angles
+    msgServoRequest_.target_angles.at(ServoIndex::HEAD_YAW).angle_deg = request.head().degYaw;
+    msgServoRequest_.target_angles.at(ServoIndex::HEAD_PITCH).angle_deg = request.head().degPitch;
 
-void CServoHandler::run(std::shared_ptr<CRequestLegs> request) {
-    // RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler::run | CRequestLegs");
+    // set leg angles
     msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_FRONT_COXA).angle_deg =
-        request->angles().at(ELegIndex::LeftFront).degCoxa;
+        request.legAngles().at(ELegIndex::LeftFront).degCoxa;
     msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_FRONT_FEMUR).angle_deg =
-        request->angles().at(ELegIndex::LeftFront).degFemur;
+        request.legAngles().at(ELegIndex::LeftFront).degFemur;
     msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_FRONT_TIBIA).angle_deg =
-        request->angles().at(ELegIndex::LeftFront).degTibia;
+        request.legAngles().at(ELegIndex::LeftFront).degTibia;
 
     msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_MID_COXA).angle_deg =
-        request->angles().at(ELegIndex::LeftMid).degCoxa;
+        request.legAngles().at(ELegIndex::LeftMid).degCoxa;
     msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_MID_FEMUR).angle_deg =
-        request->angles().at(ELegIndex::LeftMid).degFemur;
+        request.legAngles().at(ELegIndex::LeftMid).degFemur;
     msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_MID_TIBIA).angle_deg =
-        request->angles().at(ELegIndex::LeftMid).degTibia;
+        request.legAngles().at(ELegIndex::LeftMid).degTibia;
 
     msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_BACK_COXA).angle_deg =
-        request->angles().at(ELegIndex::LeftBack).degCoxa;
+        request.legAngles().at(ELegIndex::LeftBack).degCoxa;
     msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_BACK_FEMUR).angle_deg =
-        request->angles().at(ELegIndex::LeftBack).degFemur;
+        request.legAngles().at(ELegIndex::LeftBack).degFemur;
     msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_BACK_TIBIA).angle_deg =
-        request->angles().at(ELegIndex::LeftBack).degTibia;
+        request.legAngles().at(ELegIndex::LeftBack).degTibia;
 
     msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_FRONT_COXA).angle_deg =
-        request->angles().at(ELegIndex::RightFront).degCoxa;
+        request.legAngles().at(ELegIndex::RightFront).degCoxa;
     msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_FRONT_FEMUR).angle_deg =
-        request->angles().at(ELegIndex::RightFront).degFemur;
+        request.legAngles().at(ELegIndex::RightFront).degFemur;
     msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_FRONT_TIBIA).angle_deg =
-        request->angles().at(ELegIndex::RightFront).degTibia;
+        request.legAngles().at(ELegIndex::RightFront).degTibia;
 
-    msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_MID_COXA).angle_deg =
-        request->angles().at(ELegIndex::RightMid).degCoxa;
-    msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_MID_FEMUR).angle_deg =
-        request->angles().at(ELegIndex::RightMid).degFemur;
-    msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_MID_TIBIA).angle_deg =
-        request->angles().at(ELegIndex::RightMid).degTibia;
+    msgServoRequest_.header.stamp = node_->now();
+    msgServoRequest_.time_to_reach_target_angles_ms = request.duration() * 1000.0;
+    pubServoRequest_->publish(msgServoRequest_);
 
-    msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_BACK_COXA).angle_deg =
-        request->angles().at(ELegIndex::RightBack).degCoxa;
-    msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_BACK_FEMUR).angle_deg =
-        request->angles().at(ELegIndex::RightBack).degFemur;
-    msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_BACK_TIBIA).angle_deg =
-        request->angles().at(ELegIndex::RightBack).degTibia;
-}
-
-void CServoHandler::run(std::shared_ptr<CRequestLeg> request) {
-    // RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler::run | CRequestLeg");
-    switch (request->legIndex()) {
-        case ELegIndex::RightFront: {
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_FRONT_COXA).angle_deg =
-                request->angles().degCoxa;
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_FRONT_FEMUR).angle_deg =
-                request->angles().degFemur;
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_FRONT_TIBIA).angle_deg =
-                request->angles().degTibia;
-            break;
-        }
-        case ELegIndex::RightMid: {
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_MID_COXA).angle_deg =
-                request->angles().degCoxa;
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_MID_FEMUR).angle_deg =
-                request->angles().degFemur;
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_MID_TIBIA).angle_deg =
-                request->angles().degTibia;
-            break;
-        }
-        case ELegIndex::RightBack: {
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_BACK_COXA).angle_deg =
-                request->angles().degCoxa;
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_BACK_FEMUR).angle_deg =
-                request->angles().degFemur;
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_BACK_TIBIA).angle_deg =
-                request->angles().degTibia;
-            break;
-        }
-        case ELegIndex::LeftFront: {
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_FRONT_COXA).angle_deg =
-                request->angles().degCoxa;
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_FRONT_FEMUR).angle_deg =
-                request->angles().degFemur;
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_FRONT_TIBIA).angle_deg =
-                request->angles().degTibia;
-            break;
-        }
-        case ELegIndex::LeftMid: {
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_MID_COXA).angle_deg =
-                request->angles().degCoxa;
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_MID_FEMUR).angle_deg =
-                request->angles().degFemur;
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_MID_TIBIA).angle_deg =
-                request->angles().degTibia;
-            break;
-        }
-        case ELegIndex::LeftBack: {
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_BACK_COXA).angle_deg =
-                request->angles().degCoxa;
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_BACK_FEMUR).angle_deg =
-                request->angles().degFemur;
-            msgServoRequest_.target_angles.at(ServoIndex::LEG_LEFT_BACK_TIBIA).angle_deg =
-                request->angles().degTibia;
-            break;
-        }
-        default:
-            break;
+    if (blocking) {
+        callbackTimer_->start(uint32_t(request.duration() * 1000),
+                              std::bind(&CServoHandler::timerCallback, this), true);
     }
-}
-
-void CServoHandler::run(std::shared_ptr<CRequestHead> request) {
-    // RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler::run | CRequestHead");
-    msgServoRequest_.target_angles.at(ServoIndex::HEAD_YAW).angle_deg = request->angleHorizontal();
-    msgServoRequest_.target_angles.at(ServoIndex::HEAD_PITCH).angle_deg = request->angleVertical();
 }
 
 void CServoHandler::timerCallback() {
-    // RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler::timerCallback");
-    if (doneCallback_) {
-        doneCallback_();
+    executeNextPendingRequest();
+}
+
+// new methods
+// ------------------------------------------------------------------------------------------------------------
+
+void CServoHandler::requestWithoutQueue(CRequest request) {
+    if (!pendingRequests_.empty()) {
+        RCLCPP_WARN_STREAM(node_->get_logger(), "CServoHandler:: requestWithoutQueue but queue is not empty");
+        cancelRunningRequest();
+    }
+    run(request, false);
+}
+
+void CServoHandler::appendRequest(CRequest request) {
+    // RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler:: new request ");
+    pendingRequests_.push_back(request);
+    if (isDone()) executeNextPendingRequest();
+}
+
+bool CServoHandler::isDone() {
+    return pendingRequests_.empty();
+}
+
+void CServoHandler::executeNextPendingRequest() {
+    if (!pendingRequests_.empty()) {
+        auto request = pendingRequests_.front();
+        pendingRequests_.pop_front();
+        run(request);
     }
 }
 
-void CServoHandler::cancel() {
+void CServoHandler::cancelRunningRequest() {
+    // RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler::cancelRunningRequest");
+    pendingRequests_.clear();
     callbackTimer_->stop();
 }

@@ -9,9 +9,9 @@
 #include "geometry_msgs/msg/twist.hpp"
 #include "nikita_interfaces/msg/movement_request.hpp"
 //
-#include "callback_timer.hpp"
 #include "ihandler.hpp"
 #include "requester/irequester.hpp"
+#include "requester/simpletimer.hpp"
 
 namespace brain {
 
@@ -30,7 +30,7 @@ class CMovement : public IHandler {
 
     std::shared_ptr<rclcpp::Node> node_;
     rclcpp::Publisher<nikita_interfaces::msg::MovementRequest>::SharedPtr pub_;
-    std::shared_ptr<CCallbackTimer> callbackTimer_;
+    std::shared_ptr<CSimpleTimer> simpleTimer_;
 };
 
 }  // namespace brain

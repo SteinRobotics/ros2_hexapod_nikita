@@ -23,7 +23,7 @@ uint8 NEUTRAL = 101  # set all servos position 0, used for calibration
 uint8 CALIBRATE = 102  # set all feets to kiss point ground, used for calibration
 
 uint8 type 0
-uint32 duration_ms 1000
+float64 duration_s 1.0
 string name
 
 #from cmd_vel: velocity are used mainly for type MOVE

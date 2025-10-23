@@ -15,7 +15,7 @@ CCoordinator::CCoordinator(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     : node_(node), actionPlanner_(actionPlanner) {
     textInterpreter_ = std::make_shared<CTextInterpreter>(node_);
     errorManagement_ = std::make_shared<CErrorManagement>(node_);
-    timerErrorRequest_ = std::make_shared<CCallbackTimer>();
+    timerErrorRequest_ = std::make_shared<CSimpleTimer>();
     timerMovementRequest_ = std::make_shared<CSimpleTimer>(false);
     timerNoRequest_ = std::make_shared<CSimpleTimer>(true);
 
@@ -50,7 +50,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         return;
     }
 
-    uint32_t duration_ms = 0;
+    double duration_s = 0.0;
     std::string comment = "";
     uint32_t newMovementType = MovementRequest::NO_REQUEST;
     nikita_interfaces::msg::Pose body;
@@ -58,26 +58,26 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     // BUTTONS
     if (msg.button_a) {
         newMovementType = MovementRequest::WATCH;
-        duration_ms = 5000;
+        duration_s = 5.0;
     } else if (msg.button_b) {
         newMovementType = MovementRequest::HIGH_FIVE;
         comment = "ich gebe dir ein High Five";
-        duration_ms = 5000;
+        duration_s = 5.0;
     } else if (msg.button_x) {
         // stop listening
     } else if (msg.button_y) {
         // start listening
     } else if (msg.button_l1) {
         newMovementType = MovementRequest::LOOK_LEFT;
-        duration_ms = 3000;
+        duration_s = 3.0;
     } else if (msg.button_l2) {
     } else if (msg.button_r1) {
         newMovementType = MovementRequest::LOOK_RIGHT;
-        duration_ms = 3000;
+        duration_s = 3.0;
     } else if (msg.button_r2) {
     } else if (msg.button_start) {
         newMovementType = MovementRequest::TRANSPORT;
-        duration_ms = 3000;
+        duration_s = 3.0;
         comment = "ich mache mich bereit für den Transport";
     }
 
@@ -86,11 +86,11 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     // int8 dpad_horizontal   # LEFT = -1, RIGHT = 1
     if (msg.dpad_vertical == 1 && !isStanding_) {
         newMovementType = MovementRequest::STAND_UP;
-        duration_ms = 3000;
+        duration_s = 3.0;
         comment = "ich stehe auf";
     } else if (msg.dpad_vertical == -1 && isStanding_) {
         newMovementType = MovementRequest::LAYDOWN;
-        duration_ms = 3000;
+        duration_s = 3.0;
         comment = "ich lege mich hin";
     }
 
@@ -143,13 +143,13 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     if (actualMovementType_ == MovementRequest::MOVE && newMovementType == MovementRequest::NO_REQUEST) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "end move request");
         newMovementType = MovementRequest::MOVE_TO_STAND;
-        duration_ms = 1000;
+        duration_s = 1.0;
     }
 
     if (newMovementType == MovementRequest::NO_REQUEST) {
         return;
     }
-    submitRequestMove(newMovementType, duration_ms, comment, Prio::High, body);
+    submitRequestMove(newMovementType, duration_s, comment, Prio::High, body);
 }
 
 void CCoordinator::speechRecognized(std::string text) {
@@ -162,11 +162,11 @@ void CCoordinator::speechRecognized(std::string text) {
     if (command == "notFound") {
         requestNotFound(text);
     } else if (command == "commandStandup") {
-        submitRequestMove(MovementRequest::STAND_UP, 3000, "ich stehe auf", Prio::High);
+        submitRequestMove(MovementRequest::STAND_UP, 3.0, "ich stehe auf", Prio::High);
     } else if (command == "commandLaydown") {
-        submitRequestMove(MovementRequest::LAYDOWN, 3000, "ich leg mich hin", Prio::High);
+        submitRequestMove(MovementRequest::LAYDOWN, 3.0, "ich leg mich hin", Prio::High);
     } else if (command == "commandWatch") {
-        submitRequestMove(MovementRequest::WATCH, 5000, "ich schaue mich um", Prio::High);
+        submitRequestMove(MovementRequest::WATCH, 5.0, "ich schaue mich um", Prio::High);
     } else if (command == "commandTurnHead") {
         RCLCPP_INFO_STREAM(node_->get_logger(), "identifiedWords: " << identifiedWords.size());
         for (size_t i = 0; i < identifiedWords.size(); ++i) {
@@ -175,12 +175,12 @@ void CCoordinator::speechRecognized(std::string text) {
         }
 
         if (textInterpreter_->lettersIdentified("links", identifiedWords)) {
-            submitRequestMove(MovementRequest::LOOK_LEFT, 3000, "ich schaue nach links", Prio::High);
+            submitRequestMove(MovementRequest::LOOK_LEFT, 3.0, "ich schaue nach links", Prio::High);
         } else if (textInterpreter_->lettersIdentified("rechts", identifiedWords)) {
-            submitRequestMove(MovementRequest::LOOK_RIGHT, 3000, "ich schaue nach rechts", Prio::High);
+            submitRequestMove(MovementRequest::LOOK_RIGHT, 3.0, "ich schaue nach rechts", Prio::High);
         }
     } else if (command == "commandTransport") {
-        submitRequestMove(MovementRequest::TRANSPORT, 5000, "ich bereite mich auf den Transport vor",
+        submitRequestMove(MovementRequest::TRANSPORT, 5.0, "ich bereite mich auf den Transport vor",
                           Prio::High);
     } else if (command == "commandMove") {
         // requestMoveBody(detectedWords);
@@ -259,7 +259,7 @@ void CCoordinator::requestShutdown(Prio prio) {
     submitSingleRequest<RequestTalking>(prio, text);
 
     if (isStanding_) {
-        submitRequestMove(MovementRequest::LAYDOWN, 2000, "", prio);
+        submitRequestMove(MovementRequest::LAYDOWN, 2.0, "", prio);
     }
     submitSingleRequest<RequestSystem>(prio, true, true);
 }
@@ -268,12 +268,12 @@ void CCoordinator::requestReactionOnError(std::string text, bool isShutdownReque
     if (timerErrorRequest_->isRunning()) {
         return;
     }
-    timerErrorRequest_->startWithoutCallback(10s);
+    // timerErrorRequest_->startWithoutCallback(10s);
 
     submitSingleRequest<RequestTalking>(prio, text);
 
     if (isShutdownRequested) {
-        submitRequestMove(MovementRequest::LAYDOWN, 3000, "", prio);
+        submitRequestMove(MovementRequest::LAYDOWN, 3.0, "", prio);
     }
     submitSingleRequest<RequestSystem>(prio, isShutdownRequested, isShutdownRequested);
 }
@@ -297,57 +297,57 @@ void CCoordinator::requestChat(std::string text, Prio prio) {
 
 void CCoordinator::requestTestBody() {
     nikita_interfaces::msg::Pose body;
-    int duration_ms = 2000;
+    double duration_s = 2.0;
     std::string text = "";
 
     text = "teste x Richtung";
     body.position.x = 0.05;
-    submitRequestMove(MovementRequest::TESTBODY, duration_ms, text, Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
     body.position.x = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_ms, "", Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
 
     text = "teste y Richtung";
     body.position.y = 0.05;
-    submitRequestMove(MovementRequest::TESTBODY, duration_ms, text, Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
     body.position.y = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_ms, "", Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
 
     text = "teste z Richtung nach oben";
     body.position.z = 0.03;
-    submitRequestMove(MovementRequest::TESTBODY, duration_ms, text, Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
     body.position.z = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_ms, "", Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
 
     text = "teste Roll";
     body.orientation.roll = 20.0;  // TODO deg instead of rad is correct???
-    submitRequestMove(MovementRequest::TESTBODY, duration_ms, text, Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
     body.orientation.roll = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_ms, "", Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
 
     text = "teste Pitch";
     body.orientation.pitch = 20.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_ms, text, Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
     body.orientation.pitch = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_ms, "", Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
 
     text = "teste Yaw";
     body.orientation.yaw = 20.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_ms, text, Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
     body.orientation.yaw = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_ms, "", Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
 }
 
 void CCoordinator::requestTestLegs() {
-    submitRequestMove(MovementRequest::TESTLEGS, 2000, "", Prio::High);
+    submitRequestMove(MovementRequest::TESTLEGS, 2.0, "", Prio::High);
 }
 
 void CCoordinator::requestWaiting(Prio prio) {
     actualMovementType_ = MovementRequest::WAITING;
-    submitRequestMove(actualMovementType_, 5000, "ich warte", prio);
+    submitRequestMove(actualMovementType_, 5.0, "ich warte", prio);
 }
 
-void CCoordinator::submitRequestMove(uint32_t movementType, uint32_t duration_ms, std::string comment,
-                                     Prio prio, nikita_interfaces::msg::Pose body) {
+void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, std::string comment, Prio prio,
+                                     nikita_interfaces::msg::Pose body) {
     std::vector<std::shared_ptr<RequestBase>> request_v;
     if (!comment.empty()) {
         request_v.push_back(std::make_shared<RequestTalking>(comment));
@@ -357,14 +357,14 @@ void CCoordinator::submitRequestMove(uint32_t movementType, uint32_t duration_ms
         RCLCPP_INFO_STREAM(node_->get_logger(), "standup before move request");
         isStanding_ = true;
         // recursive call to first stand up
-        submitRequestMove(MovementRequest::STAND_UP, 3000, "ich stehe erst mal auf", prio);
+        submitRequestMove(MovementRequest::STAND_UP, 3.0, "ich stehe erst mal auf", prio);
     }
 
     auto request = MovementRequest();
     request.type = movementType;
     request.body = body;
     request.velocity = actualVelocity_;
-    request.duration_ms = duration_ms;
+    request.duration_s = duration_s;
     request.name = movementTypeName_.at(request.type);
     request_v.push_back(std::make_shared<CRequestMove>(request));
     actionPlanner_->request(request_v, prio);
@@ -384,11 +384,11 @@ void CCoordinator::submitRequestMove(uint32_t movementType, uint32_t duration_ms
         return;
     }
     isNewMoveRequestLocked_ = true;
-    // RCLCPP_INFO_STREAM(node_->get_logger(), "isNewMoveRequestLocked_ locked");
-    timerMovementRequest_->waitMsNonBlocking(duration_ms, [this]() {
+    RCLCPP_INFO_STREAM(node_->get_logger(), "isNewMoveRequestLocked_ locked");
+    timerMovementRequest_->waitSecondsNonBlocking(duration_s, [this]() {
         isNewMoveRequestLocked_ = false;
         actualMovementType_ = MovementRequest::NO_REQUEST;
-        // RCLCPP_INFO_STREAM(node_->get_logger(), "isNewMoveRequestLocked_ released");
+        RCLCPP_INFO_STREAM(node_->get_logger(), "isNewMoveRequestLocked_ released");
     });
 }
 
@@ -420,15 +420,15 @@ void CCoordinator::update() {
         }
 
         // If no request is received for 30 seconds, we request a default move
-        if (timerNoRequest_->haveMsElapsed(30000)) {
+        if (timerNoRequest_->haveSecondsElapsed(30.0)) {
             if (isNewMoveRequestLocked_) {
                 RCLCPP_WARN_STREAM(node_->get_logger(),
-                                   "No request received for 10 seconds, but isNewMoveRequestLocked_ is true");
+                                   "No request received for 30 seconds, but isNewMoveRequestLocked_ is true");
                 return;
             }
-            RCLCPP_INFO_STREAM(node_->get_logger(), "No request received for 10 seconds, requesting default");
+            RCLCPP_INFO_STREAM(node_->get_logger(), "No request received for 30 seconds, requesting default");
             // TODO: change all other Prios to High
-            requestWaiting(Prio::Normal);
+            // requestWaiting(Prio::Normal);
         }
 
     } else {

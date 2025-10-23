@@ -18,21 +18,23 @@
 #include "nikita_interfaces/msg/servo_index.hpp"
 #include "nikita_interfaces/msg/servo_request.hpp"
 //
-#include "action/action_executor.hpp"
 #include "actionpackagesparser.hpp"
 #include "gaitcontroller.hpp"
+#include "handler/servohandler.hpp"
 #include "kinematics.hpp"
-#include "requests.hpp"
 
 class CRequester {
    public:
-    CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CActionExecutor> actionExecutor);
+    CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServoHandler> servoHandler = nullptr);
     virtual ~CRequester() = default;
 
     void update(std::chrono::milliseconds timeslice);
 
     // void onServoStatus(const nikita_interfaces::msg::ServoStatus& msg);
     void onMovementRequest(const nikita_interfaces::msg::MovementRequest& msg);
+
+    // test helper: allow injection of a custom servo handler (mock)
+    // NOTE: dependencies (like CServoHandler) should be injected via constructor.
 
    private:
     rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr m_subMovementRequest;
@@ -61,11 +63,13 @@ class CRequester {
 
     void liftLegsFirstTripodGroup();
 
+    void sendServoRequest(const double duration_s, const bool blocking = true);
+
     std::shared_ptr<rclcpp::Node> node_;
-    std::shared_ptr<CActionExecutor> actionExecutor_;
     std::shared_ptr<CKinematics> kinematics_;
     std::shared_ptr<CGaitController> gaitController_;
     std::shared_ptr<CActionPackagesParser> actionPackagesParser_;
+    std::shared_ptr<CServoHandler> servoHandler_;
 
     rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr subMovementRequest_;
     // rclcpp::Subscription<nikita_interfaces::msg::ServoStatus>::SharedPtr subServoStatus_;

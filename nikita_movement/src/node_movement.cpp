@@ -7,7 +7,6 @@
 
 #include "rclcpp/rclcpp.hpp"
 //
-#include "action/action_executor.hpp"
 #include "requester/requester.hpp"
 
 constexpr double REFRESH_RATE_HZ = 10;
@@ -16,9 +15,7 @@ int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
 
     auto node = rclcpp::Node::make_shared("node_movement");
-    auto actionExecutor = std::make_shared<CActionExecutor>(node);
-
-    auto requester = std::make_shared<CRequester>(node, actionExecutor);
+    auto requester = std::make_shared<CRequester>(node);
 
     rclcpp::Rate loop_rate(REFRESH_RATE_HZ);
     auto timeslice_ms = std::chrono::duration_cast<std::chrono::milliseconds>(

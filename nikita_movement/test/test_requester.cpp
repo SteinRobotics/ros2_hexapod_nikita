@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "action/action_executor.hpp"
-#include "mock/mock_action_executor.hpp"
+#include "handler/servohandler.hpp"
+#include "mock/mock_servohandler.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "requester/requester.hpp"
 #include "test_helpers.hpp"
@@ -42,21 +42,20 @@ class RequesterTest : public ::testing::Test {
                               std::vector<double>{0.010, 0.010, 0.010, 0.010, 0.010, 0.010}),
         });
         node_ = std::make_shared<rclcpp::Node>("test_requester_node", options);
-        actionExecutor_ = std::make_shared<CMockActionExecutor>(node_);
-        requester_ = std::make_unique<CRequester>(node_, actionExecutor_);
+        servoHandlerMock_ = std::make_shared<CServoHandlerMock>(node_);
+        requester_ = std::make_unique<CRequester>(node_, servoHandlerMock_);
     }
 
     void TearDown() override {
         requester_.reset();
-        actionExecutor_.reset();
         if (rclcpp::ok()) {
             rclcpp::shutdown();
         }
     }
 
     std::shared_ptr<rclcpp::Node> node_;
-    std::shared_ptr<CMockActionExecutor> actionExecutor_;
     std::unique_ptr<CRequester> requester_;
+    std::shared_ptr<CServoHandlerMock> servoHandlerMock_;
 };
 
 TEST_F(RequesterTest, ConstructAndUpdate) {
@@ -78,52 +77,68 @@ TEST_F(RequesterTest, HandleLayDownRequest) {
     nikita_interfaces::msg::MovementRequest msg;
     msg.name = "LAYDOWN";
     msg.type = nikita_interfaces::msg::MovementRequest::LAYDOWN;
-    msg.duration_ms = 1000;
+    msg.duration_s = 1.0;
 
     EXPECT_NO_THROW(requester_->onMovementRequest(msg));
 
-    EXPECT_GT(actionExecutor_->last_requested_count, 0u);
-    size_t legs_count = actionExecutor_->countOfType<CRequestLegs>();
-    EXPECT_GE(legs_count, 1u);
-    size_t duration_count = actionExecutor_->countOfType<CRequestSendDuration>();
-    EXPECT_GE(duration_count, 1u);
+    auto requests = servoHandlerMock_->getRequests();
+    auto first_request = requests.front();
 
-    auto legs_map = actionExecutor_->getLegAnglesMap();
-    EXPECT_EQ(legs_map.size(), 6u);
-    for (const auto& pair : legs_map) {
+    for (const auto& pair : first_request->legAngles()) {
         const auto& angles = pair.second;
         expectAnglesNear(CLegAngles{0.0, 70.723, -53.320}, angles, 1.0,
                          "Leg angles in LAYDOWN do not match expected values");
     }
 
-    auto duration_ms = actionExecutor_->getDurationMs();
-    EXPECT_EQ(1000u, duration_ms);
-    auto [degYaw, degPitch] = actionExecutor_->getHeadAngles();
-    expectHeadNear(CHead{0.0, -20.0}, CHead{degYaw, degPitch}, 1.0,
-                   "Head angles in LAYDOWN do not match expected values");
+    auto duration = first_request->duration();
+    EXPECT_DOUBLE_EQ(1.0, duration);
+    auto head = first_request->head();
+    expectHeadNear(CHead{0.0, -20.0}, head, 1.0, "Head angles in LAYDOWN do not match expected values");
 }
 
 TEST_F(RequesterTest, HandleStandUpRequest) {
     nikita_interfaces::msg::MovementRequest msg;
     msg.name = "STAND_UP";
     msg.type = nikita_interfaces::msg::MovementRequest::STAND_UP;
-    msg.duration_ms = 1000;
+    msg.duration_s = 1.0;
+
     EXPECT_NO_THROW(requester_->onMovementRequest(msg));
-    EXPECT_GT(actionExecutor_->last_requested_count, 0u);
-    size_t legs_count = actionExecutor_->countOfType<CRequestLegs>();
-    EXPECT_GE(legs_count, 1u);
-    size_t duration_count = actionExecutor_->countOfType<CRequestSendDuration>();
-    EXPECT_GE(duration_count, 1u);
-    auto legs_map = actionExecutor_->getLegAnglesMap();
-    EXPECT_EQ(legs_map.size(), 6u);
-    for (const auto& pair : legs_map) {
+
+    auto requests = servoHandlerMock_->getRequests();
+    auto first_request = requests.front();
+
+    for (const auto& pair : first_request->legAngles()) {
         const auto& angles = pair.second;
         expectAnglesNear(CLegAngles{0.0, 2.276, 7.704}, angles, 1.0,
                          "Leg angles in STAND_UP do not match expected values");
     }
-    auto duration_ms = actionExecutor_->getDurationMs();
-    EXPECT_EQ(1000u, duration_ms);
-    auto [degYaw, degPitch] = actionExecutor_->getHeadAngles();
-    expectHeadNear(CHead{0.0, 0.0}, CHead{degYaw, degPitch}, 1.0,
-                   "Head angles in STAND_UP do not match expected values");
+    auto duration = first_request->duration();
+    EXPECT_DOUBLE_EQ(1.0, duration);
+    auto head = first_request->head();
+    expectHeadNear(CHead{0.0, 0.0}, head, 1.0, "Head angles in STAND_UP do not match expected values");
+}
+
+TEST_F(RequesterTest, HandleWatchRequest) {
+    nikita_interfaces::msg::MovementRequest msg;
+    msg.name = "WATCH";
+    msg.type = nikita_interfaces::msg::MovementRequest::WATCH;
+    msg.duration_s = 1.0;
+
+    EXPECT_NO_THROW(requester_->onMovementRequest(msg));
+
+    auto requests = servoHandlerMock_->getRequests();
+    auto first_request = requests.front();
+    requests.pop_front();
+
+    auto duration = first_request->duration();
+    EXPECT_DOUBLE_EQ(0.25, duration);
+    auto head = first_request->head();
+    expectHeadNear(CHead{-40.0, 0.0}, head, 1.0, "Head angles in WATCH do not match expected values");
+
+    auto second_request = requests.front();
+    requests.pop_front();
+    duration = second_request->duration();
+    EXPECT_DOUBLE_EQ(0.25, duration);
+    head = second_request->head();
+    expectHeadNear(CHead{0.0, 0.0}, head, 1.0, "Head angles in WATCH do not match expected values");
 }

@@ -27,7 +27,6 @@ set(SOURCES
   src/requester/gaitcontroller.cpp
   src/requester/lowpassfilter.cpp
   src/requester/actionpackagesparser.cpp
-  src/action/action_executor.cpp
   src/handler/servohandler.cpp
 )
 

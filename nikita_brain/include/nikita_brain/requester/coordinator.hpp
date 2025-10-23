@@ -13,7 +13,6 @@
 #include "nikita_interfaces/msg/servo_status.hpp"
 //
 #include "action/action_planner.hpp"
-#include "handler/callback_timer.hpp"
 #include "irequester.hpp"
 #include "requester/error_management.hpp"
 #include "requester/simpletimer.hpp"
@@ -38,7 +37,7 @@ class CCoordinator : public IRequester {
     template <typename RequestT, typename... Args>
     void submitSingleRequest(Prio prio, Args&&... args);
 
-    void submitRequestMove(uint32_t movementType, uint32_t duration_ms = 0, std::string comment = "",
+    void submitRequestMove(uint32_t movementType, double duration_s = 0.0, std::string comment = "",
                            Prio prio = Prio::Normal,
                            nikita_interfaces::msg::Pose body = nikita_interfaces::msg::Pose());
 
@@ -62,7 +61,7 @@ class CCoordinator : public IRequester {
     std::shared_ptr<CActionPlanner> actionPlanner_;
     std::shared_ptr<CErrorManagement> errorManagement_;
     std::shared_ptr<CTextInterpreter> textInterpreter_;
-    std::shared_ptr<CCallbackTimer> timerErrorRequest_;
+    std::shared_ptr<CSimpleTimer> timerErrorRequest_;
     std::shared_ptr<CSimpleTimer> timerMovementRequest_;
     std::shared_ptr<CSimpleTimer> timerNoRequest_;
 
@@ -78,7 +77,7 @@ class CCoordinator : public IRequester {
     float param_joystick_deadzone_ = 0.0;
     float param_activate_movement_waiting_ = false;
 
-    std::map<uint32_t, std::string> movementTypeName_ = {
+    std::map<const uint32_t, const std::string> movementTypeName_ = {
         {nikita_interfaces::msg::MovementRequest::NO_REQUEST, "NO_REQUEST"},
         {nikita_interfaces::msg::MovementRequest::LAYDOWN, "LAYDOWN"},
         {nikita_interfaces::msg::MovementRequest::STAND_UP, "STAND_UP"},

@@ -12,25 +12,45 @@
 #include "nikita_interfaces/msg/servo_request.hpp"
 //
 #include "callback_timer.hpp"
-#include "requester/requests.hpp"
+#include "requester/kinematics.hpp"
+
+class CRequest {
+   public:
+    CRequest() = default;
+    CRequest(CHead head, std::map<ELegIndex, CLegAngles> legAngles, double duration)
+        : head_(head), legAngles_(legAngles), duration_(duration) {};
+
+    virtual ~CRequest() = default;
+
+    CHead head() const {
+        return head_;
+    }
+    std::map<ELegIndex, CLegAngles> legAngles() const {
+        return legAngles_;
+    }
+    double duration() const {
+        return duration_;
+    }
+
+   private:
+    CHead head_;
+    std::map<ELegIndex, CLegAngles> legAngles_;
+    double duration_ = double(0);
+};
 
 class CServoHandler {
    public:
     CServoHandler(std::shared_ptr<rclcpp::Node> node);
     virtual ~CServoHandler() = default;
 
-    void cancel();
+    virtual void requestWithoutQueue(CRequest request);
+    virtual void appendRequest(CRequest request);
     bool isDone();
-    void setDone(bool state);
-
-    void run(std::shared_ptr<CRequestSendDuration> request);
-    void run(std::shared_ptr<CRequestLeg> request);
-    void run(std::shared_ptr<CRequestLegs> request);
-    void run(std::shared_ptr<CRequestHead> request);
-
-    void setOnDoneCallback(std::function<void()> cb);
 
    private:
+    void run(CRequest request, bool blocking = true);
+    void executeNextPendingRequest();
+    void cancelRunningRequest();
     void timerCallback();
 
     std::shared_ptr<rclcpp::Node> node_;
@@ -40,6 +60,8 @@ class CServoHandler {
     std::shared_ptr<CCallbackTimer> callbackTimer_;
 
     std::function<void()> doneCallback_;
+
+    std::list<CRequest> pendingRequests_;
 
     bool isDone_ = true;
 };

@@ -7,11 +7,16 @@
 using namespace nikita_interfaces::msg;
 using std::placeholders::_1;
 
-CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CActionExecutor> actionExecutor)
-    : node_(node), actionExecutor_(actionExecutor) {
+CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServoHandler> servoHandler)
+    : node_(node) {
     kinematics_ = std::make_shared<CKinematics>(node);
     gaitController_ = std::make_shared<CGaitController>(node, kinematics_);
     actionPackagesParser_ = std::make_shared<CActionPackagesParser>(node);
+    if (servoHandler) {
+        servoHandler_ = servoHandler;
+    } else {
+        servoHandler_ = std::make_shared<CServoHandler>(node);
+    }
 
     initializeRequestHandlers();
 
@@ -45,7 +50,7 @@ void CRequester::initializeRequestHandlers() {
         {MovementRequest::BODY_ROLL, bind(&CRequester::requestBodyRoll)},
         {MovementRequest::BITE, bind(&CRequester::requestBite)},
         {MovementRequest::STOMP, bind(&CRequester::requestStomp)},
-        {MovementRequest::CLAP, bind(&CRequester::requestClap)},
+        {MovementRequest::CLAP, bind(&CRequester::requestSequence)},
         {MovementRequest::TRANSPORT, bind(&CRequester::requestTransport)},
         {MovementRequest::TESTBODY, bind(&CRequester::requestTestBody)},
         {MovementRequest::TESTLEGS, bind(&CRequester::requestTestLegs)},
@@ -53,6 +58,16 @@ void CRequester::initializeRequestHandlers() {
         {MovementRequest::CALIBRATE, bind(&CRequester::requestCalibrate)},
         // Add more handlers as needed
     };
+}
+
+void CRequester::sendServoRequest(const double duration_s, const bool blocking) {
+    auto head = kinematics_->getHead();
+    auto legs = kinematics_->getLegsAngles();
+    if (blocking) {
+        servoHandler_->appendRequest(CRequest(head, legs, duration_s));
+    } else {
+        servoHandler_->requestWithoutQueue(CRequest(head, legs, duration_s));
+    }
 }
 
 void CRequester::requestMoveToStand(const MovementRequest& msg) {
@@ -64,13 +79,10 @@ void CRequester::requestMoveToStand(const MovementRequest& msg) {
     bool tripodFirstGroupLegsLifted = kinematics_->getLegsPositions().at(ELegIndex::LeftFront).z >
                                       kinematics_->getLegsStandingPositions().at(ELegIndex::LeftFront).z;
     gaitController_->liftLegsTripodGroup(tripodFirstGroupLegsLifted);
-    actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                              std::make_shared<CRequestHead>(kinematics_->getHead()),
-                              std::make_shared<CRequestSendDuration>(msg.duration_ms / 2.0)});
+    sendServoRequest(msg.duration_s / 2.0);
     // set the legs to the standing position
     kinematics_->moveBody(kinematics_->getLegsStandingPositions());
-    actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                              std::make_shared<CRequestSendDuration>(msg.duration_ms / 2.0)});
+    sendServoRequest(msg.duration_s / 2.0);
 }
 
 void CRequester::requestWaiting(const MovementRequest& msg) {
@@ -92,26 +104,20 @@ void CRequester::requestWaiting(const MovementRequest& msg) {
         waitingPositionDown[legIndex] = CPosition(position.x, position.y, zPostionDown);
     }
 
-    int numberOfIterations = msg.duration_ms / 2000;  // 2000ms = 2 seconds per iteration
-    int waitingTime = msg.duration_ms / numberOfIterations;
+    int numberOfIterations = 5;
+    double waitingTime = msg.duration_s / double(numberOfIterations);
 
     for (int i = 0; i < numberOfIterations; ++i) {
         kinematics_->moveBody(waitingPositionUp);
-        actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                                  std::make_shared<CRequestHead>(kinematics_->getHead()),
-                                  std::make_shared<CRequestSendDuration>(waitingTime)});
+        sendServoRequest(waitingTime);
 
         kinematics_->moveBody(waitingPositionDown);
-        actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                                  std::make_shared<CRequestHead>(kinematics_->getHead()),
-                                  std::make_shared<CRequestSendDuration>(waitingTime)});
+        sendServoRequest(waitingTime);
     }
     //
     kinematics_->moveBody(currentLegsPositions);
     kinematics_->setHead(currentHeadPostion);
-    actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                              std::make_shared<CRequestHead>(kinematics_->getHead()),
-                              std::make_shared<CRequestSendDuration>(waitingTime)});
+    sendServoRequest(waitingTime);
 }
 
 void CRequester::requestMove(const MovementRequest& msg) {
@@ -120,9 +126,7 @@ void CRequester::requestMove(const MovementRequest& msg) {
     if (activeRequest_ != MovementRequest::MOVE) {
         transitionToMoveActive_ = true;
         gaitController_->liftLegsTripodGroup(true);
-        actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                                  std::make_shared<CRequestHead>(kinematics_->getHead()),
-                                  std::make_shared<CRequestSendDuration>(500)});
+        sendServoRequest(double(0.5));
     }
     activeRequest_ = MovementRequest::MOVE;
     velocity_ = msg.velocity;
@@ -164,11 +168,8 @@ void CRequester::requestSequence(const MovementRequest& msg) {
         if (action.head.has_value()) {
             kinematics_->setHead(action.head->degYaw, action.head->degPitch);
         }
-        double duration_ms = msg.duration_ms * action.factorDuration;
-
-        actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                                  std::make_shared<CRequestHead>(kinematics_->getHead()),
-                                  std::make_shared<CRequestSendDuration>(duration_ms)});
+        double duration_s = msg.duration_s * action.factorDuration;
+        sendServoRequest(duration_s);
     }
 }
 
@@ -183,20 +184,16 @@ void CRequester::requestHighFive(const MovementRequest& msg) {
     const CLegAngles anglesRightFrontBefore = kinematics_->getAngles(ELegIndex::RightFront);
 
     kinematics_->setLegAngles(ELegIndex::RightFront, CLegAngles(20.0, 50.0, 60.0));
+    kinematics_->setHead(0.0, -20.0);
 
-    actionExecutor_->request(                                           //
-        {std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),  //
-         std::make_shared<CRequestHead>(0.0, -20.0),                    //
-         std::make_shared<CRequestSendDuration>(msg.duration_ms / 3.0)});
+    sendServoRequest(double(msg.duration_s / 3.0));
 
     // wait a bit
-    actionExecutor_->request({std::make_shared<CRequestSendDuration>(msg.duration_ms / 3.0)});
+    sendServoRequest(double(msg.duration_s / 3.0));
 
     // move back to the original position
     kinematics_->setLegAngles(ELegIndex::RightFront, anglesRightFrontBefore);
-    actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                              std::make_shared<CRequestHead>(kinematics_->getHead()),
-                              std::make_shared<CRequestSendDuration>(msg.duration_ms / 3.0)});
+    sendServoRequest(double(msg.duration_s / 3.0));
 }
 
 void CRequester::requestLegsWave(const MovementRequest& msg) {
@@ -230,27 +227,13 @@ void CRequester::requestStomp(const MovementRequest& msg) {
     [[maybe_unused]] auto tmp = msg;  // Suppress unused variable warning
 }
 
-void CRequester::requestClap(const MovementRequest& msg) {
-    activeRequest_ = MovementRequest::CLAP;
-    auto requestedBody = CPose();
-    requestedBody.orientation.pitch = 20.0;
-    kinematics_->setHead(0.0, 10.0);
-
-    kinematics_->moveBody(kinematics_->getLegsStandingPositions(), requestedBody);
-    actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                              std::make_shared<CRequestHead>(kinematics_->getHead()),
-                              std::make_shared<CRequestSendDuration>(msg.duration_ms / 3)});
-}
-
 void CRequester::requestTransport(const MovementRequest& msg) {
     activeRequest_ = MovementRequest::TRANSPORT;
 
     for (auto& [legIndex, leg] : kinematics_->getLegs()) {
         kinematics_->setLegAngles(legIndex, CLegAngles(0.0, 30.0, -20.0));
     }
-    actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                              std::make_shared<CRequestHead>(kinematics_->getHead()),
-                              std::make_shared<CRequestSendDuration>(msg.duration_ms)});
+    sendServoRequest(msg.duration_s);
 }
 
 void CRequester::requestNeutral(const MovementRequest& msg) {
@@ -261,9 +244,7 @@ void CRequester::requestNeutral(const MovementRequest& msg) {
     for (auto& [legIndex, leg] : kinematics_->getLegs()) {
         kinematics_->setLegAngles(legIndex, CLegAngles(0.0, 0.0, 0.0));
     }
-    actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                              std::make_shared<CRequestHead>(kinematics_->getHead()),
-                              std::make_shared<CRequestSendDuration>(msg.duration_ms)});
+    sendServoRequest(msg.duration_s);
 }
 
 void CRequester::requestCalibrate(const MovementRequest& msg) {
@@ -275,10 +256,7 @@ void CRequester::requestCalibrate(const MovementRequest& msg) {
         positionsKissGround[legIndex] = CPosition(position.x, position.y, 0.0);
     }
     kinematics_->moveBody(positionsKissGround);
-
-    actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                              std::make_shared<CRequestHead>(kinematics_->getHead()),
-                              std::make_shared<CRequestSendDuration>(msg.duration_ms)});
+    sendServoRequest(msg.duration_s);
 }
 
 void CRequester::requestTestBody(const MovementRequest& msg) {
@@ -286,9 +264,7 @@ void CRequester::requestTestBody(const MovementRequest& msg) {
 
     auto requestedBody = CPose(msg.body);
     kinematics_->moveBody(kinematics_->getLegsStandingPositions(), requestedBody);
-    actionExecutor_->request({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                              std::make_shared<CRequestHead>(kinematics_->getHead()),
-                              std::make_shared<CRequestSendDuration>(msg.duration_ms)});
+    sendServoRequest(msg.duration_s);
 }
 
 void CRequester::requestTestLegs(const MovementRequest& msg) {
@@ -307,15 +283,12 @@ void CRequester::requestTestLegs(const MovementRequest& msg) {
         legAngles.degTibia += 10.0;
         legAngles.degCoxa += 10.0;
         kinematics_->setLegAngles(legIndex, legAngles);
-        actionExecutor_->request(                                           //
-            {std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),  //
-             std::make_shared<CRequestSendDuration>(msg.duration_ms / 3.0)});
+        sendServoRequest(msg.duration_s / 3.0);
 
-        actionExecutor_->request({std::make_shared<CRequestSendDuration>(msg.duration_ms / 3.0)});
+        sendServoRequest(msg.duration_s / 3.0);
+
         kinematics_->setLegAngles(legIndex, origLegAngles);
-        actionExecutor_->request(                                           //
-            {std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),  //
-             std::make_shared<CRequestSendDuration>(msg.duration_ms / 3.0)});
+        sendServoRequest(msg.duration_s / 3.0);
     }
 }
 
@@ -341,7 +314,7 @@ void CRequester::update(std::chrono::milliseconds timeslice) {
 
     // if the movement request is active and we are in the transition to movement
     if (transitionToMoveActive_) {
-        if (actionExecutor_->isDone()) {
+        if (servoHandler_->isDone()) {
             RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::transition to Movement done");
             gaitController_->setPhaseNeutral();
             transitionToMoveActive_ = false;
@@ -351,7 +324,6 @@ void CRequester::update(std::chrono::milliseconds timeslice) {
 
     // while the movement request is active update the gait controller
     gaitController_->updateCombinedTripodGait(velocity_, poseBody_);
-    actionExecutor_->requestWithoutQueue({std::make_shared<CRequestLegs>(kinematics_->getLegsAngles()),
-                                          std::make_shared<CRequestHead>(kinematics_->getHead()),
-                                          std::make_shared<CRequestSendDuration>(timeslice.count(), false)});
+    double duration = double(timeslice.count() / 1000.0);
+    sendServoRequest(duration, false);
 }
