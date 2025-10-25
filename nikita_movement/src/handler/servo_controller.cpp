@@ -14,7 +14,7 @@
 // 034-024-014-|-013-023-033
 //
 
-#include "servo_controller.hpp"
+#include "handler/servo_controller.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -24,12 +24,14 @@ using namespace nikita_interfaces::msg;
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
-ServoController::ServoController(std::shared_ptr<rclcpp::Node> node) : node_(node) {
+CServoController::CServoController(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     cycleCounter_ = 0;
 
-    RCLCPP_INFO_STREAM(node_->get_logger(), "initializing...");
+    RCLCPP_INFO_STREAM(node_->get_logger(), "CServoController: initializing connection...");
 
     std::string serialPort = node_->declare_parameter<std::string>("SERIAL_PORT", "/dev/ttyUSB0");
+
+    bool isServoControllerOffline = node_->declare_parameter<bool>("SERVO_CONTROLLER_OFFLINE", false);
 
     std::vector<std::string> names =
         node_->declare_parameter<std::vector<std::string>>("SERVO_NAME", std::vector<std::string>());
@@ -51,26 +53,30 @@ ServoController::ServoController(std::shared_ptr<rclcpp::Node> node) : node_(nod
         nameToIdx_[names.at(i)] = i;
     }
 
-    protocol_ = std::make_shared<BusServoProtocol>(node_, serialPort);
+    if (isServoControllerOffline) {
+        protocol_ = std::make_shared<COfflineServoProtocol>(node_, serialPort);
+    } else {
+        protocol_ = std::make_shared<CServoProtocol>(node_, serialPort);
+    }
 
     if (!protocol_->triggerConnection()) {
-        RCLCPP_WARN_STREAM(node_->get_logger(), "connection FAILED");
+        RCLCPP_WARN_STREAM(node_->get_logger(), "CServoController: connection FAILED");
         return;
     }
-    RCLCPP_INFO_STREAM(node_->get_logger(), "connection successful");
+    RCLCPP_INFO_STREAM(node_->get_logger(), "CServoController: connection successful");
 
     // wait 500ms for servos to be ready
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-    subServoRequest_ = node_->create_subscription<ServoRequest>(
-        "servo_request", 10,
-        std::bind(&ServoController::onServoRequestReceived, this, std::placeholders::_1));
+    // subServoRequest_ = node_->create_subscription<ServoRequest>(
+    //     "servo_request", 10,
+    //     std::bind(&CServoController::onServoRequestReceived, this, std::placeholders::_1));
 
     subSingleServoRequest_ = node_->create_subscription<ServoAngle>(
-        "single_servo_request", 10, std::bind(&ServoController::onSingleServoRequestReceived, this, _1));
+        "single_servo_request", 10, std::bind(&CServoController::onSingleServoRequestReceived, this, _1));
 
     subServoDirectRequest_ = node_->create_subscription<ServoDirectRequest>(
-        "servo_direct_request", 10, std::bind(&ServoController::onServoDirectRequestReceived, this, _1));
+        "servo_direct_request", 10, std::bind(&CServoController::onServoDirectRequestReceived, this, _1));
 
     // TODO:
     // rclcpp::QoS qos_profile(1);
@@ -79,26 +85,34 @@ ServoController::ServoController(std::shared_ptr<rclcpp::Node> node) : node_(nod
     pubAngles_ = node_->create_publisher<ServoAngles>("servo_angles", 10);
     pubStatus_ = node_->create_publisher<ServoStatus>("servo_status", 10);
 
+    RCLCPP_INFO_STREAM(node_->get_logger(), "CServoController: initializing servos... " << servos_.size());
+
     for (auto& [idx, servo] : servos_) {
         auto start = node_->get_clock()->now();
 
+        RCLCPP_INFO_STREAM(node_->get_logger(), "CServoController: initializing servo "
+                                                    << servo.getName() << " (ID "
+                                                    << uint32_t(servo.getSerialID()) << ")");
+
         uint8_t ledErrorCode = 0;
         if (!protocol_->getLedErrcode(servo.getSerialID(), ledErrorCode)) {
-            RCLCPP_ERROR_STREAM(node_->get_logger(), "TIMEOUT getLedErrcode " << servo.getName());
+            RCLCPP_ERROR_STREAM(node_->get_logger(),
+                                "CServoController: TIMEOUT getLedErrcode " << servo.getName());
         } else {
             servo.setErrorCode(ledErrorCode);
         }
 
         uint8_t temp = 0;
         if (!protocol_->getTemperature(servo.getSerialID(), temp)) {
-            RCLCPP_ERROR_STREAM(node_->get_logger(), "TIMEOUT getTemp " << servo.getName());
+            RCLCPP_ERROR_STREAM(node_->get_logger(), "CServoController: TIMEOUT getTemp " << servo.getName());
         } else {
             servo.setTemperature(temp);
         }
 
         uint16_t vin = 0;
         if (!protocol_->getVoltage(servo.getSerialID(), vin)) {
-            RCLCPP_ERROR_STREAM(node_->get_logger(), "TIMEOUT getVoltage " << servo.getName());
+            RCLCPP_ERROR_STREAM(node_->get_logger(),
+                                "CServoController: TIMEOUT getVoltage " << servo.getName());
         } else {
             double vin_volt = static_cast<double>(vin) / 1000.0;  // convert mV to V
             servo.setVoltage(vin_volt);
@@ -106,14 +120,14 @@ ServoController::ServoController(std::shared_ptr<rclcpp::Node> node) : node_(nod
 
         int16_t pos = 0;
         if (!protocol_->getPosition(servo.getSerialID(), pos)) {
-            RCLCPP_ERROR_STREAM(node_->get_logger(), "TIMEOUT getPos " << servo.getName());
+            RCLCPP_ERROR_STREAM(node_->get_logger(), "CServoController: TIMEOUT getPos " << servo.getName());
         } else {
             servo.setAngle(ticks_to_angle(pos, idx));
         }
 
         auto duration = node_->get_clock()->now() - start;
-        RCLCPP_INFO(node_->get_logger(), "%s initialization took: %.3fs", servo.getName().c_str(),
-                    duration.seconds());
+        RCLCPP_INFO(node_->get_logger(), "CServoController: %s initialization took: %.3fs",
+                    servo.getName().c_str(), duration.seconds());
         RCLCPP_INFO_STREAM(node_->get_logger(), servo.getVoltage()
                                                     << "V" << " | " << servo.getTemperature() << "°C"
                                                     << " | angle: " << servo.getAngle()
@@ -128,10 +142,10 @@ ServoController::ServoController(std::shared_ptr<rclcpp::Node> node) : node_(nod
     msg_angles.header.stamp = node_->get_clock()->now();
     pubAngles_->publish(msg_angles);
 
-    timer_ = node_->create_wall_timer(100ms, std::bind(&ServoController::onTimerStatus, this));
+    timer_ = node_->create_wall_timer(100ms, std::bind(&CServoController::onTimerStatus, this));
 }
 
-double ServoController::ticks_to_angle(int ticks, int idx) {
+double CServoController::ticks_to_angle(int ticks, int idx) {
     double angle = (static_cast<double>(ticks) - 500.0) * 6.0 / 25.0;
     if (!servos_.at(idx).isOrientationClockwise()) {
         angle = -angle;
@@ -140,7 +154,7 @@ double ServoController::ticks_to_angle(int ticks, int idx) {
     return angle;
 }
 
-int ServoController::angle_to_ticks(double angle, int idx) {
+int CServoController::angle_to_ticks(double angle, int idx) {
     angle = angle - servos_.at(idx).getOffsetDegree() + servos_.at(idx).getAdaptation();
     if (!servos_.at(idx).isOrientationClockwise()) {
         angle = -angle;
@@ -148,7 +162,7 @@ int ServoController::angle_to_ticks(double angle, int idx) {
     return static_cast<int>(((angle + 120.0) / 6.0) * 25.0);
 }
 
-void ServoController::onTimerStatus() {
+void CServoController::onTimerStatus() {
     // RCLCPP_INFO_STREAM(node_->get_logger(), "onTimerStatus: " << uint32_t(cycleCounter_));
     CServo& servo = servos_.at(cycleCounter_);
 
@@ -204,8 +218,13 @@ void ServoController::onTimerStatus() {
     cycleCounter_ = (cycleCounter_ + 1) % servos_.size();
 }
 
-void ServoController::onServoRequestReceived(const ServoRequest& msg) {
+void CServoController::sendServoRequest(const ServoRequest& msg) {
     for (size_t idx = 0; idx < msg.target_angles.size(); ++idx) {
+        // guard: skip indexes we don't know about
+        if (servos_.find(static_cast<int>(idx)) == servos_.end()) {
+            RCLCPP_WARN(node_->get_logger(), "sendServoRequest: unknown servo index %zu", idx);
+            continue;
+        }
         double req_angle = msg.target_angles[idx].angle_deg;
         double diff = std::abs(servos_.at(idx).getAngle() - req_angle);
         if (diff < 0.49) continue;
@@ -220,10 +239,14 @@ void ServoController::onServoRequestReceived(const ServoRequest& msg) {
     protocol_->actionStart();
 }
 
-void ServoController::onSingleServoRequestReceived(const ServoAngle& msg) {
+void CServoController::onSingleServoRequestReceived(const ServoAngle& msg) {
     RCLCPP_INFO(node_->get_logger(), "single_servo_request: %s: %.1f", msg.name.c_str(), msg.angle_deg);
-
-    int idx = nameToIdx_[msg.name];
+    auto it = nameToIdx_.find(msg.name);
+    if (it == nameToIdx_.end()) {
+        RCLCPP_WARN(node_->get_logger(), "single_servo_request: unknown servo name '%s'", msg.name.c_str());
+        return;
+    }
+    int idx = it->second;
     double req_angle = msg.angle_deg;
     double diff = std::abs(servos_.at(idx).getAngle() - req_angle);
 
@@ -234,10 +257,19 @@ void ServoController::onSingleServoRequestReceived(const ServoAngle& msg) {
     protocol_->setPosition(servos_.at(idx).getSerialID(), ticks, duration);
 }
 
-void ServoController::onServoDirectRequestReceived(const ServoDirectRequest& msg) {
+void CServoController::onServoDirectRequestReceived(const ServoDirectRequest& msg) {
     RCLCPP_INFO(node_->get_logger(), "servo_direct_request: %s: %d", msg.name.c_str(), msg.cmd);
 
-    int idx = nameToIdx_[msg.name];
+    auto it = nameToIdx_.find(msg.name);
+    if (it == nameToIdx_.end()) {
+        RCLCPP_WARN(node_->get_logger(), "servo_direct_request: unknown servo name '%s'", msg.name.c_str());
+        return;
+    }
+    int idx = it->second;
+    if (servos_.find(idx) == servos_.end()) {
+        RCLCPP_WARN(node_->get_logger(), "servo_direct_request: servo index %d not present", idx);
+        return;
+    }
     uint8_t serialID = servos_.at(idx).getSerialID();
 
     switch (msg.cmd) {

@@ -33,26 +33,15 @@ CServoHandler::CServoHandler(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_BACK_FEMUR).name = "LEG_RIGHT_BACK_FEMUR";
     msgServoRequest_.target_angles.at(ServoIndex::LEG_RIGHT_BACK_TIBIA).name = "LEG_RIGHT_BACK_TIBIA";
 
+    servoController_ = std::make_shared<CServoController>(node_);
+
     callbackTimer_ = std::make_unique<CCallbackTimer>();
 
     pubServoRequest_ = node_->create_publisher<nikita_interfaces::msg::ServoRequest>("servo_request", 10);
 }
 
-// void CServoHandler::run(std::shared_ptr<CRequestSendDuration> request) {
-//     // RCLCPP_INFO_STREAM(node_->get_logger(),
-//     //                    "CServoHandler::run | CRequestSendDuration for " << request->durationMs() << "ms");
-
-//     msgServoRequest_.header.stamp = node_->now();
-//     msgServoRequest_.time_to_reach_target_angles_ms = request->durationMs();
-//     pubServoRequest_->publish(msgServoRequest_);
-
-//     if (request->blocking()) {
-//         callbackTimer_->start(request->durationMs(), std::bind(&CServoHandler::timerCallback, this), true);
-//     }
-// }
-
 void CServoHandler::run(CRequest request, bool blocking) {
-    // RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler::run | CRequest");
+    RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler::run | CRequest");
     // set head angles
     msgServoRequest_.target_angles.at(ServoIndex::HEAD_YAW).angle_deg = request.head().degYaw;
     msgServoRequest_.target_angles.at(ServoIndex::HEAD_PITCH).angle_deg = request.head().degPitch;
@@ -89,6 +78,8 @@ void CServoHandler::run(CRequest request, bool blocking) {
     msgServoRequest_.header.stamp = node_->now();
     msgServoRequest_.time_to_reach_target_angles_ms = request.duration() * 1000.0;
     pubServoRequest_->publish(msgServoRequest_);
+
+    servoController_->sendServoRequest(msgServoRequest_);
 
     if (blocking) {
         callbackTimer_->start(uint32_t(request.duration() * 1000),

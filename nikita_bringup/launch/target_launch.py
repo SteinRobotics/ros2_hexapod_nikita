@@ -18,8 +18,8 @@ def generate_launch_description():
     ld.add_action(IncludeLaunchDescription(PythonLaunchDescriptionSource([
         FindPackageShare("nikita_hmi"), '/launch', '/hmi_launch.py'])))
 
-    ld.add_action(IncludeLaunchDescription(PythonLaunchDescriptionSource([
-        FindPackageShare("nikita_servo_controller"), '/launch', '/servo_controller_launch.py'])))
+    # ld.add_action(IncludeLaunchDescription(PythonLaunchDescriptionSource([
+    #     FindPackageShare("nikita_servo_controller"), '/launch', '/servo_controller_launch.py'])))
     
     ld.add_action(IncludeLaunchDescription(AnyLaunchDescriptionSource([
         FindPackageShare("nikita_movement"), '/launch', '/movement_launch.py'])))

@@ -28,6 +28,8 @@ set(SOURCES
   src/requester/lowpassfilter.cpp
   src/requester/actionpackagesparser.cpp
   src/handler/servohandler.cpp
+  src/handler/servo_controller.cpp
+  src/handler/servo_protocol.cpp
 )
 
 add_library(nikita_movement_core

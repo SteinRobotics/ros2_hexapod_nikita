@@ -13,6 +13,7 @@
 //
 #include "callback_timer.hpp"
 #include "requester/kinematics.hpp"
+#include "servo_controller.hpp"
 
 class CRequest {
    public:
@@ -54,6 +55,7 @@ class CServoHandler {
     void timerCallback();
 
     std::shared_ptr<rclcpp::Node> node_;
+    std::shared_ptr<CServoController> servoController_;
     std::map<uint32_t, float> jointAngles_;
     rclcpp::Publisher<nikita_interfaces::msg::ServoRequest>::SharedPtr pubServoRequest_;
     nikita_interfaces::msg::ServoRequest msgServoRequest_;

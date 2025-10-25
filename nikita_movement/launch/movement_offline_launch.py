@@ -13,14 +13,13 @@ def generate_launch_description():
     anatomy = os.path.join(config_dir, 'anatomy.yaml')
     servo_description = os.path.join(config_dir, 'servo_description.yaml')
 
-    # Pass multiple parameter files as a list. Files are applied in order;
-    # later files override keys from earlier files when conflicts exist.
     node = Node(
-        package='nikita_movement',
-        name='node_movement',
-        executable='node_movement',
-        output='screen',
-        parameters=[anatomy, servo_description]
+        package = 'nikita_movement',
+        name = 'node_movement',
+        executable = 'node_movement',
+        output = 'screen',
+        # load the anatomy config and set the controller to offline (use mock)
+        parameters = [anatomy, servo_description, {'SERVO_CONTROLLER_OFFLINE': True}]
     )
     ld.add_action(node)
     return ld
