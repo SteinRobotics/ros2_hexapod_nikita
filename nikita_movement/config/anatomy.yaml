@@ -12,7 +12,7 @@ node_movement:
 #    ▲ x
 #    │
 #    │
-#   (•)─────▶ y
+#   (x)─────▶ y
 #      z
 
     LEG_NAMES: ['RightFront', 'RightMid', 'RightBack', 'LeftFront', 'LeftMid', 'LeftBack']

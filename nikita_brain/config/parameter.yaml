@@ -4,6 +4,7 @@ node_brain:
     activate_movement_waiting: false
     velocity_factor_linear: 0.01
     velocity_factor_rotation: 0.01
+    body_factor_height: 0.04
     joystick_deadzone: 0.04
     supply_voltage: 5.0
     supply_voltage_low: 4.9

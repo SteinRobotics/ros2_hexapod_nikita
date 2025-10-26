@@ -211,11 +211,11 @@ void CKinematics::calcLegForwardKinematics(const CLegAngles target, CLeg& leg) {
 
     leg.footPos_.x = (COXA_LENGTH + FEMUR_LENGTH * cos(deg2rad(target.degFemur)) +
                       TIBIA_LENGTH * cos(deg2rad(-90 + target.degFemur + target.degTibia))) *
-                     sin(deg2rad(target.degCoxa));
+                     sin(deg2rad(90 + target.degCoxa));
 
     leg.footPos_.y = (COXA_LENGTH + FEMUR_LENGTH * cos(deg2rad(target.degFemur)) +
                       TIBIA_LENGTH * cos(deg2rad(-90 + target.degFemur + target.degTibia))) *
-                     cos(deg2rad(target.degCoxa));
+                     cos(deg2rad(90 + target.degCoxa));
 
     leg.footPos_.z = COXA_HEIGHT + (FEMUR_LENGTH * sin(deg2rad(target.degFemur)) +
                                     TIBIA_LENGTH * sin(deg2rad(-90 + target.degFemur + target.degTibia)));
@@ -230,14 +230,14 @@ void CKinematics::setLegAngles(const ELegIndex index, const CLegAngles& angles) 
 
     // transform to leg coordinate system by adding the angle psi
     CLegAngles targetAngles = angles;
-    targetAngles.degCoxa += bodyCenterOffsets_[index].psi;
+    targetAngles.degCoxa -= bodyCenterOffsets_[index].psi;
 
     calcLegForwardKinematics(targetAngles, leg);
 
     // transform back to robot coordinate system by adding body center offset and subtracting psi
     leg.footPos_.x += bodyCenterOffsets_[index].x;
     leg.footPos_.y += bodyCenterOffsets_[index].y;
-    leg.angles_.degCoxa -= bodyCenterOffsets_[index].psi;
+    leg.angles_.degCoxa += bodyCenterOffsets_[index].psi;
 
     RCLCPP_INFO_STREAM(node_->get_logger(), legIndexToName.at(index) << " setLegAngles to");
     logLegPosition(index, leg);

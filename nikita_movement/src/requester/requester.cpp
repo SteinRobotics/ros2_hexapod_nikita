@@ -185,7 +185,6 @@ void CRequester::requestHighFive(const MovementRequest& msg) {
 
     kinematics_->setLegAngles(ELegIndex::RightFront, CLegAngles(20.0, 50.0, 60.0));
     kinematics_->setHead(0.0, -20.0);
-
     sendServoRequest(double(msg.duration_s / 3.0));
 
     // wait a bit

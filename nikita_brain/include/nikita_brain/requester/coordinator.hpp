@@ -74,6 +74,7 @@ class CCoordinator : public IRequester {
 
     float param_velocity_factor_linear_ = 0.0;
     float param_velocity_factor_rotation_ = 0.0;
+    float param_body_factor_height_ = 0.0;
     float param_joystick_deadzone_ = 0.0;
     float param_activate_movement_waiting_ = false;
 

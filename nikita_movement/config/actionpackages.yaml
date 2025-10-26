@@ -69,13 +69,13 @@ EXAMPLE:
 HIGH_FIVE:
   - head: { yaw: 0.0, pitch: -20.0 }
     legAngles: { RightFront: { coxa: 20.0, femur: 50.0, tibia: 60.0 } }
-    factorDuration: 0.333
+    factorDuration: 0.33
 
-  - factorDuration: 0.333
+  - factorDuration: 0.33
 
-  - head: { yaw: 0.0, pitch: -20.0 }
-    legAngles: { RightFront: { coxa: 20.0, femur: 50.0, tibia: 60.0 } }
-    factorDuration: 0.333
+  - head: *head_neutral
+    legAngles: *legAngles_standing
+    factorDuration: 0.33
 
 WATCH:
   - head: { yaw: -40.0, pitch: 0.0 }

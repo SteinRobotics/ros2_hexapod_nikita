@@ -19,26 +19,16 @@ CCoordinator::CCoordinator(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     timerMovementRequest_ = std::make_shared<CSimpleTimer>(false);
     timerNoRequest_ = std::make_shared<CSimpleTimer>(true);
 
-    node->declare_parameter("velocity_factor_linear", rclcpp::PARAMETER_DOUBLE);
-    param_velocity_factor_linear_ =
-        node->get_parameter("velocity_factor_linear").get_parameter_value().get<std::float_t>();
+    param_velocity_factor_linear_ = node->declare_parameter<std::float_t>("velocity_factor_linear");
+    param_velocity_factor_rotation_ = node->declare_parameter<std::float_t>("velocity_factor_rotation");
+    param_body_factor_height_ = node->declare_parameter<std::float_t>("body_factor_height");
+    param_joystick_deadzone_ = node->declare_parameter<std::float_t>("joystick_deadzone");
 
-    node->declare_parameter("velocity_factor_rotation", rclcpp::PARAMETER_DOUBLE);
-    param_velocity_factor_rotation_ =
-        node->get_parameter("velocity_factor_rotation").get_parameter_value().get<std::float_t>();
-
-    node->declare_parameter("joystick_deadzone", rclcpp::PARAMETER_DOUBLE);
-    param_joystick_deadzone_ =
-        node->get_parameter("joystick_deadzone").get_parameter_value().get<std::float_t>();
-
-    node->declare_parameter("autostart_listening", rclcpp::PARAMETER_BOOL);
-    if (node->get_parameter("autostart_listening").get_parameter_value().get<bool>()) {
+    if (node->declare_parameter<bool>("autostart_listening")) {
         submitSingleRequest<RequestListening>(Prio::Background, true);
     }
 
-    node->declare_parameter("activate_movement_waiting", rclcpp::PARAMETER_BOOL);
-    param_activate_movement_waiting_ =
-        node->get_parameter("activate_movement_waiting").get_parameter_value().get<bool>();
+    param_activate_movement_waiting_ = node->declare_parameter<bool>("activate_movement_waiting");
 
     timerNoRequest_ = std::make_shared<CSimpleTimer>(param_activate_movement_waiting_);
 }
@@ -122,10 +112,9 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     }
 
     // float32 right_stick_vertical    # TOP  = -1.0, DOWN = 1.0, hangs on 0.004 -> means 0.0
-    const double param_factor_body_z_ = 0.04;  // TODO make this a parameter
     if (msg.right_stick_vertical > param_joystick_deadzone_ ||
         msg.right_stick_vertical < -param_joystick_deadzone_) {
-        body.position.z = msg.right_stick_vertical * param_factor_body_z_;
+        body.position.z = msg.right_stick_vertical * param_body_factor_height_;
         newMovementType = MovementRequest::MOVE;
     } else {
         body.position.z = 0.0;
