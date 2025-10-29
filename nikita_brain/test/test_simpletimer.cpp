@@ -6,8 +6,6 @@
 
 #include "requester/simpletimer.hpp"
 
-using namespace brain;
-
 TEST(SimpleTimerTest, WaitSecondsBlockingCallsCallback) {
     CSimpleTimer timer;
     auto t0 = std::chrono::steady_clock::now();

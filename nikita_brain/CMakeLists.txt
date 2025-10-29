@@ -60,11 +60,9 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}/
 )
 
-ament_package()
-
 # Unit tests
 if(BUILD_TESTING)
-  ament_add_gtest(test_text_interpreter
+  ament_add_gtest(test_text_interpreter 
     test/test_text_interpreter.cpp
   )
   if(TARGET test_text_interpreter)
@@ -72,15 +70,14 @@ if(BUILD_TESTING)
     target_include_directories(test_text_interpreter PRIVATE include)
     target_link_libraries(test_text_interpreter nikita_brain_lib)
   endif()
-  # Fallback: also create an explicit test executable and register it with CTest
-  add_executable(test_text_interpreter_exec test/test_text_interpreter.cpp)
-  target_include_directories(test_text_interpreter_exec PRIVATE include)
-  ament_target_dependencies(test_text_interpreter_exec rclcpp ament_index_cpp nikita_interfaces nlohmann_json)
-  target_link_libraries(test_text_interpreter_exec nikita_brain_lib)
-  # Link gtest if available
-  find_package(GTest QUIET)
-  if(GTest_FOUND)
-    target_link_libraries(test_text_interpreter_exec GTest::GTest GTest::Main)
+
+  ament_add_gtest(test_simple_timer 
+    test/test_simpletimer.cpp
+  )
+  if(TARGET test_simpletimer)
+    ament_target_dependencies(test_simpletimer rclcpp ament_index_cpp)
+    target_link_libraries(test_simpletimer nikita_brain_lib)
   endif()
-  add_test(NAME test_text_interpreter_exec COMMAND test_text_interpreter_exec)
 endif()
+
+ament_package()

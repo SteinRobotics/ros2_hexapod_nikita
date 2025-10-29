@@ -35,7 +35,7 @@ CServoHandler::CServoHandler(std::shared_ptr<rclcpp::Node> node) : node_(node) {
 
     servoController_ = std::make_shared<CServoController>(node_);
 
-    callbackTimer_ = std::make_unique<CCallbackTimer>();
+    simpleTimer_ = std::make_unique<CSimpleTimer>();
 
     pubServoRequest_ = node_->create_publisher<nikita_interfaces::msg::ServoRequest>("servo_request", 10);
 }
@@ -96,8 +96,8 @@ void CServoHandler::run(CRequest request, bool blocking) {
     servoController_->sendServoRequest(msgServoRequest_);
 
     if (blocking) {
-        callbackTimer_->start(uint32_t(request.duration() * 1000),
-                              std::bind(&CServoHandler::timerCallback, this), true);
+        simpleTimer_->waitSecondsNonBlocking(request.duration(),
+                                             std::bind(&CServoHandler::timerCallback, this));
     }
 }
 
@@ -119,7 +119,7 @@ void CServoHandler::requestWithoutQueue(CRequest request) {
 void CServoHandler::appendRequest(CRequest request) {
     // RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler:: new request ");
     pendingRequests_.push_back(request);
-    if (!callbackTimer_->isRunning()) executeNextPendingRequest();
+    if (!simpleTimer_->isRunning()) executeNextPendingRequest();
 }
 
 bool CServoHandler::isDone() {
@@ -138,5 +138,5 @@ void CServoHandler::executeNextPendingRequest() {
 void CServoHandler::cancelRunningRequest() {
     // RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler::cancelRunningRequest");
     pendingRequests_.clear();
-    callbackTimer_->stop();
+    simpleTimer_->stop();
 }

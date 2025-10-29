@@ -11,9 +11,9 @@
 #include "nikita_interfaces/msg/servo_index.hpp"
 #include "nikita_interfaces/msg/servo_request.hpp"
 //
-#include "callback_timer.hpp"
 #include "requester/kinematics.hpp"
 #include "servo_controller.hpp"
+#include "simpletimer.hpp"
 
 class CRequest {
    public:
@@ -59,7 +59,7 @@ class CServoHandler {
     std::map<uint32_t, float> jointAngles_;
     rclcpp::Publisher<nikita_interfaces::msg::ServoRequest>::SharedPtr pubServoRequest_;
     nikita_interfaces::msg::ServoRequest msgServoRequest_;
-    std::shared_ptr<CCallbackTimer> callbackTimer_;
+    std::shared_ptr<CSimpleTimer> simpleTimer_;
 
     std::function<void()> doneCallback_;
 
