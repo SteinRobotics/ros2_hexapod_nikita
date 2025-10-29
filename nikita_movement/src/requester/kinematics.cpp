@@ -94,6 +94,12 @@ void CKinematics::logLegPosition(const ELegIndex index, const CLeg& leg) {
                            << std::setw(3) << leg.footPos_.y << ", z: " << std::setw(3) << leg.footPos_.z);
 }
 
+void CKinematics::logHeadPosition() {
+    RCLCPP_INFO_STREAM(node_->get_logger(),
+                       "Head: \tYaw: " << std::fixed << std::setprecision(3) << std::setw(3) << head_.degYaw
+                                       << "°, Pitch: " << std::setw(3) << head_.degPitch << "°");
+}
+
 void CKinematics::intializeLegs(std::map<ELegIndex, CLeg>& legs, std::vector<double>& posX,
                                 std::vector<double>& posY, std::vector<double>& posZ) {
     // TODO change this and take the moveBody function instead, read the values from actionpackages.yaml
@@ -226,7 +232,7 @@ void CKinematics::setSingleFeet(const ELegIndex legIndex, const CPosition& targe
 }
 
 void CKinematics::setLegAngles(const ELegIndex index, const CLegAngles& angles) {
-        auto& leg = legs_.at(index);
+    auto& leg = legs_.at(index);
 
     // transform to leg coordinate system by adding the angle psi
     CLegAngles targetAngles = angles;
@@ -243,9 +249,14 @@ void CKinematics::setLegAngles(const ELegIndex index, const CLegAngles& angles) 
 }
 
 void CKinematics::setHead(CHead head) {
-    RCLCPP_INFO_STREAM(node_->get_logger(),
-                       "setHead to" << " yaw: " << head.degYaw << ", pitch: " << head.degPitch);
     head_ = head;
+    logHeadPosition();
+}
+
+void CKinematics::setHead(double degYaw, double degPitch) {
+    head_.degYaw = degYaw;
+    head_.degPitch = degPitch;
+    logHeadPosition();
 }
 
 std::map<ELegIndex, CLeg>& CKinematics::getLegs() {

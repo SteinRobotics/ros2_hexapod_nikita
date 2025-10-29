@@ -150,11 +150,7 @@ class CKinematics {
     void moveBody(const std::map<ELegIndex, CPosition>& footTargets,
                   const CPose body = CPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
-    void setHead(double degYaw, double degPitch) {
-        head_.degYaw = degYaw;
-        head_.degPitch = degPitch;
-    };
-    // set head by components
+    void setHead(double degYaw, double degPitch);
     void setHead(CHead head);
 
     std::map<ELegIndex, CPosition> getLegsPositions() const;
@@ -204,6 +200,7 @@ class CKinematics {
                        std::vector<double>& posZ);
     void logLegsPositions(std::map<ELegIndex, CLeg>& legs);
     void logLegPosition(const ELegIndex index, const CLeg& leg);
+    void logHeadPosition();
     void calcLegInverseKinematics(const CPosition& targetFeetPos, CLeg& leg, const ELegIndex& legIndex);
     void calcLegForwardKinematics(const CLegAngles target, CLeg& leg);
     CPosition rotate(const CPosition& point, const COrientation& rot);
