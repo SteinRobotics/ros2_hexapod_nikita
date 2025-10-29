@@ -103,9 +103,10 @@ void CServoHandler::requestWithoutQueue(CRequest request) {
 }
 
 void CServoHandler::appendRequest(CRequest request) {
-    // RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler:: new request ");
+    RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler:: new request ");
+    bool queueEmpty = isDone();
     pendingRequests_.push_back(request);
-    if (isDone()) executeNextPendingRequest();
+    if (queueEmpty) executeNextPendingRequest();
 }
 
 bool CServoHandler::isDone() {
@@ -113,11 +114,9 @@ bool CServoHandler::isDone() {
 }
 
 void CServoHandler::executeNextPendingRequest() {
-    if (!pendingRequests_.empty()) {
-        auto request = pendingRequests_.front();
-        pendingRequests_.pop_front();
-        run(request);
-    }
+    auto request = pendingRequests_.front();
+    pendingRequests_.pop_front();
+    run(request);
 }
 
 void CServoHandler::cancelRunningRequest() {
