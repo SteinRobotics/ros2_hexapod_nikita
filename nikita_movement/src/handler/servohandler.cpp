@@ -104,9 +104,8 @@ void CServoHandler::requestWithoutQueue(CRequest request) {
 
 void CServoHandler::appendRequest(CRequest request) {
     RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler:: new request ");
-    bool queueEmpty = isDone();
     pendingRequests_.push_back(request);
-    if (queueEmpty) executeNextPendingRequest();
+    if (!callbackTimer_->isRunning()) executeNextPendingRequest();
 }
 
 bool CServoHandler::isDone() {
