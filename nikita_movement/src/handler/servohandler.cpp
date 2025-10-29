@@ -114,6 +114,9 @@ bool CServoHandler::isDone() {
 }
 
 void CServoHandler::executeNextPendingRequest() {
+    if (pendingRequests_.empty()) {
+        return;
+    }
     auto request = pendingRequests_.front();
     pendingRequests_.pop_front();
     run(request);
