@@ -27,7 +27,8 @@ class CCallbackTimer {
                 }
             }
         });
-        timerThread_.detach();
+        // Leave thread joinable — stop() will join it to ensure the callback
+        // cannot run after the timer object is stopped or destroyed.
     }
 
     void startWithoutCallback(uint32_t intervalMilliseconds) {

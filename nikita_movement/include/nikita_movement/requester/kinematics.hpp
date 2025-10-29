@@ -155,9 +155,7 @@ class CKinematics {
         head_.degPitch = degPitch;
     };
     // set head by components
-    void setHead(CHead head) {
-        head_ = head;
-    }
+    void setHead(CHead head);
 
     std::map<ELegIndex, CPosition> getLegsPositions() const;
     std::map<ELegIndex, CPosition> getLegsStandingPositions() const;

@@ -86,14 +86,14 @@ TEST_F(RequesterTest, HandleLayDownRequest) {
 
     for (const auto& pair : first_request->legAngles()) {
         const auto& angles = pair.second;
-        expectAnglesNear(CLegAngles{0.0, 70.723, -53.320}, angles, 1.0,
+        expectAnglesNear(CLegAngles{0.0, 70.723, -53.320}, angles,
                          "Leg angles in LAYDOWN do not match expected values");
     }
 
     auto duration = first_request->duration();
     EXPECT_DOUBLE_EQ(1.0, duration);
     auto head = first_request->head();
-    expectHeadNear(CHead{0.0, -20.0}, head, 1.0, "Head angles in LAYDOWN do not match expected values");
+    expectHeadNear(CHead{0.0, -20.0}, head, "Head angles in LAYDOWN do not match expected values");
 }
 
 TEST_F(RequesterTest, HandleStandUpRequest) {
@@ -109,13 +109,13 @@ TEST_F(RequesterTest, HandleStandUpRequest) {
 
     for (const auto& pair : first_request->legAngles()) {
         const auto& angles = pair.second;
-        expectAnglesNear(CLegAngles{0.0, 2.276, 7.704}, angles, 1.0,
+        expectAnglesNear(CLegAngles{0.0, 2.276, 7.704}, angles,
                          "Leg angles in STAND_UP do not match expected values");
     }
     auto duration = first_request->duration();
     EXPECT_DOUBLE_EQ(1.0, duration);
     auto head = first_request->head();
-    expectHeadNear(CHead{0.0, 0.0}, head, 1.0, "Head angles in STAND_UP do not match expected values");
+    expectHeadNear(CHead{0.0, 0.0}, head, "Head angles in STAND_UP do not match expected values");
 }
 
 TEST_F(RequesterTest, HandleWatchRequest) {
@@ -133,12 +133,12 @@ TEST_F(RequesterTest, HandleWatchRequest) {
     auto duration = first_request->duration();
     EXPECT_DOUBLE_EQ(0.25, duration);
     auto head = first_request->head();
-    expectHeadNear(CHead{-40.0, 0.0}, head, 1.0, "Head angles in WATCH do not match expected values");
+    expectHeadNear(CHead{-40.0, 0.0}, head, "Head angles in WATCH do not match expected values");
 
     auto second_request = requests.front();
     requests.pop_front();
     duration = second_request->duration();
     EXPECT_DOUBLE_EQ(0.25, duration);
     head = second_request->head();
-    expectHeadNear(CHead{0.0, 0.0}, head, 1.0, "Head angles in WATCH do not match expected values");
+    expectHeadNear(CHead{0.0, 0.0}, head, "Head angles in WATCH do not match expected values");
 }

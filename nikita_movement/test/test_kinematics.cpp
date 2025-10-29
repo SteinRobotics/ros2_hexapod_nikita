@@ -53,25 +53,24 @@ class KinematicsTest : public ::testing::Test {
 // Laydown position
 // RightFront: 	ag: 0.000°, 70.723°, -53.320°	| x: 0.180, y: 0.139, z: 0.010
 
-
 TEST_F(KinematicsTest, setLegAngles) {
     // create target angles
     CLegAngles angles;
     angles.degCoxa = 0.0;
     angles.degFemur = 2.276;
-    angles.degTibia =  7.704;
+    angles.degTibia = 7.704;
 
     kin_->setLegAngles(ELegIndex::RightFront, angles);
 
     CPosition footPosExpected;
-    footPosExpected.x = 0.201; // 0.092 + 0.109
-    footPosExpected.y = 0.160; // 0.092 + 0.068
-    footPosExpected.z = -0.050; // 0.045 - 0.095
+    footPosExpected.x = 0.201;   // 0.092 + 0.109
+    footPosExpected.y = 0.160;   // 0.092 + 0.068
+    footPosExpected.z = -0.050;  // 0.045 - 0.095
 
     auto& leg = kin_->getLegs().at(ELegIndex::RightFront);
 
-    expectPositionNear(footPosExpected, leg.footPos_, 1e-3, "setLegAngles position mismatch");
-    expectAnglesNear(angles, leg.angles_, 1e-3, "setLegAngles angles mismatch");
+    expectPositionNear(footPosExpected, leg.footPos_, "setLegAngles position mismatch");
+    expectAnglesNear(angles, leg.angles_, "setLegAngles angles mismatch");
 }
 
 TEST_F(KinematicsTest, checkStandingPosition) {
@@ -79,17 +78,17 @@ TEST_F(KinematicsTest, checkStandingPosition) {
     auto& leg = kin_->getLegs().at(ELegIndex::RightFront);
 
     CPosition footPosExpected;
-    footPosExpected.x = 0.201; // 0.092 + 0.109
-    footPosExpected.y = 0.160; // 0.092 + 0.068
-    footPosExpected.z = -0.050; // 0.045 - 0.095
+    footPosExpected.x = 0.201;   // 0.092 + 0.109
+    footPosExpected.y = 0.160;   // 0.092 + 0.068
+    footPosExpected.z = -0.050;  // 0.045 - 0.095
 
     CLegAngles anglesExpected;
     anglesExpected.degCoxa = 0.0;
     anglesExpected.degFemur = 2.276;
     anglesExpected.degTibia = 7.704;
 
-    expectPositionNear(footPosExpected, leg.footPos_, 1e-3, "standing position mismatch");
-    expectAnglesNear(anglesExpected, leg.angles_, 1e-3, "standing angles mismatch");
+    expectPositionNear(footPosExpected, leg.footPos_, "standing position mismatch");
+    expectAnglesNear(anglesExpected, leg.angles_, "standing angles mismatch");
 }
 
 TEST_F(KinematicsTest, checkLaydownPosition) {
@@ -97,8 +96,8 @@ TEST_F(KinematicsTest, checkLaydownPosition) {
     auto& leg = kin_->getLegs().at(ELegIndex::RightFront);
 
     CPosition footPosExpected;
-    footPosExpected.x = 0.180; // 0.071 + 0.109
-    footPosExpected.y = 0.139; // 0.071 + 0.068
+    footPosExpected.x = 0.180;  // 0.071 + 0.109
+    footPosExpected.y = 0.139;  // 0.071 + 0.068
     footPosExpected.z = 0.010;  // 0.045 - 0.035
 
     CLegAngles anglesExpected;
@@ -106,15 +105,15 @@ TEST_F(KinematicsTest, checkLaydownPosition) {
     anglesExpected.degFemur = 70.723;
     anglesExpected.degTibia = -53.320;
 
-    expectPositionNear(footPosExpected, leg.footPos_, 1e-3, "laydown position mismatch");
-    expectAnglesNear(anglesExpected, leg.angles_, 1e-3, "laydown angles mismatch");
+    expectPositionNear(footPosExpected, leg.footPos_, "laydown position mismatch");
+    expectAnglesNear(anglesExpected, leg.angles_, "laydown angles mismatch");
 }
 
 TEST_F(KinematicsTest, checkSetFeet) {
     CPosition targetPos;
-    targetPos.x = 0.201; // 0.092 + 0.109
-    targetPos.y = 0.160; // 0.092 + 0.068
-    targetPos.z = -0.050; // 0.045 - 0.095
+    targetPos.x = 0.201;   // 0.092 + 0.109
+    targetPos.y = 0.160;   // 0.092 + 0.068
+    targetPos.z = -0.050;  // 0.045 - 0.095
 
     kin_->setSingleFeet(ELegIndex::RightFront, targetPos);
     auto& leg = kin_->getLegs().at(ELegIndex::RightFront);
@@ -124,6 +123,6 @@ TEST_F(KinematicsTest, checkSetFeet) {
     anglesExpected.degFemur = 2.276;
     anglesExpected.degTibia = 7.704;
 
-    expectPositionNear(targetPos, leg.footPos_, 1e-3, "setFeet position mismatch");
-    expectAnglesNear(anglesExpected, leg.angles_, 1e-3, "setFeet angles mismatch");
+    expectPositionNear(targetPos, leg.footPos_, "setFeet position mismatch");
+    expectAnglesNear(anglesExpected, leg.angles_, "setFeet angles mismatch");
 }

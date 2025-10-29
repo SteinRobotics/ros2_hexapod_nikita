@@ -148,6 +148,7 @@ void CRequester::requestSequence(const MovementRequest& msg) {
         if (action.legAngles.has_value()) {
             const auto& legAnglesMap = action.legAngles.value();
             // Apply angles for all legs contained in the map
+            RCLCPP_INFO_STREAM(node_->get_logger(), "setLegAngles to");
             for (const auto& [legIndex, anglesData] : legAnglesMap) {
                 CLegAngles legAngles(anglesData.degCoxa, anglesData.degFemur, anglesData.degTibia);
                 kinematics_->setLegAngles(legIndex, legAngles);

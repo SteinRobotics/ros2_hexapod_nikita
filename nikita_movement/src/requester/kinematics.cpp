@@ -226,7 +226,7 @@ void CKinematics::setSingleFeet(const ELegIndex legIndex, const CPosition& targe
 }
 
 void CKinematics::setLegAngles(const ELegIndex index, const CLegAngles& angles) {
-    auto& leg = legs_.at(index);
+        auto& leg = legs_.at(index);
 
     // transform to leg coordinate system by adding the angle psi
     CLegAngles targetAngles = angles;
@@ -239,8 +239,13 @@ void CKinematics::setLegAngles(const ELegIndex index, const CLegAngles& angles) 
     leg.footPos_.y += bodyCenterOffsets_[index].y;
     leg.angles_.degCoxa += bodyCenterOffsets_[index].psi;
 
-    RCLCPP_INFO_STREAM(node_->get_logger(), legIndexToName.at(index) << " setLegAngles to");
     logLegPosition(index, leg);
+}
+
+void CKinematics::setHead(CHead head) {
+    RCLCPP_INFO_STREAM(node_->get_logger(),
+                       "setHead to" << " yaw: " << head.degYaw << ", pitch: " << head.degPitch);
+    head_ = head;
 }
 
 std::map<ELegIndex, CLeg>& CKinematics::getLegs() {
