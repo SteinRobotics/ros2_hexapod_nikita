@@ -13,7 +13,6 @@
 #include "nikita_interfaces/msg/servo_angle.hpp"
 #include "nikita_interfaces/msg/servo_angles.hpp"
 #include "nikita_interfaces/msg/servo_direct_request.hpp"
-#include "nikita_interfaces/msg/servo_request.hpp"
 #include "nikita_interfaces/msg/servo_status.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "servo_protocol.hpp"
@@ -102,11 +101,11 @@ class CServo {
 
 class CServoController {
    public:
-    // Allow optional injection of a protocol implementation for tests.
     CServoController(std::shared_ptr<rclcpp::Node> node);
     virtual ~CServoController() = default;
 
-    void sendServoRequest(const nikita_interfaces::msg::ServoRequest& msg);
+    void requestAngles(const std::map<uint32_t, double>& targetAngles, const double duration_s);
+    // void sendServoRequest(const nikita_interfaces::msg::ServoRequest& msg);
 
     // void onServoRequestReceived(const nikita_interfaces::msg::ServoRequest& msg);
     void onSingleServoRequestReceived(const nikita_interfaces::msg::ServoAngle& msg);
@@ -124,13 +123,10 @@ class CServoController {
     uint8_t cycleCounter_ = 0;
     std::shared_ptr<rclcpp::Node> node_;
 
-    rclcpp::Subscription<nikita_interfaces::msg::ServoRequest>::SharedPtr subServoRequest_;
     rclcpp::Subscription<nikita_interfaces::msg::ServoAngle>::SharedPtr subSingleServoRequest_;
     rclcpp::Subscription<nikita_interfaces::msg::ServoDirectRequest>::SharedPtr subServoDirectRequest_;
     rclcpp::Publisher<nikita_interfaces::msg::ServoStatus>::SharedPtr pubStatus_;
     rclcpp::Publisher<nikita_interfaces::msg::ServoAngles>::SharedPtr pubAngles_;
-
-    // rclcpp::QoS qos_transient_local_;
 
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Time actualTime_;

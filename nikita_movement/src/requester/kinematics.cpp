@@ -63,10 +63,6 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node) : node_(node) {
         bodyCenterOffsets_[legIndex].psi = OFFSET_COXA_ANGLE_DEG.at(i);
     }
 
-    // Leg cootdinate system
-    //            ^ x
-    //       y <- |
-    // z up -> +
     RCLCPP_INFO_STREAM(node_->get_logger(), "intialize legs current values");
     // this is not the inital position, but the standing position
     intializeLegs(legs_, STANDING_FOOT_POS_X, STANDING_FOOT_POS_Y, STANDING_FOOT_POS_Z);

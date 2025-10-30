@@ -9,7 +9,6 @@
 #include "rclcpp/rclcpp.hpp"
 //
 #include "nikita_interfaces/msg/servo_index.hpp"
-#include "nikita_interfaces/msg/servo_request.hpp"
 //
 #include "requester/kinematics.hpp"
 #include "servo_controller.hpp"
@@ -56,14 +55,7 @@ class CServoHandler {
 
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CServoController> servoController_;
-    std::map<uint32_t, float> jointAngles_;
-    rclcpp::Publisher<nikita_interfaces::msg::ServoRequest>::SharedPtr pubServoRequest_;
-    nikita_interfaces::msg::ServoRequest msgServoRequest_;
     std::shared_ptr<CSimpleTimer> simpleTimer_;
-
-    std::function<void()> doneCallback_;
-
     std::list<CRequest> pendingRequests_;
-
     bool isDone_ = true;
 };

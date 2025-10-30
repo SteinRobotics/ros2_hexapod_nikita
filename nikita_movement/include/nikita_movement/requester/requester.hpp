@@ -16,7 +16,6 @@
 #include "geometry_msgs/msg/twist.hpp"
 #include "nikita_interfaces/msg/movement_request.hpp"
 #include "nikita_interfaces/msg/servo_index.hpp"
-#include "nikita_interfaces/msg/servo_request.hpp"
 //
 #include "actionpackagesparser.hpp"
 #include "gaitcontroller.hpp"
