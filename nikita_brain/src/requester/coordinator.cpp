@@ -373,11 +373,11 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
         return;
     }
     isNewMoveRequestLocked_ = true;
-    RCLCPP_INFO_STREAM(node_->get_logger(), "isNewMoveRequestLocked_ locked");
+    // RCLCPP_INFO_STREAM(node_->get_logger(), "isNewMoveRequestLocked_ locked");
     timerMovementRequest_->waitSecondsNonBlocking(duration_s, [this]() {
         isNewMoveRequestLocked_ = false;
         actualMovementType_ = MovementRequest::NO_REQUEST;
-        RCLCPP_INFO_STREAM(node_->get_logger(), "isNewMoveRequestLocked_ released");
+        // RCLCPP_INFO_STREAM(node_->get_logger(), "isNewMoveRequestLocked_ released");
     });
 }
 

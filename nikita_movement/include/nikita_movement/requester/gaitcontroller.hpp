@@ -22,9 +22,9 @@ class CGaitController {
     ~CGaitController() = default;
 
     void liftLegsTripodGroup(bool isFirstTripod = true);
-    void updateCombinedTripodGait(const geometry_msgs::msg::Twist& velocity,
-                                  CPose body = CPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
-    void setPhaseNeutral();
+    void updateTripodGait(const geometry_msgs::msg::Twist& velocity,
+                          CPose body = CPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+    void resetPhase();
 
     double LEG_LIFT_HEIGHT = double(0);
     double GAIT_STEP_LENGTH = double(0);

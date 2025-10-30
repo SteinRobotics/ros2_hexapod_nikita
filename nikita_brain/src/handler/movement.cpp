@@ -15,8 +15,8 @@ CMovement::CMovement(std::shared_ptr<rclcpp::Node> node) : node_(node) {
 }
 
 void CMovement::run(std::shared_ptr<CRequestMove> request) {
-    RCLCPP_INFO_STREAM(node_->get_logger(),
-                       "CMovement::run RequestMove |" << request->movementRequest().name);
+    // RCLCPP_INFO_STREAM(node_->get_logger(),
+    //                    "CMovement::run RequestMove |" << request->movementRequest().name);
     setDone(false);
     pub_->publish(request->movementRequest());
     simpleTimer_->waitSecondsNonBlocking(request->movementRequest().duration_s,
@@ -24,7 +24,7 @@ void CMovement::run(std::shared_ptr<CRequestMove> request) {
 }
 
 void CMovement::timerCallback() {
-    RCLCPP_INFO_STREAM(node_->get_logger(), "CMovement::timerCallback");
+    // RCLCPP_INFO_STREAM(node_->get_logger(), "CMovement::timerCallback");
     // TODO better trigger callback to request_executor::execute
     setDone(true);
 }

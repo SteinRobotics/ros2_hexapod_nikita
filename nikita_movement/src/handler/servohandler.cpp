@@ -15,7 +15,7 @@ CServoHandler::CServoHandler(std::shared_ptr<rclcpp::Node> node) : node_(node) {
 }
 
 void CServoHandler::run(CRequest request, bool blocking) {
-    RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler::run | CRequest");
+    // RCLCPP_INFO_STREAM(node_->get_logger(), "CServoHandler::run | CRequest");
     auto targetAngles = std::map<uint32_t, double>();
 
     // set head angles

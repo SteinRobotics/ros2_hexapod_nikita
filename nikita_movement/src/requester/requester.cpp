@@ -124,9 +124,10 @@ void CRequester::requestMove(const MovementRequest& msg) {
     // at the beginning of the movement we have to lift the legs
     // TODO make the 500ms dependent on the velocity
     if (activeRequest_ != MovementRequest::MOVE) {
-        transitionToMoveActive_ = true;
-        gaitController_->liftLegsTripodGroup(true);
-        sendServoRequest(double(0.5));
+        // transitionToMoveActive_ = true;
+        // gaitController_->liftLegsTripodGroup(true);
+        // sendServoRequest(double(0.5));
+        gaitController_->resetPhase();
     }
     activeRequest_ = MovementRequest::MOVE;
     velocity_ = msg.velocity;
@@ -314,17 +315,17 @@ void CRequester::update(std::chrono::milliseconds timeslice) {
     }
 
     // if the movement request is active and we are in the transition to movement
-    if (transitionToMoveActive_) {
-        if (servoHandler_->isDone()) {
-            RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::transition to Movement done");
-            gaitController_->setPhaseNeutral();
-            transitionToMoveActive_ = false;
-        }
-        return;
-    }
+    // if (transitionToMoveActive_) {
+    //     if (servoHandler_->isDone()) {
+    //         RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::transition to Movement done");
+    //         gaitController_->setPhaseNeutral();
+    //         transitionToMoveActive_ = false;
+    //     }
+    //     return;
+    // }
 
     // while the movement request is active update the gait controller
-    gaitController_->updateCombinedTripodGait(velocity_, poseBody_);
+    gaitController_->updateTripodGait(velocity_, poseBody_);
     double duration = double(timeslice.count() / 1000.0);
     sendServoRequest(duration, false);
 }

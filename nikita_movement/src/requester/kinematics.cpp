@@ -115,7 +115,6 @@ void CKinematics::intializeLegs(std::map<ELegIndex, CLeg>& legs, std::vector<dou
 }
 
 void CKinematics::moveBody(const std::map<ELegIndex, CPosition>& footTargets, const CPose body) {
-    RCLCPP_INFO_STREAM(node_->get_logger(), "Move body");
     body_ = body;
 
     for (auto& [legIndex, footTarget] : footTargets) {
@@ -230,13 +229,13 @@ void CKinematics::setSingleFeet(const ELegIndex legIndex, const CPosition& targe
 void CKinematics::setLegAngles(const ELegIndex index, const CLegAngles& angles) {
     auto& leg = legs_.at(index);
 
-    // transform to leg coordinate system by adding the angle psi
+    // transform to leg coordinate system by subtracting the angle psi
     CLegAngles targetAngles = angles;
     targetAngles.degCoxa -= bodyCenterOffsets_[index].psi;
 
     calcLegForwardKinematics(targetAngles, leg);
 
-    // transform back to robot coordinate system by adding body center offset and subtracting psi
+    // transform back to robot coordinate system by adding body center offset and adding psi
     leg.footPos_.x += bodyCenterOffsets_[index].x;
     leg.footPos_.y += bodyCenterOffsets_[index].y;
     leg.angles_.degCoxa += bodyCenterOffsets_[index].psi;

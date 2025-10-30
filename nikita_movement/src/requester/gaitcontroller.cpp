@@ -12,7 +12,7 @@ CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared
     LEG_LIFT_HEIGHT = node->declare_parameter<double>("LEG_LIFT_HEIGHT", rclcpp::PARAMETER_DOUBLE);
 }
 
-void CGaitController::setPhaseNeutral() {
+void CGaitController::resetPhase() {
     phase_ = 0.0;
 }
 
@@ -22,7 +22,7 @@ void CGaitController::liftLegsTripodGroup(bool isFirstTripod) {
     const auto groupLiftedLegs = isFirstTripod ? groupFirstTripod_ : groupSecondTripod_;
 
     for (auto& [legIndex, position] : positionLiftedLeg) {
-        if (std::find(groupLiftedLegs.begin(), groupLiftedLegs.end(), legIndex) != groupLiftedLegs.end()) {
+        if (std::ranges::find(groupLiftedLegs, legIndex) != groupLiftedLegs.end()) {
             const auto baseFootPos = kinematics_->getLegsStandingPositions().at(legIndex);
             auto liftHight = baseFootPos.z + LEG_LIFT_HEIGHT;
             positionLiftedLeg[legIndex] = CPosition(position.x, position.y, liftHight);
@@ -31,7 +31,7 @@ void CGaitController::liftLegsTripodGroup(bool isFirstTripod) {
     kinematics_->moveBody(positionLiftedLeg);
 }
 
-void CGaitController::updateCombinedTripodGait(const geometry_msgs::msg::Twist& velocity, CPose body) {
+void CGaitController::updateTripodGait(const geometry_msgs::msg::Twist& velocity, CPose body) {
     // low-pass filtering the velocity
     const double alpha = 0.2;  // Adjust alpha for filtering strength (0.0 to 1.0)
     velocity_ = lowPassFilterTwist(velocity_, velocity, alpha);
@@ -57,6 +57,7 @@ void CGaitController::updateCombinedTripodGait(const geometry_msgs::msg::Twist& 
 
     // the velocity is taken into account to calculate the gait cycle time with combined_mag
     double deltaPhase = FACTOR_VELOCITY_TO_GAIT_CYCLE_TIME * combined_mag;
+    // TODO handle overflow of phase_
     phase_ += deltaPhase;
 
     // RCLCPP_INFO(node_->get_logger(), "CGaitController::updateTripodGait: phase: %.4f", phase_);
@@ -64,14 +65,18 @@ void CGaitController::updateCombinedTripodGait(const geometry_msgs::msg::Twist& 
     std::map<ELegIndex, CPosition> targetPositions;
 
     for (auto& [index, leg] : kinematics_->getLegs()) {
-        bool isFirstTripod =
-            std::find(groupFirstTripod_.begin(), groupFirstTripod_.end(), index) != groupFirstTripod_.end();
+        bool isFirstTripodActive = std::ranges::find(groupFirstTripod_, index) != groupFirstTripod_.end();
 
-        double phaseOffset = isFirstTripod ? 0.0 : M_PI;
+        double phaseOffset = isFirstTripodActive ? 0.0 : M_PI;
         double phaseWithOffset = phase_ + phaseOffset + M_PI_2;
 
         double step = GAIT_STEP_LENGTH * cos(phaseWithOffset);
         double lift = LEG_LIFT_HEIGHT * std::max(0.0, sin(phaseWithOffset));
+
+        // M_PI_4 is reached when the leg is moving upwards and the normal cycle than goes downwards again
+        if (isFirstTripodActive && phase_ < M_PI_4) {
+            lift = LEG_LIFT_HEIGHT * std::max(0.0, sin(phase_));
+        }
 
         const auto baseFootPos = kinematics_->getLegsStandingPositions().at(index);
 
