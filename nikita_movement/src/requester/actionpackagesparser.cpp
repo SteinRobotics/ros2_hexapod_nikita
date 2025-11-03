@@ -285,7 +285,10 @@ std::map<ELegIndex, CLegAngles> CActionPackagesParser::parseLegAnglesNode(const 
             for (const auto& kv : node) {
                 std::string key = kv.first.as<std::string>();
                 const YAML::Node& val = kv.second;
-                if (key == "<<") { process(val); continue; }
+                if (key == "<<") {
+                    process(val);
+                    continue;
+                }
                 if (key == "All") {
                     double coxa = val["coxa"] ? val["coxa"].as<double>() : 0.0;
                     double femur = val["femur"] ? val["femur"].as<double>() : 0.0;
@@ -314,12 +317,18 @@ std::map<ELegIndex, CPosition> CActionPackagesParser::parseFootPositionsNode(con
     std::function<void(const YAML::Node&)> process;
     process = [&](const YAML::Node& node) {
         if (node.IsNull()) return;
-        if (node.IsSequence()) { for (const auto& elem : node) process(elem); return; }
+        if (node.IsSequence()) {
+            for (const auto& elem : node) process(elem);
+            return;
+        }
         if (node.IsMap()) {
             for (const auto& kv : node) {
                 std::string key = kv.first.as<std::string>();
                 const YAML::Node& val = kv.second;
-                if (key == "<<") { process(val); continue; }
+                if (key == "<<") {
+                    process(val);
+                    continue;
+                }
                 if (key == "All") {
                     double x = val["x"] ? val["x"].as<double>() : 0.0;
                     double y = val["y"] ? val["y"].as<double>() : 0.0;

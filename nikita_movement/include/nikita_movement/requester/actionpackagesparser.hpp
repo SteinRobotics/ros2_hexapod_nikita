@@ -42,7 +42,7 @@ class CActionPackagesParser {
     void readYaml();
     void parseYamlStep(const YAML::Node& step, std::vector<CActionPackage>& actionPackage);
     void parseDefaultValues(const YAML::Node& defaults);
-        CHead parseHeadNode(const YAML::Node& headNode);
+    CHead parseHeadNode(const YAML::Node& headNode);
     CPose parseBodyNode(const YAML::Node& bodyNode);
     std::map<ELegIndex, CLegAngles> parseLegAnglesNode(const YAML::Node& legsNode);
     std::map<ELegIndex, CPosition> parseFootPositionsNode(const YAML::Node& posNode);
