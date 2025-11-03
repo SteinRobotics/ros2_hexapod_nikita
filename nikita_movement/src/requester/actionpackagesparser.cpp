@@ -145,159 +145,21 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
     }
 
     if (step["head"]) {
-        double yaw = 0.0, pitch = 0.0;
-        YAML::Node headNode = step["head"];
-        // head node type diagnostics removed to reduce noise
-        if (headNode.IsSequence()) {
-            for (const auto& headEntry : headNode) {
-                if (headEntry["yaw"]) yaw = headEntry["yaw"].as<double>();
-                if (headEntry["pitch"]) pitch = headEntry["pitch"].as<double>();
-            }
-        } else if (headNode.IsMap()) {
-            if (headNode["yaw"]) yaw = headNode["yaw"].as<double>();
-            if (headNode["pitch"]) pitch = headNode["pitch"].as<double>();
-        }
-        action.head = CHead(yaw, pitch);
+        action.head = parseHeadNode(step["head"]);
     }
 
     if (step["body"]) {
-        double roll = 0.0, pitch = 0.0, yaw = 0.0;
-        double x = 0.0, y = 0.0, z = 0.0;
-        YAML::Node bodyNode = step["body"];
-        // body can be a sequence of maps (current style) or a single map
-        std::vector<YAML::Node> bodyEntries;
-        if (bodyNode.IsSequence()) {
-            for (const auto& n : bodyNode) bodyEntries.push_back(n);
-        } else if (bodyNode.IsMap()) {
-            bodyEntries.push_back(bodyNode);
-        }
-
-        for (const auto& bodyEntry : bodyEntries) {
-            // orientation may be a sequence of single-key maps or a single map
-            if (bodyEntry["orientation"]) {
-                YAML::Node orientNode = bodyEntry["orientation"];
-                if (orientNode.IsSequence()) {
-                    for (const auto& orientationEntry : orientNode) {
-                        if (orientationEntry["roll"]) roll = orientationEntry["roll"].as<double>();
-                        if (orientationEntry["pitch"]) pitch = orientationEntry["pitch"].as<double>();
-                        if (orientationEntry["yaw"]) yaw = orientationEntry["yaw"].as<double>();
-                    }
-                } else if (orientNode.IsMap()) {
-                    if (orientNode["roll"]) roll = orientNode["roll"].as<double>();
-                    if (orientNode["pitch"]) pitch = orientNode["pitch"].as<double>();
-                    if (orientNode["yaw"]) yaw = orientNode["yaw"].as<double>();
-                }
-            }
-            if (bodyEntry["direction"]) {
-                YAML::Node dirNode = bodyEntry["direction"];
-                if (dirNode.IsSequence()) {
-                    for (const auto& directionEntry : dirNode) {
-                        if (directionEntry["x"]) x = directionEntry["x"].as<double>();
-                        if (directionEntry["y"]) y = directionEntry["y"].as<double>();
-                        if (directionEntry["z"]) z = directionEntry["z"].as<double>();
-                    }
-                } else if (dirNode.IsMap()) {
-                    if (dirNode["x"]) x = dirNode["x"].as<double>();
-                    if (dirNode["y"]) y = dirNode["y"].as<double>();
-                    if (dirNode["z"]) z = dirNode["z"].as<double>();
-                }
-            }
-        }
-        action.body = CPose(x, y, z, roll, pitch, yaw);
+        action.body = parseBodyNode(step["body"]);
     }
 
     if (step["legAngles"]) {
-        std::map<ELegIndex, CLegAngles> legsMap;
-
-        // Recursive processor to handle maps, sequences, and YAML merge key '<<'
-        std::function<void(const YAML::Node&)> processLegsNode;
-        processLegsNode = [&](const YAML::Node& node) {
-            if (node.IsNull()) return;
-            if (node.IsSequence()) {
-                for (const auto& elem : node) {
-                    processLegsNode(elem);
-                }
-                return;
-            }
-            if (node.IsMap()) {
-                for (const auto& kv : node) {
-                    std::string key = kv.first.as<std::string>();
-                    const YAML::Node& val = kv.second;
-
-                    if (key == "<<") {
-                        // YAML merge key: recursively process merged content
-                        processLegsNode(val);
-                        continue;
-                    }
-
-                    if (key == "All") {
-                        double coxa = val["coxa"] ? val["coxa"].as<double>() : 0.0;
-                        double femur = val["femur"] ? val["femur"].as<double>() : 0.0;
-                        double tibia = val["tibia"] ? val["tibia"].as<double>() : 0.0;
-                        for (const auto& [name, idx] : legNameToIndex) {
-                            legsMap[idx] = CLegAngles(coxa, femur, tibia);
-                        }
-                    } else if (legNameToIndex.count(key)) {
-                        double coxa = val["coxa"] ? val["coxa"].as<double>() : 0.0;
-                        double femur = val["femur"] ? val["femur"].as<double>() : 0.0;
-                        double tibia = val["tibia"] ? val["tibia"].as<double>() : 0.0;
-                        legsMap[legNameToIndex.at(key)] = CLegAngles(coxa, femur, tibia);
-                    } else {
-                        RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in legs map: " << key);
-                    }
-                }
-                return;
-            }
-        };
-
-        processLegsNode(step["legAngles"]);
-        if (!legsMap.empty()) {
-            action.legAngles = legsMap;
-        }
+        auto legsMap = parseLegAnglesNode(step["legAngles"]);
+        if (!legsMap.empty()) action.legAngles = legsMap;
     }
 
     if (step["footPositions"]) {
-        std::map<ELegIndex, CPosition> posMap;
-
-        std::function<void(const YAML::Node&)> processPosNode;
-        processPosNode = [&](const YAML::Node& node) {
-            if (node.IsNull()) return;
-            if (node.IsSequence()) {
-                for (const auto& elem : node) processPosNode(elem);
-                return;
-            }
-            if (node.IsMap()) {
-                for (const auto& kv : node) {
-                    std::string key = kv.first.as<std::string>();
-                    const YAML::Node& val = kv.second;
-                    if (key == "<<") {
-                        processPosNode(val);
-                        continue;
-                    }
-                    if (key == "All") {
-                        double x = val["x"] ? val["x"].as<double>() : 0.0;
-                        double y = val["y"] ? val["y"].as<double>() : 0.0;
-                        double z = val["z"] ? val["z"].as<double>() : 0.0;
-                        for (const auto& [name, idx] : legNameToIndex) {
-                            posMap[idx] = CPosition(x, y, z);
-                        }
-                    } else if (legNameToIndex.count(key)) {
-                        double x = val["x"] ? val["x"].as<double>() : 0.0;
-                        double y = val["y"] ? val["y"].as<double>() : 0.0;
-                        double z = val["z"] ? val["z"].as<double>() : 0.0;
-                        posMap[legNameToIndex.at(key)] = CPosition(x, y, z);
-                    } else {
-                        RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in footPositions: " << key);
-                    }
-                }
-                return;
-            }
-        };
-
-        processPosNode(step["footPositions"]);
-        if (!posMap.empty()) {
-            action.footPositions = posMap;
-        }
+        auto posMap = parseFootPositionsNode(step["footPositions"]);
+        if (!posMap.empty()) action.footPositions = posMap;
     }
 
     actionPackage.push_back(action);
@@ -348,4 +210,133 @@ CPose CActionPackagesParser::getBody(const std::string& name) {
         RCLCPP_ERROR_STREAM(node_->get_logger(), "Default body not found: " << name);
         return CPose();
     }
+}
+
+CHead CActionPackagesParser::parseHeadNode(const YAML::Node& headNode) {
+    double yaw = 0.0, pitch = 0.0;
+    // head can be a sequence of maps or a single map
+    if (headNode.IsSequence()) {
+        for (const auto& entry : headNode) {
+            if (entry["yaw"]) yaw = entry["yaw"].as<double>();
+            if (entry["pitch"]) pitch = entry["pitch"].as<double>();
+        }
+    } else if (headNode.IsMap()) {
+        if (headNode["yaw"]) yaw = headNode["yaw"].as<double>();
+        if (headNode["pitch"]) pitch = headNode["pitch"].as<double>();
+    }
+    return CHead(yaw, pitch);
+}
+
+CPose CActionPackagesParser::parseBodyNode(const YAML::Node& bodyNode) {
+    double roll = 0.0, pitch = 0.0, yaw = 0.0;
+    double x = 0.0, y = 0.0, z = 0.0;
+
+    std::vector<YAML::Node> bodyEntries;
+    if (bodyNode.IsSequence()) {
+        for (const auto& n : bodyNode) bodyEntries.push_back(n);
+    } else if (bodyNode.IsMap()) {
+        bodyEntries.push_back(bodyNode);
+    }
+
+    for (const auto& entry : bodyEntries) {
+        if (entry["orientation"]) {
+            YAML::Node orientNode = entry["orientation"];
+            if (orientNode.IsSequence()) {
+                for (const auto& orientationEntry : orientNode) {
+                    if (orientationEntry["roll"]) roll = orientationEntry["roll"].as<double>();
+                    if (orientationEntry["pitch"]) pitch = orientationEntry["pitch"].as<double>();
+                    if (orientationEntry["yaw"]) yaw = orientationEntry["yaw"].as<double>();
+                }
+            } else if (orientNode.IsMap()) {
+                if (orientNode["roll"]) roll = orientNode["roll"].as<double>();
+                if (orientNode["pitch"]) pitch = orientNode["pitch"].as<double>();
+                if (orientNode["yaw"]) yaw = orientNode["yaw"].as<double>();
+            }
+        }
+        if (entry["direction"]) {
+            YAML::Node dirNode = entry["direction"];
+            if (dirNode.IsSequence()) {
+                for (const auto& directionEntry : dirNode) {
+                    if (directionEntry["x"]) x = directionEntry["x"].as<double>();
+                    if (directionEntry["y"]) y = directionEntry["y"].as<double>();
+                    if (directionEntry["z"]) z = directionEntry["z"].as<double>();
+                }
+            } else if (dirNode.IsMap()) {
+                if (dirNode["x"]) x = dirNode["x"].as<double>();
+                if (dirNode["y"]) y = dirNode["y"].as<double>();
+                if (dirNode["z"]) z = dirNode["z"].as<double>();
+            }
+        }
+    }
+
+    return CPose(x, y, z, roll, pitch, yaw);
+}
+
+std::map<ELegIndex, CLegAngles> CActionPackagesParser::parseLegAnglesNode(const YAML::Node& legsNode) {
+    std::map<ELegIndex, CLegAngles> legsMap;
+    std::function<void(const YAML::Node&)> process;
+    process = [&](const YAML::Node& node) {
+        if (node.IsNull()) return;
+        if (node.IsSequence()) {
+            for (const auto& elem : node) process(elem);
+            return;
+        }
+        if (node.IsMap()) {
+            for (const auto& kv : node) {
+                std::string key = kv.first.as<std::string>();
+                const YAML::Node& val = kv.second;
+                if (key == "<<") { process(val); continue; }
+                if (key == "All") {
+                    double coxa = val["coxa"] ? val["coxa"].as<double>() : 0.0;
+                    double femur = val["femur"] ? val["femur"].as<double>() : 0.0;
+                    double tibia = val["tibia"] ? val["tibia"].as<double>() : 0.0;
+                    for (const auto& [name, idx] : legNameToIndex) {
+                        legsMap[idx] = CLegAngles(coxa, femur, tibia);
+                    }
+                } else if (legNameToIndex.count(key)) {
+                    double coxa = val["coxa"] ? val["coxa"].as<double>() : 0.0;
+                    double femur = val["femur"] ? val["femur"].as<double>() : 0.0;
+                    double tibia = val["tibia"] ? val["tibia"].as<double>() : 0.0;
+                    legsMap[legNameToIndex.at(key)] = CLegAngles(coxa, femur, tibia);
+                } else {
+                    RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in legs map: " << key);
+                }
+            }
+            return;
+        }
+    };
+    process(legsNode);
+    return legsMap;
+}
+
+std::map<ELegIndex, CPosition> CActionPackagesParser::parseFootPositionsNode(const YAML::Node& posNode) {
+    std::map<ELegIndex, CPosition> posMap;
+    std::function<void(const YAML::Node&)> process;
+    process = [&](const YAML::Node& node) {
+        if (node.IsNull()) return;
+        if (node.IsSequence()) { for (const auto& elem : node) process(elem); return; }
+        if (node.IsMap()) {
+            for (const auto& kv : node) {
+                std::string key = kv.first.as<std::string>();
+                const YAML::Node& val = kv.second;
+                if (key == "<<") { process(val); continue; }
+                if (key == "All") {
+                    double x = val["x"] ? val["x"].as<double>() : 0.0;
+                    double y = val["y"] ? val["y"].as<double>() : 0.0;
+                    double z = val["z"] ? val["z"].as<double>() : 0.0;
+                    for (const auto& [name, idx] : legNameToIndex) posMap[idx] = CPosition(x, y, z);
+                } else if (legNameToIndex.count(key)) {
+                    double x = val["x"] ? val["x"].as<double>() : 0.0;
+                    double y = val["y"] ? val["y"].as<double>() : 0.0;
+                    double z = val["z"] ? val["z"].as<double>() : 0.0;
+                    posMap[legNameToIndex.at(key)] = CPosition(x, y, z);
+                } else {
+                    RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in footPositions: " << key);
+                }
+            }
+            return;
+        }
+    };
+    process(posNode);
+    return posMap;
 }
