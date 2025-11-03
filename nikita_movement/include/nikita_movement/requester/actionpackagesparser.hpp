@@ -14,7 +14,9 @@
 #include <unordered_map>
 
 #include "rclcpp/rclcpp.hpp"
-#include "requester/kinematics.hpp"
+
+// Include POD type definitions (ELegIndex, CHead, CPose, CLegAngles, CPosition)
+#include "requester/types.hpp"
 
 class CActionPackage {
    public:
@@ -31,11 +33,20 @@ class CActionPackagesParser {
     virtual ~CActionPackagesParser() = default;
 
     std::vector<CActionPackage>& getRequests(const std::string& packageName);
+    std::map<ELegIndex, CPosition> getFootPositions(const std::string& name);
+    std::map<ELegIndex, CLegAngles> getLegAngles(const std::string& name);
+    CHead getHead(const std::string& name);
+    CPose getBody(const std::string& name);
 
    private:
     void readYaml();
     void parseYamlStep(const YAML::Node& step, std::vector<CActionPackage>& actionPackage);
+    void parseDefaultValues(const YAML::Node& defaults);
 
     std::shared_ptr<rclcpp::Node> node_;
     std::unordered_map<std::string, std::vector<CActionPackage>> actionPackages_;
+    std::unordered_map<std::string, std::map<ELegIndex, CLegAngles>> defaultLegAngles_;
+    std::unordered_map<std::string, std::map<ELegIndex, CPosition>> defaultFootPositions_;
+    std::unordered_map<std::string, CHead> defaultHeads_;
+    std::unordered_map<std::string, CPose> defaultBodies_;
 };

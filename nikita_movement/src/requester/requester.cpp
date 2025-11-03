@@ -9,9 +9,9 @@ using std::placeholders::_1;
 
 CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServoHandler> servoHandler)
     : node_(node) {
-    kinematics_ = std::make_shared<CKinematics>(node);
-    gaitController_ = std::make_shared<CGaitController>(node, kinematics_);
     actionPackagesParser_ = std::make_shared<CActionPackagesParser>(node);
+    kinematics_ = std::make_shared<CKinematics>(node, actionPackagesParser_);
+    gaitController_ = std::make_shared<CGaitController>(node, kinematics_);
     if (servoHandler) {
         servoHandler_ = servoHandler;
     } else {

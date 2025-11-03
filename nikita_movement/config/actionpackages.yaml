@@ -128,7 +128,7 @@ STAND_UP:
 
 # STAND_UP:
 #   - head: *head_neutral
-#     lbody: *body_neutral
+#     body: *body_neutral
 #     footPositions: *footPositions_standing
 #     factorDuration: 1.0
 

@@ -73,7 +73,7 @@ void CGaitController::updateTripodGait(const geometry_msgs::msg::Twist& velocity
         double step = GAIT_STEP_LENGTH * cos(phaseWithOffset);
         double lift = LEG_LIFT_HEIGHT * std::max(0.0, sin(phaseWithOffset));
 
-        // M_PI_4 is reached when the leg is moving upwards and the normal cycle than goes downwards again
+        // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
         if (isFirstTripodActive && phase_ < M_PI_4) {
             lift = LEG_LIFT_HEIGHT * std::max(0.0, sin(phase_));
         }

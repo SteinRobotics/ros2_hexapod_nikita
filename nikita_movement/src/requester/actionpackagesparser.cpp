@@ -19,8 +19,14 @@ void CActionPackagesParser::readYaml() {
 
         for (const auto& it : yaml_data) {
             std::string key = it.first.as<std::string>();
-            // Only parse top-level entries that are sequences (action package lists).
-            // Skip entries like 'presets' which are mappings and not action sequences.
+
+            RCLCPP_INFO_STREAM(node_->get_logger(), "Processing top-level key: " << key);
+
+            if (key == "presets") {
+                parseDefaultValues(it.second);
+                continue;  // move to next top-level key
+            }
+
             if (!it.second.IsSequence()) {
                 RCLCPP_DEBUG_STREAM(node_->get_logger(), "Skipping non-sequence top-level key: " << key);
                 continue;
@@ -42,10 +48,84 @@ void CActionPackagesParser::readYaml() {
         return;
     }
 
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Loaded default values for presets.");
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Default LegAngles:");
+    for (const auto& [key, val] : defaultLegAngles_) {
+        RCLCPP_INFO_STREAM(node_->get_logger(), " - " << key);
+    }
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Default FootPositions:");
+    for (const auto& [key, val] : defaultFootPositions_) {
+        RCLCPP_INFO_STREAM(node_->get_logger(), " - " << key);
+    }
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Default Heads:");
+    for (const auto& [key, val] : defaultHeads_) {
+        RCLCPP_INFO_STREAM(node_->get_logger(), " - " << key);
+    }
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Default Bodies:");
+    for (const auto& [key, val] : defaultBodies_) {
+        RCLCPP_INFO_STREAM(node_->get_logger(), " - " << key);
+    }
+
     RCLCPP_INFO_STREAM(node_->get_logger(), "Loaded " << actionPackages_.size() << " action packages.");
     RCLCPP_INFO_STREAM(node_->get_logger(), "keys:");
     for (const auto& [key, _] : actionPackages_) {
         RCLCPP_INFO_STREAM(node_->get_logger(), " - " << key);
+    }
+}
+
+void CActionPackagesParser::parseDefaultValues(const YAML::Node& defaults) {
+    for (const auto& it : defaults) {
+        std::string key = it.first.as<std::string>();
+        [[maybe_unused]] const YAML::Node& val = it.second;
+        RCLCPP_INFO_STREAM(node_->get_logger(), "Parsing default values for key: " << key);
+
+        // // key starts with "legAngles" then add the values to defaultLegAngles_
+        // if (key.starts_with("legAngles")) {
+        //     for (const auto& legAngle : val) {
+        //         ELegIndex legIndex = static_cast<ELegIndex>(legAngle["leg"].as<int>());
+        //         CLegAngles angles;
+        //         if (legAngle.first.as<std::string>() == "All") {
+        //             angles.degCoxa = legAngle["All"].as<double>();
+        //             angles.degFemur = legAngle["All"].as<double>();
+        //             angles.degTibia = legAngle["All"].as<double>();
+        //         } else {
+        //             angles.degCoxa = legAngle["coxa"].as<double>();
+        //             angles.degFemur = legAngle["femur"].as<double>();
+        //             angles.degTibia = legAngle["tibia"].as<double>();
+        //         }
+        //         defaultLegAngles_[key][legIndex] = angles;
+        //     }
+        // }
+        // if (key.starts_with("footPositions")) {
+        //     for (const auto& footPos : val) {
+        //         ELegIndex legIndex = static_cast<ELegIndex>(footPos["leg"].as<int>());
+        //         CPosition position;
+        //         position.x = footPos["x"].as<double>();
+        //         position.y = footPos["y"].as<double>();
+        //         position.z = footPos["z"].as<double>();
+        //         defaultFootPositions_[key][legIndex] = position;
+        //     }
+        // }
+        if (key.starts_with("head")) {
+            double yaw = val["yaw"] ? val["yaw"].as<double>() : 0.0;
+            double pitch = val["pitch"] ? val["pitch"].as<double>() : 0.0;
+            defaultHeads_[key] = CHead(yaw, pitch);
+        }
+        if (key.starts_with("body")) {
+            double roll = val["orientation"] && val["orientation"]["roll"]
+                              ? val["orientation"]["roll"].as<double>()
+                              : 0.0;
+            double pitch = val["orientation"] && val["orientation"]["pitch"]
+                               ? val["orientation"]["pitch"].as<double>()
+                               : 0.0;
+            double yaw = val["orientation"] && val["orientation"]["yaw"]
+                             ? val["orientation"]["yaw"].as<double>()
+                             : 0.0;
+            double x = val["direction"] && val["direction"]["x"] ? val["direction"]["x"].as<double>() : 0.0;
+            double y = val["direction"] && val["direction"]["y"] ? val["direction"]["y"].as<double>() : 0.0;
+            double z = val["direction"] && val["direction"]["z"] ? val["direction"]["z"].as<double>() : 0.0;
+            defaultBodies_[key] = CPose(x, y, z, roll, pitch, yaw);
+        }
     }
 }
 
@@ -232,5 +312,40 @@ std::vector<CActionPackage>& CActionPackagesParser::getRequests(const std::strin
         RCLCPP_ERROR_STREAM(node_->get_logger(), "Action package not found: " << packageName);
         static std::vector<CActionPackage> empty_vector;
         return empty_vector;
+    }
+}
+
+std::map<ELegIndex, CPosition> CActionPackagesParser::getFootPositions(const std::string& name) {
+    if (defaultFootPositions_.find(name) != defaultFootPositions_.end()) {
+        return defaultFootPositions_.at(name);
+    } else {
+        RCLCPP_ERROR_STREAM(node_->get_logger(), "Default foot positions not found: " << name);
+        return std::map<ELegIndex, CPosition>();
+    }
+}
+
+std::map<ELegIndex, CLegAngles> CActionPackagesParser::getLegAngles(const std::string& name) {
+    if (defaultLegAngles_.find(name) != defaultLegAngles_.end()) {
+        return defaultLegAngles_.at(name);
+    } else {
+        RCLCPP_ERROR_STREAM(node_->get_logger(), "Default leg angles not found: " << name);
+        return std::map<ELegIndex, CLegAngles>();
+    }
+}
+
+CHead CActionPackagesParser::getHead(const std::string& name) {
+    if (defaultHeads_.find(name) != defaultHeads_.end()) {
+        return defaultHeads_.at(name);
+    } else {
+        RCLCPP_ERROR_STREAM(node_->get_logger(), "Default head not found: " << name);
+        return CHead();
+    }
+}
+CPose CActionPackagesParser::getBody(const std::string& name) {
+    if (defaultBodies_.find(name) != defaultBodies_.end()) {
+        return defaultBodies_.at(name);
+    } else {
+        RCLCPP_ERROR_STREAM(node_->get_logger(), "Default body not found: " << name);
+        return CPose();
     }
 }

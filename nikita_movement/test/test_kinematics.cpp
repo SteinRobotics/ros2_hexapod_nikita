@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "actionpackagesparser.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "requester/kinematics.hpp"
 #include "test_helpers.hpp"
@@ -31,8 +32,10 @@ class KinematicsTest : public ::testing::Test {
             rclcpp::Parameter("LAYDOWN_FOOT_POS_Z", std::vector<double>{0.010}),
         });
 
+        // create the node first (parser uses the node logger during construction)
         node_ = std::make_shared<rclcpp::Node>("test_kinematics_node", options);
-        kin_ = std::make_unique<CKinematics>(node_);
+        actionPackagesParser_ = std::make_shared<CActionPackagesParser>(node_);
+        kin_ = std::make_unique<CKinematics>(node_, actionPackagesParser_);
         cout << "KinematicsTest SetUp complete" << endl;
     }
 
@@ -44,6 +47,7 @@ class KinematicsTest : public ::testing::Test {
     }
 
     std::shared_ptr<rclcpp::Node> node_;
+    std::shared_ptr<CActionPackagesParser> actionPackagesParser_;
     std::unique_ptr<CKinematics> kin_;
 };
 
