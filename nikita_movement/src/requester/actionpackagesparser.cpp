@@ -74,59 +74,121 @@ void CActionPackagesParser::readYaml() {
 }
 
 void CActionPackagesParser::parseDefaultValues(const YAML::Node& defaults) {
-    for (const auto& it : defaults) {
-        std::string key = it.first.as<std::string>();
-        [[maybe_unused]] const YAML::Node& val = it.second;
-        RCLCPP_INFO_STREAM(node_->get_logger(), "Parsing default values for key: " << key);
+    if (!defaults || !defaults.IsMap()) {
+        RCLCPP_WARN(node_->get_logger(), "parseDefaultValues: 'presets' node is missing or not a map");
+        return;
+    }
 
-        // // key starts with "legAngles" then add the values to defaultLegAngles_
-        // if (key.starts_with("legAngles")) {
-        //     for (const auto& legAngle : val) {
-        //         ELegIndex legIndex = static_cast<ELegIndex>(legAngle["leg"].as<int>());
-        //         CLegAngles angles;
-        //         if (legAngle.first.as<std::string>() == "All") {
-        //             angles.degCoxa = legAngle["All"].as<double>();
-        //             angles.degFemur = legAngle["All"].as<double>();
-        //             angles.degTibia = legAngle["All"].as<double>();
-        //         } else {
-        //             angles.degCoxa = legAngle["coxa"].as<double>();
-        //             angles.degFemur = legAngle["femur"].as<double>();
-        //             angles.degTibia = legAngle["tibia"].as<double>();
-        //         }
-        //         defaultLegAngles_[key][legIndex] = angles;
-        //     }
-        // }
-        // if (key.starts_with("footPositions")) {
-        //     for (const auto& footPos : val) {
-        //         ELegIndex legIndex = static_cast<ELegIndex>(footPos["leg"].as<int>());
-        //         CPosition position;
-        //         position.x = footPos["x"].as<double>();
-        //         position.y = footPos["y"].as<double>();
-        //         position.z = footPos["z"].as<double>();
-        //         defaultFootPositions_[key][legIndex] = position;
-        //     }
-        // }
-        if (key.starts_with("head")) {
-            double yaw = val["yaw"] ? val["yaw"].as<double>() : 0.0;
-            double pitch = val["pitch"] ? val["pitch"].as<double>() : 0.0;
-            defaultHeads_[key] = CHead(yaw, pitch);
+    try {
+        for (const auto& it : defaults) {
+            std::string key = it.first.as<std::string>();
+            const YAML::Node& val = it.second;
+            RCLCPP_INFO_STREAM(node_->get_logger(), "Parsing default values for key: " << key);
+
+            if (key.rfind("legAngles", 0) == 0) {
+                parsePresetLegAngles(key, val);
+                continue;
+            }
+            if (key.rfind("footPositions", 0) == 0) {
+                parsePresetFootPositions(key, val);
+                continue;
+            }
+            if (key.rfind("head", 0) == 0) {
+                parsePresetHead(key, val);
+                continue;
+            }
+            if (key.rfind("body", 0) == 0) {
+                parsePresetBody(key, val);
+                continue;
+            }
         }
-        if (key.starts_with("body")) {
-            double roll = val["orientation"] && val["orientation"]["roll"]
-                              ? val["orientation"]["roll"].as<double>()
-                              : 0.0;
-            double pitch = val["orientation"] && val["orientation"]["pitch"]
-                               ? val["orientation"]["pitch"].as<double>()
-                               : 0.0;
-            double yaw = val["orientation"] && val["orientation"]["yaw"]
-                             ? val["orientation"]["yaw"].as<double>()
-                             : 0.0;
-            double x = val["direction"] && val["direction"]["x"] ? val["direction"]["x"].as<double>() : 0.0;
-            double y = val["direction"] && val["direction"]["y"] ? val["direction"]["y"].as<double>() : 0.0;
-            double z = val["direction"] && val["direction"]["z"] ? val["direction"]["z"].as<double>() : 0.0;
-            defaultBodies_[key] = CPose(x, y, z, roll, pitch, yaw);
+    } catch (const YAML::Exception& ex) {
+        RCLCPP_ERROR_STREAM(node_->get_logger(), "parseDefaultValues: YAML exception: " << ex.what());
+    }
+}
+
+void CActionPackagesParser::parsePresetLegAngles(const std::string& key, const YAML::Node& val) {
+    if (!val || !val.IsMap()) return;
+    // Apply 'All' first
+    const YAML::Node allNode = val["All"];
+    if (allNode && allNode.IsMap()) {
+        const double coxa = allNode["coxa"] ? allNode["coxa"].as<double>() : 0.0;
+        const double femur = allNode["femur"] ? allNode["femur"].as<double>() : 0.0;
+        const double tibia = allNode["tibia"] ? allNode["tibia"].as<double>() : 0.0;
+        for (const auto& kv : legNameToIndex) {
+            defaultLegAngles_[key][kv.second] = CLegAngles(coxa, femur, tibia);
         }
     }
+    // Per-leg overrides
+    for (auto it2 = val.begin(); it2 != val.end(); ++it2) {
+        const std::string legName = it2->first.as<std::string>();
+        if (legName == "All") continue;
+        const YAML::Node& node = it2->second;
+        if (!node || !node.IsMap()) continue;
+        auto nameIt = legNameToIndex.find(legName);
+        if (nameIt == legNameToIndex.end()) {
+            RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in legAngles preset: " << legName);
+            continue;
+        }
+        const double coxa = node["coxa"] ? node["coxa"].as<double>() : 0.0;
+        const double femur = node["femur"] ? node["femur"].as<double>() : 0.0;
+        const double tibia = node["tibia"] ? node["tibia"].as<double>() : 0.0;
+        defaultLegAngles_[key][nameIt->second] = CLegAngles(coxa, femur, tibia);
+    }
+}
+
+void CActionPackagesParser::parsePresetFootPositions(const std::string& key, const YAML::Node& val) {
+    if (!val || !val.IsMap()) return;
+    // Apply 'All' first
+    const YAML::Node allNode = val["All"];
+    if (allNode && allNode.IsMap()) {
+        const double x = allNode["x"] ? allNode["x"].as<double>() : 0.0;
+        const double y = allNode["y"] ? allNode["y"].as<double>() : 0.0;
+        const double z = allNode["z"] ? allNode["z"].as<double>() : 0.0;
+        for (const auto& kv : legNameToIndex) {
+            defaultFootPositions_[key][kv.second] = CPosition(x, y, z);
+        }
+    }
+    // Per-leg overrides
+    for (auto it2 = val.begin(); it2 != val.end(); ++it2) {
+        const std::string legName = it2->first.as<std::string>();
+        if (legName == "All") continue;
+        const YAML::Node& node = it2->second;
+        if (!node || !node.IsMap()) continue;
+        auto nameIt = legNameToIndex.find(legName);
+        if (nameIt == legNameToIndex.end()) {
+            RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in footPositions preset: " << legName);
+            continue;
+        }
+        const double x = node["x"] ? node["x"].as<double>() : 0.0;
+        const double y = node["y"] ? node["y"].as<double>() : 0.0;
+        const double z = node["z"] ? node["z"].as<double>() : 0.0;
+        defaultFootPositions_[key][nameIt->second] = CPosition(x, y, z);
+    }
+}
+
+void CActionPackagesParser::parsePresetHead(const std::string& key, const YAML::Node& val) {
+    const double yaw = val["yaw"] ? val["yaw"].as<double>() : 0.0;
+    const double pitch = val["pitch"] ? val["pitch"].as<double>() : 0.0;
+    defaultHeads_[key] = CHead(yaw, pitch);
+}
+
+void CActionPackagesParser::parsePresetBody(const std::string& key, const YAML::Node& val) {
+    double roll = 0.0, pitch = 0.0, yaw = 0.0;
+    double x = 0.0, y = 0.0, z = 0.0;
+    if (val["orientation"] && val["orientation"].IsMap()) {
+        const auto& o = val["orientation"];
+        roll = o["roll"] ? o["roll"].as<double>() : 0.0;
+        pitch = o["pitch"] ? o["pitch"].as<double>() : 0.0;
+        yaw = o["yaw"] ? o["yaw"].as<double>() : 0.0;
+    }
+    if (val["direction"] && val["direction"].IsMap()) {
+        const auto& d = val["direction"];
+        x = d["x"] ? d["x"].as<double>() : 0.0;
+        y = d["y"] ? d["y"].as<double>() : 0.0;
+        z = d["z"] ? d["z"].as<double>() : 0.0;
+    }
+    defaultBodies_[key] = CPose(x, y, z, roll, pitch, yaw);
 }
 
 void CActionPackagesParser::parseYamlStep(const YAML::Node& step,

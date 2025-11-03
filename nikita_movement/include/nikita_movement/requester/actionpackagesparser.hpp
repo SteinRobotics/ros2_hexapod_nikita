@@ -46,6 +46,11 @@ class CActionPackagesParser {
     CPose parseBodyNode(const YAML::Node& bodyNode);
     std::map<ELegIndex, CLegAngles> parseLegAnglesNode(const YAML::Node& legsNode);
     std::map<ELegIndex, CPosition> parseFootPositionsNode(const YAML::Node& posNode);
+    // Preset (top-level 'presets') helpers
+    void parsePresetLegAngles(const std::string& key, const YAML::Node& val);
+    void parsePresetFootPositions(const std::string& key, const YAML::Node& val);
+    void parsePresetHead(const std::string& key, const YAML::Node& val);
+    void parsePresetBody(const std::string& key, const YAML::Node& val);
 
     std::shared_ptr<rclcpp::Node> node_;
     std::unordered_map<std::string, std::vector<CActionPackage>> actionPackages_;
