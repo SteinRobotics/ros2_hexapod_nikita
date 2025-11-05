@@ -67,7 +67,8 @@ if(BUILD_TESTING)
     test/test_kinematics.cpp
   )
   if(TARGET test_kinematics)
-    ament_target_dependencies(test_kinematics rclcpp nikita_interfaces)
+    ament_target_dependencies(test_kinematics rclcpp ament_index_cpp nikita_interfaces)
+    target_include_directories(test_kinematics PRIVATE include)
     target_link_libraries(test_kinematics nikita_movement_core)
   endif()
 

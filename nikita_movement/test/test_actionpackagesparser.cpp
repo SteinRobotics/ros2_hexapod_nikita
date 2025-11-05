@@ -32,28 +32,21 @@ TEST_F(ActionPackagesParserTest, NonexistentPackageReturnsEmpty) {
     EXPECT_TRUE(requests.empty());
 }
 
-// TEST_F(ActionPackagesParserTest, legAngles_standingPosition) {
-//     auto positions = parser_->getPositions("footPositions_standing");
+TEST_F(ActionPackagesParserTest, legAngles_standingPosition) {
+    auto positions = parser_->getFootPositions("footPositions_standing");
+    EXPECT_EQ(positions.size(), 6);
 
-//     std::cout << "Retrieved " << positions.size() << " foot positions for standing." << std::endl;
-//     for (const auto& [legIndex, position] : positions) {
-//         std::cout << "Leg " << static_cast<int>(legIndex) << ": x=" << position.x << ", y=" << position.y
-//                   << ", z=" << position.z << std::endl;
-//     }
+    // Check one leg's position as an example
+    auto it = positions.find(ELegIndex::RightFront);
+    ASSERT_NE(it, positions.end());
+    const CPosition& position = it->second;
 
-//     EXPECT_EQ(positions.size(), 6);
-
-//     // Check one leg's position as an example
-//     auto it = positions.find(ELegIndex::RightFront);
-//     ASSERT_NE(it, positions.end());
-//     const CPosition& position = it->second;
-
-//     CPosition expectedFootPos;
-//     expectedFootPos.x = 0.092 + 0.109;  // CENTER_TO_COXA_X + STANDING_FOOT_POS_X
-//     expectedFootPos.y = 0.092 + 0.068;  // CENTER_TO_COXA_Y + STANDING_FOOT_POS_Y
-//     expectedFootPos.z = -0.050;         // STANDING_FOOT_POS_Z
-//     expectPositionNear(expectedFootPos, position, "Standing foot position mismatch");
-// }
+    CPosition expectedFootPos;
+    expectedFootPos.x = 0.092 + 0.109;  // CENTER_TO_COXA_X + STANDING_FOOT_POS_X
+    expectedFootPos.y = 0.092 + 0.068;  // CENTER_TO_COXA_Y + STANDING_FOOT_POS_Y
+    expectedFootPos.z = -0.050;         // STANDING_FOOT_POS_Z
+    expectPositionNear(expectedFootPos, position, "Standing foot position mismatch");
+}
 
 TEST_F(ActionPackagesParserTest, STAND_UP_PackageLoadsCorrectly) {
     auto& requests = parser_->getRequests("STAND_UP");

@@ -15,6 +15,7 @@
 #include "requester/actionpackagesparser.hpp"
 #include "requester/types.hpp"
 
+
 class CKinematics {
    public:
     CKinematics(std::shared_ptr<rclcpp::Node> node,
@@ -56,14 +57,6 @@ class CKinematics {
     std::vector<double> CENTER_TO_COXA_X;
     std::vector<double> CENTER_TO_COXA_Y;
     std::vector<double> OFFSET_COXA_ANGLE_DEG;
-
-    std::vector<double> STANDING_FOOT_POS_X;
-    std::vector<double> STANDING_FOOT_POS_Y;
-    std::vector<double> STANDING_FOOT_POS_Z;
-
-    std::vector<double> LAYDOWN_FOOT_POS_X;
-    std::vector<double> LAYDOWN_FOOT_POS_Y;
-    std::vector<double> LAYDOWN_FOOT_POS_Z;
 
     double BODY_MAX_ROLL = double(0);
     double BODY_MAX_PITCH = double(0);

@@ -3,10 +3,7 @@
  ******************************************************************************/
 
 #include "requester/kinematics.hpp"
-// include full parser definition so we can call actionPackagesParser_->getRequests()
-#include <cmath>
 
-#include "requester/actionpackagesparser.hpp"
 
 using namespace std;
 
@@ -35,30 +32,6 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node,
     OFFSET_COXA_ANGLE_DEG =
         node->declare_parameter<std::vector<double>>("OFFSET_COXA_ANGLE_DEG", std::vector<double>());
 
-    STANDING_FOOT_POS_X =
-        node->declare_parameter<std::vector<double>>("STANDING_FOOT_POS_X", std::vector<double>());
-    STANDING_FOOT_POS_Y =
-        node->declare_parameter<std::vector<double>>("STANDING_FOOT_POS_Y", std::vector<double>());
-    STANDING_FOOT_POS_Z =
-        node->declare_parameter<std::vector<double>>("STANDING_FOOT_POS_Z", std::vector<double>());
-
-    LAYDOWN_FOOT_POS_X =
-        node->declare_parameter<std::vector<double>>("LAYDOWN_FOOT_POS_X", std::vector<double>());
-    LAYDOWN_FOOT_POS_Y =
-        node->declare_parameter<std::vector<double>>("LAYDOWN_FOOT_POS_Y", std::vector<double>());
-    LAYDOWN_FOOT_POS_Z =
-        node->declare_parameter<std::vector<double>>("LAYDOWN_FOOT_POS_Z", std::vector<double>());
-
-    // Debug: log parameter vector sizes to help diagnose test failures due to
-    // out-of-range accesses when parameter arrays are shorter than LEG_NAMES.
-    RCLCPP_DEBUG_STREAM(node_->get_logger(),
-                        "PARAM SIZES: LEG_NAMES="
-                            << LEG_NAMES.size() << ", CENTER_TO_COXA_X=" << CENTER_TO_COXA_X.size()
-                            << ", CENTER_TO_COXA_Y=" << CENTER_TO_COXA_Y.size() << ", OFFSET_COXA_ANGLE_DEG="
-                            << OFFSET_COXA_ANGLE_DEG.size() << ", STANDING_X=" << STANDING_FOOT_POS_X.size()
-                            << ", STANDING_Y=" << STANDING_FOOT_POS_Y.size()
-                            << ", STANDING_Z=" << STANDING_FOOT_POS_Z.size());
-
     BODY_MAX_ROLL = node->declare_parameter<double>("BODY_MAX_ROLL", rclcpp::PARAMETER_DOUBLE);
     BODY_MAX_PITCH = node->declare_parameter<double>("BODY_MAX_PITCH", rclcpp::PARAMETER_DOUBLE);
     BODY_MAX_YAW = node->declare_parameter<double>("BODY_MAX_YAW", rclcpp::PARAMETER_DOUBLE);
@@ -68,31 +41,23 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node,
     sqFemurLength_ = pow(FEMUR_LENGTH, 2);
     sqTibiaLength_ = pow(TIBIA_LENGTH, 2);
 
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Kinematics before bodyCenterOffsets_:");
+    
     // body center offsets
     for (uint32_t i = 0; i < LEG_NAMES.size(); i++) {
         auto& legName = LEG_NAMES.at(i);
         ELegIndex legIndex = legNameToIndex.at(legName);
-        // guard against missing or short parameter vectors used in tests
-        double coxa_x = (i < CENTER_TO_COXA_X.size()) ? CENTER_TO_COXA_X.at(i) : 0.0;
-        double coxa_y = (i < CENTER_TO_COXA_Y.size()) ? CENTER_TO_COXA_Y.at(i) : 0.0;
-        double offset_psi = (i < OFFSET_COXA_ANGLE_DEG.size()) ? OFFSET_COXA_ANGLE_DEG.at(i) : 0.0;
-        if (i >= CENTER_TO_COXA_X.size() || i >= CENTER_TO_COXA_Y.size() ||
-            i >= OFFSET_COXA_ANGLE_DEG.size()) {
-            RCLCPP_WARN_STREAM(node_->get_logger(),
-                               "CKinematics: parameter vector shorter than LEG_NAMES for leg '"
-                                   << legName << "' (using defaults)");
-        }
-        bodyCenterOffsets_[legIndex].x = coxa_x;
-        bodyCenterOffsets_[legIndex].y = coxa_y;
-        bodyCenterOffsets_[legIndex].psi = offset_psi;
+        bodyCenterOffsets_[legIndex].x = CENTER_TO_COXA_X.at(i);
+        bodyCenterOffsets_[legIndex].y = CENTER_TO_COXA_Y.at(i);
+        bodyCenterOffsets_[legIndex].psi = OFFSET_COXA_ANGLE_DEG.at(i);
     }
+    
+    auto footPositionsStanding = actionPackagesParser_->getFootPositions("footPositions_standing");
+    initializeLegsNew(footPositionsStanding, body_, legs_);
+    initializeLegsNew(footPositionsStanding, body_, legsStanding_);
 
-    // auto footPositionsStanding = actionPackagesParser_->getPositions("footPositions_standing");
-    // initializeLegsNew(footPositionsStanding, body_, legs_);
-    // initializeLegsNew(footPositionsStanding, body_, legsStanding_);
-
-    // auto footPositionsLaying = actionPackagesParser_->getPositions("footPositions_laying");
-    // initializeLegsNew(footPositionsLaying, body_, legsLayDown_);
+    auto footPositionsLaying = actionPackagesParser_->getFootPositions("footPositions_laydown");
+    initializeLegsNew(footPositionsLaying, body_, legsLayDown_);
 }
 
 void CKinematics::logLegsPositions(std::map<ELegIndex, CLeg>& legs) {
@@ -119,44 +84,18 @@ void CKinematics::logHeadPosition() {
                                        << "°, Pitch: " << std::setw(3) << head_.degPitch << "°");
 }
 
-void CKinematics::intializeLegs(std::map<ELegIndex, CLeg>& legs, std::vector<double>& posX,
-                                std::vector<double>& posY, std::vector<double>& posZ) {
-    // TODO change this and take the moveBody function instead, read the values from actionpackages.yaml
-    // If the parameter vectors are shorter than LEG_NAMES, fall back to 0.0 for missing values
-    bool warned = false;
-    for (uint32_t i = 0; i < LEG_NAMES.size(); i++) {
-        auto& legName = LEG_NAMES.at(i);
-        ELegIndex legIndex = legNameToIndex.at(legName);
-        legs[legIndex] = CLeg();
-
-        double x = (i < posX.size()) ? posX.at(i) : 0.0;
-        double y = (i < posY.size()) ? posY.at(i) : 0.0;
-        double z = (i < posZ.size()) ? posZ.at(i) : 0.0;
-        if (!warned && (i >= posX.size() || i >= posY.size() || i >= posZ.size())) {
-            RCLCPP_WARN_STREAM(node_->get_logger(),
-                               "CKinematics::intializeLegs: one or more foot-position parameter vectors are "
-                               "shorter than LEG_NAMES - using 0.0 for missing entries");
-            warned = true;
-        }
-
-        legs[legIndex].footPos_.x = x;
-        legs[legIndex].footPos_.y = y;
-        legs[legIndex].footPos_.z = z;
-
-        // calc the legs[legIndex].angles_
-        calcLegInverseKinematics(legs[legIndex].footPos_, legs[legIndex], legIndex);
-    }
-    logLegsPositions(legs);
-}
-
 void CKinematics::initializeLegsNew(const std::map<ELegIndex, CPosition>& footTargets, const CPose body,
                                     std::map<ELegIndex, CLeg>& legs) {
-    for (auto& [legIndex, footTarget] : footTargets) {
-        auto& leg = legs.at(legIndex);
+    for (const auto& [legIndex, footTarget] : footTargets) {
+        RCLCPP_DEBUG_STREAM(node_->get_logger(),
+                        "Initializing leg " << legIndexToName.at(legIndex) << " to foot target position x: "
+                                            << footTarget.x << ", y: " << footTarget.y << ", z: " << footTarget.z);
+        auto leg = CLeg();
         CPosition coxaPosition(bodyCenterOffsets_.at(legIndex).x, bodyCenterOffsets_.at(legIndex).y, 0.0);
         CPosition legBase = rotate(coxaPosition, body.orientation) + body.position;
         CPosition footRel = footTarget - legBase;
         calcLegInverseKinematics(footRel, leg, legIndex);
+        legs[legIndex] = leg;
     }
     logLegsPositions(legs);
 }
