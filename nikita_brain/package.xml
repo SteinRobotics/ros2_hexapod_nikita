@@ -19,6 +19,7 @@
   <depend>ament_index_cpp</depend>
   <depend>nikita_interfaces</depend>
   <depend>nlohmann-json-dev</depend>
+  <depend>nikita_utils</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

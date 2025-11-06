@@ -16,6 +16,7 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(nikita_interfaces REQUIRED)
+find_package(nikita_utils REQUIRED)
 find_package(nlohmann_json REQUIRED) # nlohmann_json -> sudo apt install nlohmann-json3-dev
 find_package(ament_cmake_gtest REQUIRED)
 find_package(ament_cmake_gmock REQUIRED)
@@ -37,7 +38,7 @@ target_include_directories(nikita_brain_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-ament_target_dependencies(nikita_brain_lib rclcpp ament_index_cpp nikita_interfaces nlohmann_json)
+ament_target_dependencies(nikita_brain_lib rclcpp ament_index_cpp nikita_interfaces nikita_utils nlohmann_json)
 
 add_executable(node_brain
   src/node_brain.cpp
@@ -71,13 +72,7 @@ if(BUILD_TESTING)
     target_link_libraries(test_text_interpreter nikita_brain_lib)
   endif()
 
-  ament_add_gtest(test_simple_timer 
-    test/test_simpletimer.cpp
-  )
-  if(TARGET test_simpletimer)
-    ament_target_dependencies(test_simpletimer rclcpp ament_index_cpp)
-    target_link_libraries(test_simpletimer nikita_brain_lib)
-  endif()
+
 endif()
 
 ament_package()

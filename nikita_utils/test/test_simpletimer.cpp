@@ -2,9 +2,8 @@
 
 #include <atomic>
 #include <chrono>
+#include <nikita_utils/simpletimer.hpp>
 #include <thread>
-
-#include "requester/simpletimer.hpp"
 
 TEST(SimpleTimerTest, WaitSecondsBlockingCallsCallback) {
     CSimpleTimer timer;

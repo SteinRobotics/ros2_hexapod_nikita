@@ -16,6 +16,7 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(nikita_interfaces REQUIRED)
+find_package(nikita_utils REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(ament_cmake_gtest REQUIRED)
 
@@ -36,7 +37,7 @@ add_library(nikita_movement_core
   ${SOURCES}
 )
 target_include_directories(nikita_movement_core PUBLIC include/nikita_movement include/nikita_movement/requester)
-ament_target_dependencies(nikita_movement_core rclcpp std_msgs geometry_msgs std_srvs ament_index_cpp nikita_interfaces)
+ament_target_dependencies(nikita_movement_core rclcpp std_msgs geometry_msgs std_srvs ament_index_cpp nikita_utils nikita_interfaces)
 target_link_libraries(nikita_movement_core yaml-cpp::yaml-cpp)
 
 add_executable(node_movement
@@ -45,7 +46,7 @@ add_executable(node_movement
 target_link_libraries(node_movement
   nikita_movement_core
 )
-ament_target_dependencies(node_movement rclcpp)
+ament_target_dependencies(node_movement rclcpp nikita_utils)
 
 include_directories(
   include/nikita_movement/

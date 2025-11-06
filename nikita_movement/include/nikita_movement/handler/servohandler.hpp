@@ -10,9 +10,10 @@
 //
 #include "nikita_interfaces/msg/servo_index.hpp"
 //
+#include <nikita_utils/simpletimer.hpp>
+
 #include "requester/kinematics.hpp"
 #include "servo_controller.hpp"
-#include "simpletimer.hpp"
 
 class CRequest {
    public:
