@@ -20,8 +20,14 @@ CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServ
 
     initializeRequestHandlers();
 
-    m_subMovementRequest = node_->create_subscription<MovementRequest>(
-        "movement_request", 10, std::bind(&CRequester::onMovementRequest, this, _1));
+    subMovementTypeRequest_ = node_->create_subscription<MovementRequest>(
+        "movement_request", 10, std::bind(&CRequester::onMovementTypeRequest, this, _1));
+
+    subMovementVelocityRequest_ = node_->create_subscription<geometry_msgs::msg::Twist>(
+        "movement_velocity_request", 10, std::bind(&CRequester::onMovementVelocityRequest, this, _1));
+
+    subMovementBodyPoseRequest_ = node_->create_subscription<nikita_interfaces::msg::Pose>(
+        "movement_body_pose_request", 10, std::bind(&CRequester::onMovementBodyPoseRequest, this, _1));
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -120,18 +126,11 @@ void CRequester::requestWaiting(const MovementRequest& msg) {
     sendServoRequest(waitingTime);
 }
 
-void CRequester::requestMove(const MovementRequest& msg) {
-    // at the beginning of the movement we have to lift the legs
-    // TODO make the 500ms dependent on the velocity
+void CRequester::requestMove([[maybe_unused]] const MovementRequest& msg) {
     if (activeRequest_ != MovementRequest::MOVE) {
-        // transitionToMoveActive_ = true;
-        // gaitController_->liftLegsTripodGroup(true);
-        // sendServoRequest(double(0.5));
         gaitController_->resetPhase();
     }
     activeRequest_ = MovementRequest::MOVE;
-    velocity_ = msg.velocity;
-    poseBody_ = msg.body;
     // RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::requestMove: velocity: "
     //                                             << velocity_.linear.x << ", " << velocity_.linear.y << ", "
     //                                             << velocity_.angular.z);
@@ -264,22 +263,19 @@ void CRequester::requestCalibrate(const MovementRequest& msg) {
 void CRequester::requestTestBody(const MovementRequest& msg) {
     activeRequest_ = MovementRequest::TESTBODY;
 
-    auto requestedBody = CPose(msg.body);
-    kinematics_->moveBody(kinematics_->getLegsStandingPositions(), requestedBody);
+    // auto requestedBody = CPose(msg.body);
+    kinematics_->moveBody(kinematics_->getLegsStandingPositions(), poseBody_);
     sendServoRequest(msg.duration_s);
 }
 
 void CRequester::requestTestLegs(const MovementRequest& msg) {
     activeRequest_ = MovementRequest::TESTLEGS;
 
-    for (int idx = static_cast<int>(ELegIndex::RightFront); idx <= static_cast<int>(ELegIndex::LeftBack);
-         ++idx) {
-        ELegIndex legIndex = static_cast<ELegIndex>(idx);
-
+    for (const auto& [legIndex, leg] : kinematics_->getLegs()) {
         RCLCPP_INFO_STREAM(node_->get_logger(),
                            "CRequester:: requestTestLegs: " << legIndexToName.at(legIndex));
 
-        CLegAngles legAngles = kinematics_->getAngles(legIndex);
+        CLegAngles legAngles = leg.angles_;
         CLegAngles origLegAngles = legAngles;
         legAngles.degFemur += 10.0;
         legAngles.degTibia += 10.0;
@@ -297,7 +293,7 @@ void CRequester::requestTestLegs(const MovementRequest& msg) {
 // ------------------------------------------------------------------------------------------------------------
 // public methods for the CRequester class
 // ------------------------------------------------------------------------------------------------------------
-void CRequester::onMovementRequest(const MovementRequest& msg) {
+void CRequester::onMovementTypeRequest(const MovementRequest& msg) {
     RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::onMovementRequest: " << msg.name);
     // check that the new request is inside the requestHandlers_ map
     if (requestHandlers_.find(msg.type) == requestHandlers_.end()) {
@@ -306,6 +302,14 @@ void CRequester::onMovementRequest(const MovementRequest& msg) {
         return;
     }
     requestHandlers_[msg.type](msg);
+}
+
+void CRequester::onMovementVelocityRequest(const geometry_msgs::msg::Twist& msg) {
+    velocity_ = msg;
+}
+
+void CRequester::onMovementBodyPoseRequest(const nikita_interfaces::msg::Pose& msg) {
+    poseBody_ = msg;
 }
 
 void CRequester::update(std::chrono::milliseconds timeslice) {

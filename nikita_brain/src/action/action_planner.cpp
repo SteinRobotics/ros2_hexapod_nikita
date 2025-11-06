@@ -117,8 +117,12 @@ void CActionPlanner::execute(std::vector<std::shared_ptr<RequestBase>>& requests
             handlerCommunication_->run(requestMusic);
         } else if (auto requestListening = std::dynamic_pointer_cast<RequestListening>(request)) {
             handlerCommunication_->run(requestListening);
-        } else if (auto requestMove = std::dynamic_pointer_cast<CRequestMove>(request)) {
-            handlerMovement_->run(requestMove);
+        } else if (auto requestMovementType = std::dynamic_pointer_cast<CRequestMovementType>(request)) {
+            handlerMovement_->run(requestMovementType);
+        } else if (auto requestMoveBody = std::dynamic_pointer_cast<CRequestMoveBody>(request)) {
+            handlerMovement_->run(requestMoveBody);
+        } else if (auto requestMoveVelocity = std::dynamic_pointer_cast<CRequestMoveVelocity>(request)) {
+            handlerMovement_->run(requestMoveVelocity);
         } else {
             RCLCPP_ERROR_STREAM(node_->get_logger(),
                                 "CActionPlanner: RequestType unknown: " << typeid(*request).name());

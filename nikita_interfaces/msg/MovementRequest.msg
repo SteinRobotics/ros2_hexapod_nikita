@@ -26,9 +26,6 @@ uint8 type 0
 float64 duration_s 1.0
 string name
 
-#from cmd_vel: velocity are used mainly for type MOVE
-geometry_msgs/Twist velocity #linear and angular
-Pose body # position and orientation of the body
 
 
 

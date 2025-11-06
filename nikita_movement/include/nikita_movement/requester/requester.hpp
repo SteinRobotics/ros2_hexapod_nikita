@@ -15,6 +15,7 @@
 //
 #include "geometry_msgs/msg/twist.hpp"
 #include "nikita_interfaces/msg/movement_request.hpp"
+#include "nikita_interfaces/msg/pose.hpp"
 #include "nikita_interfaces/msg/servo_index.hpp"
 //
 #include "actionpackagesparser.hpp"
@@ -30,7 +31,9 @@ class CRequester {
     void update(std::chrono::milliseconds timeslice);
 
     // void onServoStatus(const nikita_interfaces::msg::ServoStatus& msg);
-    void onMovementRequest(const nikita_interfaces::msg::MovementRequest& msg);
+    void onMovementTypeRequest(const nikita_interfaces::msg::MovementRequest& msg);
+    void onMovementVelocityRequest(const geometry_msgs::msg::Twist& msg);
+    void onMovementBodyPoseRequest(const nikita_interfaces::msg::Pose& msg);
 
     // test helper: allow injection of a custom servo handler (mock)
     // NOTE: dependencies (like CServoHandler) should be injected via constructor.
@@ -70,7 +73,10 @@ class CRequester {
     std::shared_ptr<CActionPackagesParser> actionPackagesParser_;
     std::shared_ptr<CServoHandler> servoHandler_;
 
-    rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr subMovementRequest_;
+    rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr subMovementTypeRequest_;
+    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subMovementVelocityRequest_;
+    rclcpp::Subscription<nikita_interfaces::msg::Pose>::SharedPtr subMovementBodyPoseRequest_;
+
     // rclcpp::Subscription<nikita_interfaces::msg::ServoStatus>::SharedPtr subServoStatus_;
     uint8_t activeRequest_ = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
     std::unordered_map<uint8_t, std::function<void(const nikita_interfaces::msg::MovementRequest&)>>

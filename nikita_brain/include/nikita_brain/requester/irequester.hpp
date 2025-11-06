@@ -8,6 +8,8 @@
 
 #include "geometry_msgs/msg/twist.hpp"
 #include "nikita_interfaces/msg/movement_request.hpp"
+#include "nikita_interfaces/msg/pose.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 namespace brain {
 
@@ -115,63 +117,9 @@ class RequestListening : public RequestBase {
     bool active_ = false;
 };
 
-class RequestMovementHead : public RequestBase {
+class CRequestMovementType : public RequestBase {
    public:
-    RequestMovementHead(float agHorizontal, float velHorizontal, float agVertical, float velVertical,
-                        double minDuration = 0.0)
-        : RequestBase(minDuration),
-          agHorizontal_(agHorizontal),
-          velHorizontal_(velHorizontal),
-          agVertical_(agVertical),
-          velVertical_(velVertical) {
-    }
-    float agHorizontal() {
-        return agHorizontal_;
-    };
-    float velHorizontal() {
-        return velHorizontal_;
-    };
-    float agVertical() {
-        return agVertical_;
-    };
-    float velVertical() {
-        return velVertical_;
-    };
-
-   private:
-    float agHorizontal_ = 0.0;
-    float velHorizontal_ = 0.0;
-    float agVertical_ = 0.0;
-    float velVertical_ = 0.0;
-};
-
-class RequestMovementBody : public RequestBase {
-   public:
-    RequestMovementBody(double velLinearX, double velLinearY, double velAngular, double minDuration = 0.0)
-        : RequestBase(minDuration),
-          velLinearX_(velLinearX),
-          velLinearY_(velLinearY),
-          velAngular_(velAngular) {
-    }
-    double velLinearX() {
-        return velLinearX_;
-    };
-    double velLinearY() {
-        return velLinearY_;
-    };
-    double velAngular() {
-        return velAngular_;
-    };
-
-   private:
-    double velLinearX_ = 0.0;
-    double velLinearY_ = 0.0;
-    double velAngular_ = 0.0;
-};
-
-class CRequestMove : public RequestBase {
-   public:
-    CRequestMove(nikita_interfaces::msg::MovementRequest movementRequest, double minDuration = 0.0)
+    CRequestMovementType(nikita_interfaces::msg::MovementRequest movementRequest, double minDuration = 0.0)
         : RequestBase(minDuration), movementRequest_(movementRequest) {
     }
     nikita_interfaces::msg::MovementRequest movementRequest() {
@@ -180,6 +128,31 @@ class CRequestMove : public RequestBase {
 
    private:
     nikita_interfaces::msg::MovementRequest movementRequest_ = nikita_interfaces::msg::MovementRequest();
+};
+
+class CRequestMoveBody : public RequestBase {
+   public:
+    CRequestMoveBody(nikita_interfaces::msg::Pose pose, double minDuration = 0.0)
+        : RequestBase(minDuration), pose_(pose) {
+    }
+    nikita_interfaces::msg::Pose pose() {
+        return pose_;
+    };
+
+   private:
+    nikita_interfaces::msg::Pose pose_ = nikita_interfaces::msg::Pose();
+};
+class CRequestMoveVelocity : public RequestBase {
+   public:
+    CRequestMoveVelocity(geometry_msgs::msg::Twist velocity, double minDuration = 0.0)
+        : RequestBase(minDuration), velocity_(velocity) {
+    }
+    geometry_msgs::msg::Twist velocity() {
+        return velocity_;
+    };
+
+   private:
+    geometry_msgs::msg::Twist velocity_ = geometry_msgs::msg::Twist();
 };
 
 class IRequester {

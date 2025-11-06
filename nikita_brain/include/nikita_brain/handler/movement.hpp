@@ -24,13 +24,18 @@ class CMovement : public IHandler {
     void update() override;
     void cancel() override;
 
-    void run(std::shared_ptr<CRequestMove> request);
+    void run(std::shared_ptr<CRequestMovementType> request);
+    void run(std::shared_ptr<CRequestMoveBody> request);
+    void run(std::shared_ptr<CRequestMoveVelocity> request);
 
    private:
     void timerCallback();
 
     std::shared_ptr<rclcpp::Node> node_;
-    rclcpp::Publisher<nikita_interfaces::msg::MovementRequest>::SharedPtr pub_;
+    rclcpp::Publisher<nikita_interfaces::msg::MovementRequest>::SharedPtr pubMovementType_;
+    rclcpp::Publisher<nikita_interfaces::msg::Pose>::SharedPtr pubBodyPose_;
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pubCmdVel_;
+
     std::shared_ptr<CSimpleTimer> simpleTimer_;
 };
 

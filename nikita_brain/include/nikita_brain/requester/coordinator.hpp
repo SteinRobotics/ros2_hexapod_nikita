@@ -38,9 +38,18 @@ class CCoordinator : public IRequester {
     template <typename RequestT, typename... Args>
     void submitSingleRequest(Prio prio, Args&&... args);
 
-    void submitRequestMove(uint32_t movementType, double duration_s = 0.0, std::string comment = "",
-                           Prio prio = Prio::Normal,
-                           nikita_interfaces::msg::Pose body = nikita_interfaces::msg::Pose());
+    void submitRequestMove(uint32_t movementType, double duration_s,
+                           std::optional<geometry_msgs::msg::Twist> velocity, std::string comment = "",
+                           Prio prio = Prio::Normal);
+    void submitRequestMove(uint32_t movementType, double duration_s,
+                           std::optional<nikita_interfaces::msg::Pose> body, std::string comment = "",
+                           Prio prio = Prio::Normal);
+    void submitRequestMove(uint32_t movementType, double duration_s, std::string comment = "",
+                           Prio prio = Prio::Normal);
+    void submitRequestMove(uint32_t movementType, double duration_s = 0.0,
+                           std::optional<nikita_interfaces::msg::Pose> body = std::nullopt,
+                           std::optional<geometry_msgs::msg::Twist> velocity = std::nullopt,
+                           std::string comment = "", Prio prio = Prio::Normal);
 
     void requestShutdown(Prio prio);
     void requestReactionOnError(std::string text, bool isShutdownRequested, Prio prio = Prio::Normal);

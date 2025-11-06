@@ -58,7 +58,7 @@ TEST_F(RequesterTest, HandleNoRequestMessage) {
     // MovementRequest uses the field 'type' to indicate the request kind
     msg.type = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
 
-    EXPECT_NO_THROW(requester_->onMovementRequest(msg));
+    EXPECT_NO_THROW(requester_->onMovementTypeRequest(msg));
 }
 
 TEST_F(RequesterTest, HandleLayDownRequest) {
@@ -67,7 +67,7 @@ TEST_F(RequesterTest, HandleLayDownRequest) {
     msg.type = nikita_interfaces::msg::MovementRequest::LAYDOWN;
     msg.duration_s = 1.0;
 
-    EXPECT_NO_THROW(requester_->onMovementRequest(msg));
+    EXPECT_NO_THROW(requester_->onMovementTypeRequest(msg));
 
     auto requests = servoHandlerMock_->getRequests();
     auto first_request = requests.front();
@@ -90,7 +90,7 @@ TEST_F(RequesterTest, HandleStandUpRequest) {
     msg.type = nikita_interfaces::msg::MovementRequest::STAND_UP;
     msg.duration_s = 1.0;
 
-    EXPECT_NO_THROW(requester_->onMovementRequest(msg));
+    EXPECT_NO_THROW(requester_->onMovementTypeRequest(msg));
 
     auto requests = servoHandlerMock_->getRequests();
     auto first_request = requests.front();
@@ -112,7 +112,7 @@ TEST_F(RequesterTest, HandleWatchRequest) {
     msg.type = nikita_interfaces::msg::MovementRequest::WATCH;
     msg.duration_s = 1.0;
 
-    EXPECT_NO_THROW(requester_->onMovementRequest(msg));
+    EXPECT_NO_THROW(requester_->onMovementTypeRequest(msg));
 
     auto requests = servoHandlerMock_->getRequests();
     auto first_request = requests.front();

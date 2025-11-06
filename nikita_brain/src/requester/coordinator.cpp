@@ -138,7 +138,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     if (newMovementType == MovementRequest::NO_REQUEST) {
         return;
     }
-    submitRequestMove(newMovementType, duration_s, comment, Prio::High, body);
+    submitRequestMove(newMovementType, duration_s, body, comment, Prio::High);
 }
 
 void CCoordinator::speechRecognized(std::string text) {
@@ -291,39 +291,39 @@ void CCoordinator::requestTestBody() {
 
     text = "teste x Richtung";
     body.position.x = 0.05;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, text, Prio::High);
     body.position.x = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, "", Prio::High);
 
     text = "teste y Richtung";
     body.position.y = 0.05;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, text, Prio::High);
     body.position.y = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, "", Prio::High);
 
     text = "teste z Richtung nach oben";
     body.position.z = 0.03;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, text, Prio::High);
     body.position.z = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, "", Prio::High);
 
     text = "teste Roll";
-    body.orientation.roll = 20.0;  // TODO deg instead of rad is correct???
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
+    body.orientation.roll = 20.0;
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, text, Prio::High);
     body.orientation.roll = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, "", Prio::High);
 
     text = "teste Pitch";
     body.orientation.pitch = 20.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, text, Prio::High);
     body.orientation.pitch = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, "", Prio::High);
 
     text = "teste Yaw";
     body.orientation.yaw = 20.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, text, Prio::High);
     body.orientation.yaw = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, "", Prio::High);
 }
 
 void CCoordinator::requestTestLegs() {
@@ -335,8 +335,27 @@ void CCoordinator::requestWaiting(Prio prio) {
     submitRequestMove(actualMovementType_, 5.0, "ich warte", prio);
 }
 
-void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, std::string comment, Prio prio,
-                                     nikita_interfaces::msg::Pose body) {
+void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
+                                     std::optional<geometry_msgs::msg::Twist> velocity, std::string comment,
+                                     Prio prio) {
+    submitRequestMove(movementType, duration_s, std::nullopt, velocity, comment, prio);
+}
+
+void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
+                                     std::optional<nikita_interfaces::msg::Pose> body, std::string comment,
+                                     Prio prio) {
+    submitRequestMove(movementType, duration_s, body, std::nullopt, comment, prio);
+}
+
+void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, std::string comment,
+                                     Prio prio) {
+    submitRequestMove(movementType, duration_s, std::nullopt, std::nullopt, comment, prio);
+}
+
+void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
+                                     std::optional<nikita_interfaces::msg::Pose> body,
+                                     std::optional<geometry_msgs::msg::Twist> velocity, std::string comment,
+                                     Prio prio) {
     std::vector<std::shared_ptr<RequestBase>> request_v;
     if (!comment.empty()) {
         request_v.push_back(std::make_shared<RequestTalking>(comment));
@@ -351,11 +370,15 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
 
     auto request = MovementRequest();
     request.type = movementType;
-    request.body = body;
-    request.velocity = actualVelocity_;
     request.duration_s = duration_s;
     request.name = movementTypeName_.at(request.type);
-    request_v.push_back(std::make_shared<CRequestMove>(request));
+    request_v.push_back(std::make_shared<CRequestMovementType>(request));
+    if (body.has_value()) {
+        request_v.push_back(std::make_shared<CRequestMoveBody>(body.value()));
+    }
+    if (velocity.has_value()) {
+        request_v.push_back(std::make_shared<CRequestMoveVelocity>(velocity.value()));
+    }
     actionPlanner_->request(request_v, prio);
 
     // update the actual movement type, it should only be updated in this function!
