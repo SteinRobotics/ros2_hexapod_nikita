@@ -122,9 +122,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     if (actualMovementType_ == MovementRequest::MOVE && newMovementType == MovementRequest::NO_REQUEST) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "end move request");
         timerLeaveMove_->waitSecondsNonBlocking(3.0, std::bind(&CCoordinator::callbackLeaveMove, this));
-        return;
-        newMovementType = MovementRequest::MOVE_TO_STAND;
-        duration_s = 1.0;
+        // do not return here, we want to submit the velocity zero request below and stay in MOVE
     }
 
     if (newMovementType == MovementRequest::NO_REQUEST) {
