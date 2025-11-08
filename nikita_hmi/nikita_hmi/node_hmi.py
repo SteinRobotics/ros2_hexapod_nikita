@@ -70,7 +70,7 @@ class NodeHmi(Node):
         self.create_subscription(Float32, 'lidar', self.callback_lidar, 10)
         self.create_subscription(Bool, 'request_servo_relay', self.callback_servo_relay, 10)
         self.create_subscription(Bool, 'request_system_shutdown', self.callback_system_shutdown, 10)
-        self.create_subscription(MovementRequest, 'movement_request', self.callback_movement_request, 10)
+        self.create_subscription(MovementRequest, 'cmd_movement_type', self.callback_movement_request, 10)
         self.create_subscription(ServoStatus, 'servo_status', self.callback_servo_status, 10)
         self.pub_gravity = self.create_publisher(Vector3, 'gravity', 10)
 

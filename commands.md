@@ -72,7 +72,7 @@ right_stick_horizontal: 0.0
 right_stick_vertical: 0.0"
 ---
 
-ros2 topic pub --once /movement_request nikita_interfaces/msg/MovementRequest "header:
+ros2 topic pub --once /cmd_movement_type nikita_interfaces/msg/MovementRequest "header:
   stamp:
     sec: 0
     nanosec: 0

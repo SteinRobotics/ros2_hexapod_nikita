@@ -58,7 +58,7 @@ Nikita is an open-source, modular hexapod robot platform for makers, tinkerers, 
 5. **Interact & Hack**
    - Send movement commands:
      ```bash
-     ros2 topic pub --once /movement_request nikita_interfaces/msg/MovementRequest "..."
+     ros2 topic pub --once /cmd_movement_type nikita_interfaces/msg/MovementRequest "..."
      ```
    - Monitor topics:
      ```bash
