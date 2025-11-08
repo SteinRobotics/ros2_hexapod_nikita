@@ -119,19 +119,18 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         return;
     }
 
-    if (actualMovementType_ == MovementRequest::MOVE && newMovementType == MovementRequest::NO_REQUEST) {
+    if (actualMovementType_ == MovementRequest::MOVE && newMovementType == MovementRequest::NO_REQUEST &&
+        !timerLeaveMove_->isRunning()) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "end move request");
         timerLeaveMove_->waitSecondsNonBlocking(3.0, std::bind(&CCoordinator::callbackLeaveMove, this));
-        // do not return here, we want to submit the velocity zero request below and stay in MOVE
+        // submit zero velocity request
+        submitSingleRequest<CRequestMoveVelocity>(Prio::High, velocity);
+        return;
     }
 
     if (newMovementType == MovementRequest::NO_REQUEST) {
         return;
     }
-    RCLCPP_INFO_STREAM(node_->get_logger(), "submit joystick request, movementType: "
-                                                << newMovementType << " duration_s: " << duration_s
-                                                << " velocity: linear.x=" << velocity.linear.x << " linear.y="
-                                                << velocity.linear.y << " angular.z=" << velocity.angular.z);
     submitRequestMove(newMovementType, duration_s, body, velocity, comment, Prio::High);
 }
 
@@ -375,10 +374,6 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
         request_v.push_back(std::make_shared<CRequestMoveBody>(body.value()));
     }
     if (velocity.has_value()) {
-        RCLCPP_INFO_STREAM(node_->get_logger(),
-                           "submitRequestMove velocity: linear.x=" << velocity->linear.x
-                                                                   << " linear.y=" << velocity->linear.y
-                                                                   << " angular.z=" << velocity->angular.z);
         request_v.push_back(std::make_shared<CRequestMoveVelocity>(velocity.value()));
     }
     actionPlanner_->request(request_v, prio);
