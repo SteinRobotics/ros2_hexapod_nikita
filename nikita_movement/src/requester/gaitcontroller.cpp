@@ -32,6 +32,10 @@ void CGaitController::liftLegsTripodGroup(bool isFirstTripod) {
 }
 
 void CGaitController::updateTripodGait(const geometry_msgs::msg::Twist& velocity, CPose body) {
+    if (abs(velocity.linear.x) < 0.001 && abs(velocity.linear.y) < 0.001 && abs(velocity.angular.z) < 0.001) {
+        return;
+    }
+
     // low-pass filtering the velocity
     const double alpha = 0.2;  // Adjust alpha for filtering strength (0.0 to 1.0)
     velocity_ = lowPassFilterTwist(velocity_, velocity, alpha);
