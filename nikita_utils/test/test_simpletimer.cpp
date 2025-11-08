@@ -50,3 +50,45 @@ TEST(SimpleTimerTest, WaitSecondsNonBlockingCallsCallback) {
     // less than 0.3 seconds to allow for some scheduling jitter
     EXPECT_LT(dur.count(), 0.3);
 }
+
+TEST(SimpleTimerTest, IsRunningReportsCorrectState) {
+    CSimpleTimer timer;
+
+    EXPECT_FALSE(timer.isRunning());
+
+    timer.waitSecondsNonBlocking(0.5, []() {});
+
+    EXPECT_TRUE(timer.isRunning());
+
+    // wait for 0.6 seconds to ensure the timer has completed
+    std::this_thread::sleep_for(std::chrono::milliseconds(600));
+
+    EXPECT_FALSE(timer.isRunning());
+}
+
+TEST(SimpleTimerTest, GetSecondsElapsedReportsCorrectTime) {
+    CSimpleTimer timer;
+    timer.start();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
+    double elapsed = timer.getSecondsElapsed();
+    EXPECT_GE(elapsed, 0.25);
+    EXPECT_LT(elapsed, 0.3);
+
+    timer.stop();
+    EXPECT_EQ(timer.getSecondsElapsed(), 0.0);
+}
+
+TEST(SimpleTimerTest, HaveSecondsElapsedWorksCorrectly) {
+    CSimpleTimer timer;
+    timer.start();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+    EXPECT_TRUE(timer.haveSecondsElapsed(0.2));
+    EXPECT_FALSE(timer.haveSecondsElapsed(0.4));
+
+    timer.stop();
+    EXPECT_FALSE(timer.haveSecondsElapsed(0.1));
+}

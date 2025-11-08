@@ -313,23 +313,10 @@ void CRequester::onMovementBodyPoseRequest(const nikita_interfaces::msg::Pose& m
 }
 
 void CRequester::update(std::chrono::milliseconds timeslice) {
-    // the update is only relevant if the movement request MovementRequest::MOVE is active
-    if (activeRequest_ != MovementRequest::MOVE) {
-        return;
+    if (activeRequest_ == MovementRequest::MOVE) {
+        // while the movement request is active update the gait controller
+        gaitController_->updateTripodGait(velocity_, poseBody_);
+        double duration = double(timeslice.count() / 1000.0);
+        sendServoRequest(duration, false);
     }
-
-    // if the movement request is active and we are in the transition to movement
-    // if (transitionToMoveActive_) {
-    //     if (servoHandler_->isDone()) {
-    //         RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::transition to Movement done");
-    //         gaitController_->setPhaseNeutral();
-    //         transitionToMoveActive_ = false;
-    //     }
-    //     return;
-    // }
-
-    // while the movement request is active update the gait controller
-    gaitController_->updateTripodGait(velocity_, poseBody_);
-    double duration = double(timeslice.count() / 1000.0);
-    sendServoRequest(duration, false);
 }

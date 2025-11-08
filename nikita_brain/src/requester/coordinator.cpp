@@ -15,9 +15,6 @@ CCoordinator::CCoordinator(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     : node_(node), actionPlanner_(actionPlanner) {
     textInterpreter_ = std::make_shared<CTextInterpreter>(node_);
     errorManagement_ = std::make_shared<CErrorManagement>(node_);
-    timerErrorRequest_ = std::make_shared<CSimpleTimer>();
-    timerMovementRequest_ = std::make_shared<CSimpleTimer>(false);
-    timerNoRequest_ = std::make_shared<CSimpleTimer>(true);
 
     param_velocity_factor_linear_ = node->declare_parameter<std::float_t>("velocity_factor_linear");
     param_velocity_factor_rotation_ = node->declare_parameter<std::float_t>("velocity_factor_rotation");
@@ -29,8 +26,10 @@ CCoordinator::CCoordinator(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     }
 
     param_activate_movement_waiting_ = node->declare_parameter<bool>("activate_movement_waiting");
-
+    timerMovementRequest_ = std::make_shared<CSimpleTimer>(false);
+    timerErrorRequest_ = std::make_shared<CSimpleTimer>();
     timerNoRequest_ = std::make_shared<CSimpleTimer>(param_activate_movement_waiting_);
+    timerLeaveMove_ = std::make_shared<CSimpleTimer>();
 }
 
 void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
@@ -115,10 +114,6 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         body.position.z = 0.0;
     }
 
-    // TODO: only send if the old actualMovementType_ was MOVE and the new one is not MOVE
-    // alyways send the velocity directly as separate ROS msg (geometry_msgs::msg::Twist velocity)
-    // remove the velocity from the msg MovementRequest
-
     if (isNewMoveRequestLocked_ && actualMovementType_ == newMovementType) {
         RCLCPP_WARN_STREAM(node_->get_logger(), "isNewMoveRequestLocked is true, ignoring joystick request");
         return;
@@ -126,6 +121,8 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
 
     if (actualMovementType_ == MovementRequest::MOVE && newMovementType == MovementRequest::NO_REQUEST) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "end move request");
+        timerLeaveMove_->waitSecondsNonBlocking(3.0, std::bind(&CCoordinator::callbackLeaveMove, this));
+        return;
         newMovementType = MovementRequest::MOVE_TO_STAND;
         duration_s = 1.0;
     }
@@ -134,6 +131,10 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         return;
     }
     submitRequestMove(newMovementType, duration_s, body, velocity, comment, Prio::High);
+}
+
+void CCoordinator::callbackLeaveMove() {
+    submitRequestMove(MovementRequest::MOVE_TO_STAND, 1.0, "", Prio::High);
 }
 
 void CCoordinator::speechRecognized(std::string text) {

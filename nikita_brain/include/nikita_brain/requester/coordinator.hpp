@@ -73,7 +73,10 @@ class CCoordinator : public IRequester {
     std::shared_ptr<CTextInterpreter> textInterpreter_;
     std::shared_ptr<CSimpleTimer> timerErrorRequest_;
     std::shared_ptr<CSimpleTimer> timerMovementRequest_;
+    std::shared_ptr<CSimpleTimer> timerLeaveMove_;
     std::shared_ptr<CSimpleTimer> timerNoRequest_;
+
+    void callbackLeaveMove();
 
     std::atomic<bool> isNewMoveRequestLocked_{false};
 

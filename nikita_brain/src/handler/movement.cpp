@@ -17,8 +17,6 @@ CMovement::CMovement(std::shared_ptr<rclcpp::Node> node) : node_(node) {
 }
 
 void CMovement::run(std::shared_ptr<CRequestMovementType> request) {
-    // RCLCPP_INFO_STREAM(node_->get_logger(),
-    //                    "CMovement::run RequestMove |" << request->movementRequest().name);
     setDone(false);
     pubMovementType_->publish(request->movementRequest());
     simpleTimer_->waitSecondsNonBlocking(request->movementRequest().duration_s,
@@ -26,25 +24,14 @@ void CMovement::run(std::shared_ptr<CRequestMovementType> request) {
 }
 
 void CMovement::run(std::shared_ptr<CRequestMoveBody> request) {
-    // RCLCPP_INFO_STREAM(node_->get_logger(),
-    //                    "CMovement::run RequestMoveBody |" << request->movementRequest().name);
-    // setDone(false);
     pubBodyPose_->publish(request->pose());
-    // simpleTimer_->waitSecondsNonBlocking(request->pose().duration_s,
-    //  std::bind(&CMovement::timerCallback, this));
 }
 
 void CMovement::run(std::shared_ptr<CRequestMoveVelocity> request) {
-    // RCLCPP_INFO_STREAM(node_->get_logger(),
-    //                    "CMovement::run RequestMoveVelocity |" << request->movementRequest().name);
-    // setDone(false);
     pubCmdVel_->publish(request->velocity());
-    // simpleTimer_->waitSecondsNonBlocking(request->velocity().duration_s,
-    //  std::bind(&CMovement::timerCallback, this));
 }
 
 void CMovement::timerCallback() {
-    // RCLCPP_INFO_STREAM(node_->get_logger(), "CMovement::timerCallback");
     // TODO better trigger callback to request_executor::execute
     setDone(true);
 }
