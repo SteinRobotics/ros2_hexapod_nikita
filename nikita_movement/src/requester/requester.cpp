@@ -21,13 +21,13 @@ CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServ
     initializeRequestHandlers();
 
     subMovementTypeRequest_ = node_->create_subscription<MovementRequest>(
-        "movement_request", 10, std::bind(&CRequester::onMovementTypeRequest, this, _1));
+        "cmd_movement_type", 10, std::bind(&CRequester::onMovementTypeRequest, this, _1));
 
     subMovementVelocityRequest_ = node_->create_subscription<geometry_msgs::msg::Twist>(
-        "movement_velocity_request", 10, std::bind(&CRequester::onMovementVelocityRequest, this, _1));
+        "cmd_vel", 10, std::bind(&CRequester::onMovementVelocityRequest, this, _1));
 
     subMovementBodyPoseRequest_ = node_->create_subscription<nikita_interfaces::msg::Pose>(
-        "movement_body_pose_request", 10, std::bind(&CRequester::onMovementBodyPoseRequest, this, _1));
+        "cmd_body_pose", 10, std::bind(&CRequester::onMovementBodyPoseRequest, this, _1));
 }
 
 // ------------------------------------------------------------------------------------------------

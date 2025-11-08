@@ -11,8 +11,8 @@ namespace brain {
 
 CMovement::CMovement(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     simpleTimer_ = std::make_unique<CSimpleTimer>();
-    pubMovementType_ = node_->create_publisher<MovementRequest>("movement_request", 10);
-    pubBodyPose_ = node_->create_publisher<Pose>("body_pose_request", 10);
+    pubMovementType_ = node_->create_publisher<MovementRequest>("cmd_movement_type", 10);
+    pubBodyPose_ = node_->create_publisher<Pose>("cmd_body_pose", 10);
     pubCmdVel_ = node_->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
 }
 

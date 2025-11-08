@@ -77,7 +77,6 @@ class CCoordinator : public IRequester {
 
     std::atomic<bool> isNewMoveRequestLocked_{false};
 
-    geometry_msgs::msg::Twist actualVelocity_ = geometry_msgs::msg::Twist();
     uint32_t actualMovementType_ = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
     bool isStanding_ = false;
     bool isRelayOn_ = false;

@@ -86,29 +86,24 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
 
     // LEFT_STICK -> linear movement
     // float32 left_stick_vertical   # TOP  = -1.0, DOWN = 1.0,  hangs on 0.004 -> means 0.0
+    auto velocity = geometry_msgs::msg::Twist();
     if (msg.left_stick_vertical > param_joystick_deadzone_ ||
         msg.left_stick_vertical < -param_joystick_deadzone_) {
-        actualVelocity_.linear.x = msg.left_stick_vertical * param_velocity_factor_linear_;
+        velocity.linear.x = msg.left_stick_vertical * param_velocity_factor_linear_;
         newMovementType = MovementRequest::MOVE;
-    } else {
-        actualVelocity_.linear.x = 0.0;
     }
     // float32 left_stick_horizontal # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
     if (msg.left_stick_horizontal > param_joystick_deadzone_ ||
         msg.left_stick_horizontal < -param_joystick_deadzone_) {
-        actualVelocity_.linear.y = msg.left_stick_horizontal * param_velocity_factor_linear_;
+        velocity.linear.y = msg.left_stick_horizontal * param_velocity_factor_linear_;
         newMovementType = MovementRequest::MOVE;
-    } else {
-        actualVelocity_.linear.y = 0.0;
     }
     // RIGHT_STICK -> rotation
     // float32 right_stick_horizontal  # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
     if (msg.right_stick_horizontal > param_joystick_deadzone_ ||
         msg.right_stick_horizontal < -param_joystick_deadzone_) {
-        actualVelocity_.angular.z = msg.right_stick_horizontal * param_velocity_factor_rotation_;
+        velocity.angular.z = msg.right_stick_horizontal * param_velocity_factor_rotation_;
         newMovementType = MovementRequest::MOVE;
-    } else {
-        actualVelocity_.angular.z = 0.0;
     }
 
     // float32 right_stick_vertical    # TOP  = -1.0, DOWN = 1.0, hangs on 0.004 -> means 0.0
@@ -138,7 +133,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     if (newMovementType == MovementRequest::NO_REQUEST) {
         return;
     }
-    submitRequestMove(newMovementType, duration_s, body, comment, Prio::High);
+    submitRequestMove(newMovementType, duration_s, body, velocity, comment, Prio::High);
 }
 
 void CCoordinator::speechRecognized(std::string text) {
