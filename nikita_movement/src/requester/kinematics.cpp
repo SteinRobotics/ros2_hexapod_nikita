@@ -4,8 +4,9 @@
 
 #include "requester/kinematics.hpp"
 
-
 using namespace std;
+
+#define LOG_KINEMATICS_ACTIVE false
 
 inline double rad2deg(double radians) {
     return radians * 180.0 / M_PI;
@@ -42,7 +43,7 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node,
     sqTibiaLength_ = pow(TIBIA_LENGTH, 2);
 
     RCLCPP_INFO_STREAM(node_->get_logger(), "Kinematics before bodyCenterOffsets_:");
-    
+
     // body center offsets
     for (uint32_t i = 0; i < LEG_NAMES.size(); i++) {
         auto& legName = LEG_NAMES.at(i);
@@ -51,7 +52,7 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node,
         bodyCenterOffsets_[legIndex].y = CENTER_TO_COXA_Y.at(i);
         bodyCenterOffsets_[legIndex].psi = OFFSET_COXA_ANGLE_DEG.at(i);
     }
-    
+
     auto footPositionsStanding = actionPackagesParser_->getFootPositions("footPositions_standing");
     initializeLegsNew(footPositionsStanding, body_, legs_);
     initializeLegsNew(footPositionsStanding, body_, legsStanding_);
@@ -61,6 +62,7 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node,
 }
 
 void CKinematics::logLegsPositions(std::map<ELegIndex, CLeg>& legs) {
+    if (!LOG_KINEMATICS_ACTIVE) return;
     RCLCPP_INFO_STREAM(node_->get_logger(), "----------------------------------------");
     for (const auto& [index, leg] : legs) {
         logLegPosition(index, leg);
@@ -69,6 +71,7 @@ void CKinematics::logLegsPositions(std::map<ELegIndex, CLeg>& legs) {
 }
 
 void CKinematics::logLegPosition(const ELegIndex index, const CLeg& leg) {
+    if (!LOG_KINEMATICS_ACTIVE) return;
     RCLCPP_INFO_STREAM(node_->get_logger(),
                        legIndexToName.at(index)
                            << ": \tag: " << std::fixed << std::setprecision(3) << std::setw(3)
@@ -79,6 +82,7 @@ void CKinematics::logLegPosition(const ELegIndex index, const CLeg& leg) {
 }
 
 void CKinematics::logHeadPosition() {
+    if (!LOG_KINEMATICS_ACTIVE) return;
     RCLCPP_INFO_STREAM(node_->get_logger(),
                        "Head: \tYaw: " << std::fixed << std::setprecision(3) << std::setw(3) << head_.degYaw
                                        << "°, Pitch: " << std::setw(3) << head_.degPitch << "°");
@@ -87,9 +91,10 @@ void CKinematics::logHeadPosition() {
 void CKinematics::initializeLegsNew(const std::map<ELegIndex, CPosition>& footTargets, const CPose body,
                                     std::map<ELegIndex, CLeg>& legs) {
     for (const auto& [legIndex, footTarget] : footTargets) {
-        RCLCPP_DEBUG_STREAM(node_->get_logger(),
-                        "Initializing leg " << legIndexToName.at(legIndex) << " to foot target position x: "
-                                            << footTarget.x << ", y: " << footTarget.y << ", z: " << footTarget.z);
+        RCLCPP_DEBUG_STREAM(node_->get_logger(), "Initializing leg "
+                                                     << legIndexToName.at(legIndex)
+                                                     << " to foot target position x: " << footTarget.x
+                                                     << ", y: " << footTarget.y << ", z: " << footTarget.z);
         auto leg = CLeg();
         CPosition coxaPosition(bodyCenterOffsets_.at(legIndex).x, bodyCenterOffsets_.at(legIndex).y, 0.0);
         CPosition legBase = rotate(coxaPosition, body.orientation) + body.position;

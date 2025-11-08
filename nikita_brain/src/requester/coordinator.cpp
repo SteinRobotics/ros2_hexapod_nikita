@@ -128,6 +128,10 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     if (newMovementType == MovementRequest::NO_REQUEST) {
         return;
     }
+    RCLCPP_INFO_STREAM(node_->get_logger(), "submit joystick request, movementType: "
+                                                << newMovementType << " duration_s: " << duration_s
+                                                << " velocity: linear.x=" << velocity.linear.x << " linear.y="
+                                                << velocity.linear.y << " angular.z=" << velocity.angular.z);
     submitRequestMove(newMovementType, duration_s, body, velocity, comment, Prio::High);
 }
 
@@ -371,6 +375,10 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
         request_v.push_back(std::make_shared<CRequestMoveBody>(body.value()));
     }
     if (velocity.has_value()) {
+        RCLCPP_INFO_STREAM(node_->get_logger(),
+                           "submitRequestMove velocity: linear.x=" << velocity->linear.x
+                                                                   << " linear.y=" << velocity->linear.y
+                                                                   << " angular.z=" << velocity->angular.z);
         request_v.push_back(std::make_shared<CRequestMoveVelocity>(velocity.value()));
     }
     actionPlanner_->request(request_v, prio);
