@@ -86,7 +86,9 @@ class CSimpleTimer {
         // Run the callback in a detached thread and stop the timer after callback runs.
         std::thread([seconds, callback, this]() {
             std::this_thread::sleep_for(std::chrono::duration<double>(seconds));
-            callback();
+            if (isRunning_) {
+                callback();
+            }
             // mark timer stopped after callback
             this->stop();
         }).detach();

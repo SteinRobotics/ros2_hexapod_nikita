@@ -51,6 +51,29 @@ TEST(SimpleTimerTest, WaitSecondsNonBlockingCallsCallback) {
     EXPECT_LT(dur.count(), 0.3);
 }
 
+TEST(SimpleTimerTest, WaitSecondsNonBlockingCallsCallbackOnlyIfRunning) {
+    CSimpleTimer timer;
+    std::atomic<bool> called{false};
+
+    timer.waitSecondsNonBlocking(0.5, [&called]() { called = true; });
+
+    // Stop the timer before the callback can be invoked
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    timer.stop();
+
+    // wait up to 1 second to see if the callback is invoked
+    bool success = false;
+    for (int i = 0; i < 100; ++i) {
+        if (called.load()) {
+            success = true;
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    EXPECT_FALSE(success);
+}
+
 TEST(SimpleTimerTest, IsRunningReportsCorrectState) {
     CSimpleTimer timer;
 

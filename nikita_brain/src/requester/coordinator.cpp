@@ -127,6 +127,11 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         submitSingleRequest<CRequestMoveVelocity>(Prio::High, velocity);
         return;
     }
+    // cancel leave move
+    if (newMovementType == MovementRequest::MOVE && timerLeaveMove_->isRunning()) {
+        RCLCPP_INFO_STREAM(node_->get_logger(), "cancel leave move");
+        timerLeaveMove_->stop();
+    }
 
     if (newMovementType == MovementRequest::NO_REQUEST) {
         return;
