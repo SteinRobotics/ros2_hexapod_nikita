@@ -12,6 +12,7 @@
 #include "nikita_interfaces/msg/movement_request.hpp"
 #include "nikita_interfaces/msg/servo_status.hpp"
 //
+#include <nikita_utils/callback_timer.hpp>
 #include <nikita_utils/simpletimer.hpp>
 
 #include "action/action_planner.hpp"
@@ -71,10 +72,12 @@ class CCoordinator : public IRequester {
     std::shared_ptr<CActionPlanner> actionPlanner_;
     std::shared_ptr<CErrorManagement> errorManagement_;
     std::shared_ptr<CTextInterpreter> textInterpreter_;
+
     std::shared_ptr<CSimpleTimer> timerErrorRequest_;
-    std::shared_ptr<CSimpleTimer> timerMovementRequest_;
-    std::shared_ptr<CSimpleTimer> timerLeaveMove_;
     std::shared_ptr<CSimpleTimer> timerNoRequest_;
+
+    std::shared_ptr<CCallbackTimer> timerMovementRequest_;
+    std::shared_ptr<CCallbackTimer> timerLeaveMove_;
 
     void callbackLeaveMove();
 

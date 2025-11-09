@@ -87,23 +87,18 @@ class CSimpleTimer {
      * use std::jthread (C++20) or use CCallbackTimer which already uses
      * std::jthread for cooperative cancellation.
      */
-    void waitSecondsNonBlocking(double seconds, std::function<void()> callback) {
-        start();
-        // Run the callback in a detached thread and stop the timer after callback runs.
-        std::thread([seconds, callback, this]() {
-            std::this_thread::sleep_for(std::chrono::duration<double>(seconds));
-            if (isRunning_) {
-                callback();
-            }
-            // mark timer stopped after callback
-            this->stop();
-        }).detach();
-    }
-
-    /// Blocking sleep for `seconds` on the calling thread.
-    void waitSecondsBlocking(double seconds) {
-        std::this_thread::sleep_for(std::chrono::duration<double>(seconds));
-    }
+    // void waitSecondsNonBlocking(double seconds, std::function<void()> callback) {
+    //     start();
+    //     // Run the callback in a detached thread and stop the timer after callback runs.
+    //     std::thread([seconds, callback, this]() {
+    //         std::this_thread::sleep_for(std::chrono::duration<double>(seconds));
+    //         if (isRunning_) {
+    //             callback();
+    //         }
+    //         // mark timer stopped after callback
+    //         this->stop();
+    //     }).detach();
+    // }
 
    private:
     std::chrono::steady_clock::time_point startTime_;

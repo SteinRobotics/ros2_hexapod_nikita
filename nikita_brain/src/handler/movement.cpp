@@ -10,7 +10,7 @@ using namespace nikita_interfaces::msg;
 namespace brain {
 
 CMovement::CMovement(std::shared_ptr<rclcpp::Node> node) : node_(node) {
-    simpleTimer_ = std::make_unique<CSimpleTimer>();
+    callbackTimer_ = std::make_unique<CCallbackTimer>();
     pubMovementType_ = node_->create_publisher<MovementRequest>("cmd_movement_type", 10);
     pubBodyPose_ = node_->create_publisher<Pose>("cmd_body_pose", 10);
     pubCmdVel_ = node_->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
@@ -19,8 +19,8 @@ CMovement::CMovement(std::shared_ptr<rclcpp::Node> node) : node_(node) {
 void CMovement::run(std::shared_ptr<CRequestMovementType> request) {
     setDone(false);
     pubMovementType_->publish(request->movementRequest());
-    simpleTimer_->waitSecondsNonBlocking(request->movementRequest().duration_s,
-                                         std::bind(&CMovement::timerCallback, this));
+    callbackTimer_->waitSecondsNonBlocking(request->movementRequest().duration_s,
+                                           std::bind(&CMovement::timerCallback, this));
 }
 
 void CMovement::run(std::shared_ptr<CRequestMoveBody> request) {

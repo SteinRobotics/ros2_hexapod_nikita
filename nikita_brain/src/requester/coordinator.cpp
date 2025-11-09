@@ -26,10 +26,10 @@ CCoordinator::CCoordinator(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     }
 
     param_activate_movement_waiting_ = node->declare_parameter<bool>("activate_movement_waiting");
-    timerMovementRequest_ = std::make_shared<CSimpleTimer>(false);
+    timerMovementRequest_ = std::make_shared<CCallbackTimer>();
     timerErrorRequest_ = std::make_shared<CSimpleTimer>();
     timerNoRequest_ = std::make_shared<CSimpleTimer>(param_activate_movement_waiting_);
-    timerLeaveMove_ = std::make_shared<CSimpleTimer>();
+    timerLeaveMove_ = std::make_shared<CCallbackTimer>();
 }
 
 void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {

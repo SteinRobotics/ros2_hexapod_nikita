@@ -10,7 +10,7 @@
 //
 #include "nikita_interfaces/msg/servo_index.hpp"
 //
-#include <nikita_utils/simpletimer.hpp>
+#include <nikita_utils/callback_timer.hpp>
 
 #include "requester/kinematics.hpp"
 #include "servo_controller.hpp"
@@ -56,7 +56,7 @@ class CServoHandler {
 
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CServoController> servoController_;
-    std::shared_ptr<CSimpleTimer> simpleTimer_;
+    std::shared_ptr<CCallbackTimer> callbackTimer_;
     std::list<CRequest> pendingRequests_;
     bool isDone_ = true;
 };
