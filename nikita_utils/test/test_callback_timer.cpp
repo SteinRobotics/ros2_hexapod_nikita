@@ -2,24 +2,11 @@
 
 #include <atomic>
 #include <chrono>
-#include <nikita_utils/simpletimer.hpp>
+#include <nikita_utils/callback_timer.hpp>
 #include <thread>
 
-TEST(SimpleTimerTest, WaitSecondsBlockingCallsCallback) {
-    utils::CSimpleTimer timer;
-    auto t0 = std::chrono::steady_clock::now();
-    timer.waitSecondsBlocking(0.2);
-    auto t1 = std::chrono::steady_clock::now();
-
-    std::chrono::duration<double> dur = t1 - t0;
-    // greater than or equal to 0.2 seconds
-    EXPECT_GE(dur.count(), 0.2);
-    // less than 0.3 seconds to allow for some scheduling jitter
-    EXPECT_LT(dur.count(), 0.3);
-}
-
-TEST(SimpleTimerTest, WaitSecondsNonBlockingCallsCallback) {
-    utils::CSimpleTimer timer;
+TEST(CallbackTimerTest, WaitSecondsNonBlockingCallsCallback) {
+    utils::CCallbackTimer timer;
     std::atomic<bool> called{false};
 
     auto t0 = std::chrono::steady_clock::now();
@@ -51,8 +38,8 @@ TEST(SimpleTimerTest, WaitSecondsNonBlockingCallsCallback) {
     EXPECT_LT(dur.count(), 0.3);
 }
 
-TEST(SimpleTimerTest, WaitSecondsNonBlockingCallsCallbackOnlyIfRunning) {
-    utils::CSimpleTimer timer;
+TEST(CallbackTimerTest, WaitSecondsNonBlockingCallsCallbackOnlyIfRunning) {
+    utils::CCallbackTimer timer;
     std::atomic<bool> called{false};
 
     timer.waitSecondsNonBlocking(0.5, [&called]() { called = true; });
@@ -74,8 +61,8 @@ TEST(SimpleTimerTest, WaitSecondsNonBlockingCallsCallbackOnlyIfRunning) {
     EXPECT_FALSE(success);
 }
 
-TEST(SimpleTimerTest, IsRunningReportsCorrectState) {
-    utils::CSimpleTimer timer;
+TEST(CallbackTimerTest, IsRunningReportsCorrectState) {
+    utils::CCallbackTimer timer;
 
     EXPECT_FALSE(timer.isRunning());
 
@@ -87,31 +74,4 @@ TEST(SimpleTimerTest, IsRunningReportsCorrectState) {
     std::this_thread::sleep_for(std::chrono::milliseconds(600));
 
     EXPECT_FALSE(timer.isRunning());
-}
-
-TEST(SimpleTimerTest, GetSecondsElapsedReportsCorrectTime) {
-    CSimpleTimer timer;
-    timer.start();
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(250));
-
-    double elapsed = timer.getSecondsElapsed();
-    EXPECT_GE(elapsed, 0.25);
-    EXPECT_LT(elapsed, 0.3);
-
-    timer.stop();
-    EXPECT_EQ(timer.getSecondsElapsed(), 0.0);
-}
-
-TEST(SimpleTimerTest, HaveSecondsElapsedWorksCorrectly) {
-    CSimpleTimer timer;
-    timer.start();
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
-
-    EXPECT_TRUE(timer.haveSecondsElapsed(0.2));
-    EXPECT_FALSE(timer.haveSecondsElapsed(0.4));
-
-    timer.stop();
-    EXPECT_FALSE(timer.haveSecondsElapsed(0.1));
 }

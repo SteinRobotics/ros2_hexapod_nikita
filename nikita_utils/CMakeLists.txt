@@ -22,6 +22,15 @@ ament_export_targets(export_${PROJECT_NAME})
 
 # Unit tests
 if(BUILD_TESTING)
+  ament_add_gtest(test_callback_timer 
+    test/test_callback_timer.cpp
+  )
+  if(TARGET test_callback_timer)
+    ament_target_dependencies(test_callback_timer rclcpp ament_index_cpp)
+    target_include_directories(test_callback_timer PRIVATE include)
+    target_link_libraries(test_callback_timer nikita_utils)
+  endif()
+
   ament_add_gtest(test_simple_timer 
     test/test_simpletimer.cpp
   )
@@ -29,6 +38,24 @@ if(BUILD_TESTING)
     ament_target_dependencies(test_simple_timer rclcpp ament_index_cpp)
     target_include_directories(test_simple_timer PRIVATE include)
     target_link_libraries(test_simple_timer nikita_utils)
+  endif()
+
+  ament_add_gtest(test_pid_controller
+    test/test_pid_controller.cpp
+  )
+  if(TARGET test_pid_controller)
+    ament_target_dependencies(test_pid_controller rclcpp ament_index_cpp)
+    target_include_directories(test_pid_controller PRIVATE include)
+    target_link_libraries(test_pid_controller nikita_utils)
+  endif()
+
+  ament_add_gtest(test_filters
+    test/test_filters.cpp
+  )
+  if(TARGET test_filters)
+    ament_target_dependencies(test_filters rclcpp ament_index_cpp)
+    target_include_directories(test_filters PRIVATE include)
+    target_link_libraries(test_filters nikita_utils)
   endif()
 endif()
 

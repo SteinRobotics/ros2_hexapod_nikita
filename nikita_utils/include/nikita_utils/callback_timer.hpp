@@ -10,12 +10,12 @@
 #include <thread>
 
 /**
- * CSimpleTimer - small helper for simple timing needs.
+ * CCallbackTimer - small helper for simple timing needs.
  *
  * Notes about current semantics:
  * - getSecondsElapsed() / haveSecondsElapsed() use steady_clock and report
  *   fractional seconds.
- * - start()/stop()/isRunning() manage a simple atomic running flag and the
+ * - start()/stop()/isRunning() manage a simple atomic runni-ng flag and the
  *   stored start time.
  * - waitSecondsBlocking(double) performs a blocking sleep on the calling thread
  *   and is safe for short waits used in tests or simple sequencing.
@@ -33,15 +33,12 @@
 
 namespace utils {
 
-class CSimpleTimer {
+class CCallbackTimer {
    public:
-    explicit CSimpleTimer(bool automaticStart = false) {
-        if (automaticStart) {
-            start();
-        }
+    explicit CCallbackTimer() {
     }
 
-    ~CSimpleTimer() {
+    ~CCallbackTimer() {
         // Note: stop() only clears the running flag in this implementation.
         // It does not cancel any detached thread spawned by
         // waitSecondsNonBlocking(). See the class notes above for migration
@@ -49,9 +46,8 @@ class CSimpleTimer {
         stop();
     }
 
-    /// Start the timer (records start time and marks running).
+    /// Start the timer (marks running).
     void start() {
-        startTime_ = std::chrono::steady_clock::now();
         isRunning_ = true;
     }
 
@@ -62,19 +58,6 @@ class CSimpleTimer {
 
     bool isRunning() const {
         return isRunning_;
-    }
-
-    /// Seconds elapsed since start() as fractional seconds. Returns 0 if not
-    /// running.
-    double getSecondsElapsed() const {
-        if (!isRunning_) return 0;
-        auto now = std::chrono::steady_clock::now();
-        std::chrono::duration<double> elapsed = now - startTime_;
-        return elapsed.count();
-    }
-
-    bool haveSecondsElapsed(double seconds) const {
-        return getSecondsElapsed() >= seconds;
     }
 
     /**
@@ -100,17 +83,8 @@ class CSimpleTimer {
         }).detach();
     }
 
-    /// Blocking sleep for `seconds` on the calling thread.
-    void waitSecondsBlocking(double seconds) {
-        std::this_thread::sleep_for(std::chrono::duration<double>(seconds));
-    }
-
    private:
-    std::chrono::steady_clock::time_point startTime_;
     std::atomic<bool> isRunning_ = false;
 };
 
 }  // namespace utils
-
-// Backward-compat: keep un-namespaced alias for now
-using CSimpleTimer = utils::CSimpleTimer;
