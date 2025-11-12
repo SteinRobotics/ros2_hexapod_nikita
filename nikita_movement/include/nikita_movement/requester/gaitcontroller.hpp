@@ -12,10 +12,10 @@
 #include <string>
 
 #include "geometry_msgs/msg/twist.hpp"
+#include "nikita_utils/filters.hpp"
+#include "nikita_utils/geometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "requester/kinematics.hpp"
-#include "requester/lowpassfilter.hpp"
-#include "nikita_utils/geometry.hpp"
 #include "requester/types.hpp"
 
 class CGaitController {

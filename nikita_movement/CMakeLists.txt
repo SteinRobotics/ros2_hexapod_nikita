@@ -26,7 +26,6 @@ set(SOURCES
   src/requester/requester.cpp
   src/requester/kinematics.cpp
   src/requester/gaitcontroller.cpp
-  src/requester/lowpassfilter.cpp
   src/requester/actionpackagesparser.cpp
   src/handler/servohandler.cpp
   src/handler/servo_controller.cpp

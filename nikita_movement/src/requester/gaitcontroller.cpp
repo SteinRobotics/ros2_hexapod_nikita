@@ -40,7 +40,7 @@ void CGaitController::updateTripodGait(const geometry_msgs::msg::Twist& velocity
 
     // low-pass filtering the velocity
     const double alpha = 0.2;  // Adjust alpha for filtering strength (0.0 to 1.0)
-    velocity_ = lowPassFilterTwist(velocity_, velocity, alpha);
+    velocity_ = utils::lowPassFilterTwist(velocity_, velocity, alpha);
     // RCLCPP_INFO_STREAM(node_->get_logger(), "CGaitController::requestMove: filtered velocity: "
     //                                             << velocity_.linear.x << ", " << velocity_.linear.y << ", "
     //                                             << velocity_.angular.z);
@@ -79,6 +79,7 @@ void CGaitController::updateTripodGait(const geometry_msgs::msg::Twist& velocity
         double step = GAIT_STEP_LENGTH * cos(phaseWithOffset);
         double lift = LEG_LIFT_HEIGHT * std::max(0.0, sin(phaseWithOffset));
 
+        // this if condition is only relevant for the first movement of the FirstTripod legs and only for 0 < phase_ < M_PI_4
         // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
         if (isFirstTripodActive && phase_ < M_PI_4) {
             lift = LEG_LIFT_HEIGHT * std::max(0.0, sin(phase_));
