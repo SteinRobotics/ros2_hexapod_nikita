@@ -8,7 +8,8 @@
 
 namespace utils {
 
-#define LOG_KINEMATICS_ACTIVE false
+
+constexpr double TWO_PI = 2.0 * M_PI;
 
 inline double rad2deg(double radians) {
     return radians * 180.0 / M_PI;
@@ -22,3 +23,4 @@ inline double deg2rad(double degrees) {
 
 using utils::deg2rad;
 using utils::rad2deg;
+using utils::TWO_PI;
