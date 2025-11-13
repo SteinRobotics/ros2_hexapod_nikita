@@ -21,6 +21,7 @@
 #include "actionpackagesparser.hpp"
 #include "gaitcontroller.hpp"
 #include "handler/servohandler.hpp"
+#include "igaits.hpp"
 #include "kinematics.hpp"
 
 class CRequester {

@@ -17,11 +17,34 @@
 #include "rclcpp/rclcpp.hpp"
 #include "requester/kinematics.hpp"
 #include "requester/types.hpp"
+// Gait interfaces and implementations
+// Forward declarations to avoid heavy includes here
+namespace nikita_movement {
+class IGait;
+class CTripodGait;
+class CRippleGait;
+class CBodyRollGait;
+class CLegRollGait;
+}  // namespace nikita_movement
 
 class CGaitController {
    public:
     CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
-    ~CGaitController() = default;
+    // Out-of-line destructor to ensure IGait is a complete type at destruction
+    virtual ~CGaitController();
+
+    // Simple gait selection API
+    enum class EGaitType { Tripod, Ripple, BodyRoll, LegRoll };
+    void setGait(EGaitType type);
+    EGaitType currentGait() const {
+        return active_type_;
+    }
+
+    // Delegate update to selected gait
+    void updateSelectedGait(const geometry_msgs::msg::Twist& velocity,
+                            CPose body = CPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+    void requestStopSelectedGait();
+    void cancelStopSelectedGait();
 
     void resetPhase();
     void liftLegsTripodGroup(bool isFirstTripod = true);
@@ -53,4 +76,14 @@ class CGaitController {
     ELegIndex activeLegIndex_ = ELegIndex::RightFront;
 
     geometry_msgs::msg::Twist velocity_{geometry_msgs::msg::Twist()};
+
+    // Owned gait implementations
+    std::unique_ptr<nikita_movement::IGait> gait_tripod_;
+    std::unique_ptr<nikita_movement::IGait> gait_ripple_;
+    std::unique_ptr<nikita_movement::IGait> gait_bodyroll_;
+    std::unique_ptr<nikita_movement::IGait> gait_legroll_;
+
+    // Currently active gait (non-owning)
+    nikita_movement::IGait* active_gait_ = nullptr;
+    EGaitType active_type_ = EGaitType::Tripod;
 };

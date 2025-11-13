@@ -128,7 +128,7 @@ void CRequester::requestWaiting(const MovementRequest& msg) {
 
 void CRequester::requestMove([[maybe_unused]] const MovementRequest& msg) {
     if (activeRequest_ != MovementRequest::MOVE) {
-        gaitController_->resetPhase();
+        gaitController_->setGait(CGaitController::EGaitType::Tripod);
     }
     activeRequest_ = MovementRequest::MOVE;
     // RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::requestMove: velocity: "
@@ -313,9 +313,10 @@ void CRequester::onMovementBodyPoseRequest(const nikita_interfaces::msg::Pose& m
 }
 
 void CRequester::update(std::chrono::milliseconds timeslice) {
+    // TODO remove this if condition
     if (activeRequest_ == MovementRequest::MOVE) {
         // while the movement request is active update the gait controller
-        gaitController_->updateTripodGait(velocity_, poseBody_);
+        gaitController_->updateSelectedGait(velocity_, poseBody_);
         double duration = double(timeslice.count() / 1000.0);
         sendServoRequest(duration, false);
     }

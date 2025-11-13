@@ -27,6 +27,10 @@ set(SOURCES
   src/requester/kinematics.cpp
   src/requester/gaitcontroller.cpp
   src/requester/actionpackagesparser.cpp
+  src/requester/gait_tripod.cpp
+  src/requester/gait_ripple.cpp
+  src/requester/gait_bodyroll.cpp
+  src/requester/gait_legroll.cpp
   src/handler/servohandler.cpp
   src/handler/servo_controller.cpp
   src/handler/servo_protocol.cpp
