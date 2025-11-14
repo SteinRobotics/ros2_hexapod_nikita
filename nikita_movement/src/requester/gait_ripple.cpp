@@ -13,15 +13,16 @@ void CRippleGait::start() {
     state_ = EGaitState::Running;
 }
 
-void CRippleGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
+bool CRippleGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
     if (state_ == EGaitState::Stopping) {
         state_ = EGaitState::Stopped;
-        return;
+        return false;
     }
     if (state_ == EGaitState::Stopped) {
-        return;
+        return false;
     }
     // TODO: implement ripple gait
+    return true;
 }
 
 void CRippleGait::requestStop() {

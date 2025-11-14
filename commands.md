@@ -117,54 +117,7 @@ min_voltage: 12.0
 "
 ---
 
-ros2 topic pub --once /servo_request nikita_interfaces/msg/ServoRequest "header:
-  stamp:
-    sec: 0
-    nanosec: 0
-  frame_id: ''
-target_angles:
-- name: 'HEAD_YAW'
-  angle_deg: 0.0
-- name: 'HEAD_PITCH'
-  angle_deg: 0.0
-- name: 'LEG_LEFT_FRONT_COXA'
-  angle_deg: 0.0
-- name: 'LEG_LEFT_FRONT_FEMUR'
-  angle_deg: 20.0
-- name: 'LEG_LEFT_FRONT_TIBIA'
-  angle_deg: 20.0
-- name: 'LEG_LEFT_MID_COXA'
-  angle_deg: 0.0
-- name: 'LEG_LEFT_MID_FEMUR'
-  angle_deg: 0.0
-- name: 'LEG_LEFT_MID_TIBIA'
-  angle_deg: 0.0
-- name: 'LEG_LEFT_BACK_COXA'
-  angle_deg: 0.0
-- name: 'LEG_LEFT_BACK_FEMUR'
-  angle_deg: 0.0
-- name: 'LEG_LEFT_BACK_TIBIA'
-  angle_deg: 0.0
-- name: 'LEG_RIGHT_FRONT_COXA'
-  angle_deg: 0.0
-- name: 'LEG_RIGHT_FRONT_FEMUR'
-  angle_deg: 0.0
-- name: 'LEG_RIGHT_FRONT_TIBIA'
-  angle_deg: 0.0
-- name: 'LEG_RIGHT_MID_COXA'
-  angle_deg: 0.0
-- name: 'LEG_RIGHT_MID_FEMUR'
-  angle_deg: 0.0
-- name: 'LEG_RIGHT_MID_TIBIA'
-  angle_deg: 0.0
-- name: 'LEG_RIGHT_BACK_COXA'
-  angle_deg: 0.0
-- name: 'LEG_RIGHT_BACK_FEMUR'
-  angle_deg: 0.0
-- name: 'LEG_RIGHT_BACK_TIBIA'
-  angle_deg: 0.0
-time_to_reach_target_angles_ms: 3000"
-```
+
 
 ```
 ros2 topic pub --once /single_servo_request nikita_interfaces/msg/ServoAngle "

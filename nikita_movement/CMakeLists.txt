@@ -19,6 +19,7 @@ find_package(nikita_interfaces REQUIRED)
 find_package(nikita_utils REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(ament_cmake_gtest REQUIRED)
+find_package(magic_enum CONFIG REQUIRED)
 
 
 ## set sources
@@ -30,7 +31,8 @@ set(SOURCES
   src/requester/gait_tripod.cpp
   src/requester/gait_ripple.cpp
   src/requester/gait_bodyroll.cpp
-  src/requester/gait_legroll.cpp
+  src/requester/gait_legwave.cpp
+  src/requester/gait_waiting.cpp
   src/handler/servohandler.cpp
   src/handler/servo_controller.cpp
   src/handler/servo_protocol.cpp
@@ -41,7 +43,7 @@ add_library(nikita_movement_core
 )
 target_include_directories(nikita_movement_core PUBLIC include/nikita_movement include/nikita_movement/requester)
 ament_target_dependencies(nikita_movement_core rclcpp std_msgs geometry_msgs std_srvs ament_index_cpp nikita_utils nikita_interfaces)
-target_link_libraries(nikita_movement_core yaml-cpp::yaml-cpp)
+target_link_libraries(nikita_movement_core yaml-cpp::yaml-cpp magic_enum::magic_enum)
 
 add_executable(node_movement
   src/node_movement.cpp
@@ -91,6 +93,15 @@ if(BUILD_TESTING)
     ament_target_dependencies(test_requester rclcpp nikita_interfaces ament_index_cpp)
     target_link_libraries(test_requester nikita_movement_core)
   endif()
+
+  ament_add_gtest(test_gait_bodyroll
+    test/test_gait_bodyroll.cpp
+  )
+  if(TARGET test_gait_bodyroll)
+    ament_target_dependencies(test_gait_bodyroll rclcpp nikita_interfaces ament_index_cpp)
+    target_link_libraries(test_gait_bodyroll nikita_movement_core)
+  endif()
+
 endif()
 
 ament_package()

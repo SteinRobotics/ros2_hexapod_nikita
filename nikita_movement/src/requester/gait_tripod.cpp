@@ -18,21 +18,20 @@ void CTripodGait::start() {
     phase_ = 0.0;
 }
 
-void CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose& body) {
-    // if (state_ == EGaitState::Stopping) {
-    //     state_ = EGaitState::Stopped;
-    //     return;
-    // }
+bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose& body) {
     if (state_ == EGaitState::Stopped) {
-        return;
-    }
-    if (abs(velocity.linear.x) < 0.001 && abs(velocity.linear.y) < 0.001 && abs(velocity.angular.z) < 0.001) {
-        return;
+        return false;
     }
 
-    // low-pass filtering the velocity
-    const double alpha = 0.5;  // Adjust alpha for filtering strength (0.0 to 1.0)
-    velocity_ = utils::lowPassFilterTwist(velocity_, velocity, alpha);
+    if (utils::isTwistZero(velocity) && state_ == EGaitState::Running) {
+        return false;
+    }
+
+    // filter and store the last non-zero velocity, zero velocities will be ignored and the old velocity is kept
+    if (!utils::isTwistZero(velocity)) {
+        const double alpha = 0.5;  // Adjust alpha for filtering strength (0.0 to 1.0)
+        velocity_ = utils::lowPassFilterTwist(velocity_, velocity, alpha);
+    }
     // RCLCPP_INFO_STREAM(node_->get_logger(), "CGaitController::requestMove: filtered velocity: "
     //                                             << velocity_.linear.x << ", " << velocity_.linear.y << ", "
     //                                             << velocity_.angular.z);
@@ -47,7 +46,7 @@ void CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
         std::sqrt((linear_x * linear_x) + (linear_y * linear_y) + (ROTATION_WEIGHT * angular_z * angular_z));
 
     // Avoid division by zero
-    if (combined_mag < 1e-6) return;
+    if (combined_mag < 1e-6) return false;
 
     double norm_x = linear_x / combined_mag;
     double norm_y = linear_y / combined_mag;
@@ -62,6 +61,13 @@ void CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
     if (state_ == EGaitState::Starting && phase_ > M_PI_4) {
         state_ = EGaitState::Running;
     }
+    if (state_ == EGaitState::StopPending && utils::areSinCosValuesEqual(phase_, deltaPhase)) {
+        state_ = EGaitState::Stopping;
+    }
+    if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, deltaPhase)) {
+        state_ = EGaitState::Stopped;
+        return false;
+    }
 
     // RCLCPP_INFO(node_->get_logger(), "CGaitController::updateTripodGait: phase: %.4f", phase_);
 
@@ -74,11 +80,16 @@ void CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
         double phaseWithOffset = phase_ + phaseOffset + M_PI_2;
 
         double step = gaitStepLength_ * cos(phaseWithOffset);
-        double lift = legLiftHeight_ * std::max(0.0, sin(phaseWithOffset));
 
-        // this if condition is only relevant for the first movement of the FirstTripod legs and only for 0 < phase_ < M_PI_4
-        // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
-        if (state_ == EGaitState::Starting) {
+        double lift = 0.0;
+        if (state_ == EGaitState::Running || state_ == EGaitState::StopPending) {
+            lift = legLiftHeight_ * std::max(0.0, sin(phaseWithOffset));
+        } else if (state_ == EGaitState::Starting || state_ == EGaitState::Stopping) {
+            // this if condition is only relevant for the first movement of the FirstTripod legs and only for 0 < phase_ < M_PI_4
+            // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
+
+            // Starting is using the first half of the sine (0 to M_PI_4) to lift the leg up, target is 1
+            // Stopping is using the second half of the sine wave (M_PI_4 to M_PI_2), to bring the leg down, target is 0
             lift = legLiftHeight_ * std::max(0.0, sin(phase_));
         }
 
@@ -116,16 +127,18 @@ void CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
 
     constexpr double MAX_HEAD_YAW_AMPLITUDE_DEG = 15.0;
     kinematics_->getHead().degYaw = MAX_HEAD_YAW_AMPLITUDE_DEG * std::sin(phase_);
+    return true;
 }
 
 void CTripodGait::requestStop() {
     if (state_ == EGaitState::Running) {
-        state_ = EGaitState::Stopping;
+        state_ = EGaitState::StopPending;
     }
 }
 
 void CTripodGait::cancelStop() {
-    if (state_ == EGaitState::Stopping) {
+    // if the state is not in state StopPending, cancel the transition to Stop is not possible
+    if (state_ == EGaitState::StopPending) {
         state_ = EGaitState::Running;
     }
 }

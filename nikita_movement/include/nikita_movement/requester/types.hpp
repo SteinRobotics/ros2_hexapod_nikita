@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cmath>
+#include <magic_enum.hpp>
 #include <map>
 #include <memory>
 #include <string>
@@ -20,16 +21,9 @@ enum class ELegIndex {
     LeftBack,
 };
 
-static const std::map<const ELegIndex, const std::string> legIndexToName = {
-    {ELegIndex::RightFront, "RightFront"}, {ELegIndex::RightMid, "RightMid"},
-    {ELegIndex::RightBack, "RightBack"},   {ELegIndex::LeftFront, "LeftFront"},
-    {ELegIndex::LeftMid, "LeftMid"},       {ELegIndex::LeftBack, "LeftBack"},
-};
-static const std::map<const std::string, const ELegIndex> legNameToIndex = {
-    {"RightFront", ELegIndex::RightFront}, {"RightMid", ELegIndex::RightMid},
-    {"RightBack", ELegIndex::RightBack},   {"LeftFront", ELegIndex::LeftFront},
-    {"LeftMid", ELegIndex::LeftMid},       {"LeftBack", ELegIndex::LeftBack},
-};
+inline ELegIndex legNameToIndex(std::string_view name) {
+    return magic_enum::enum_cast<ELegIndex>(name).value();
+}
 
 class CPosition {
    public:

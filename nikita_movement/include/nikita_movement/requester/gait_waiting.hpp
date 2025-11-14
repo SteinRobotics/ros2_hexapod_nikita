@@ -12,10 +12,14 @@ class CKinematics;
 
 namespace nikita_movement {
 
-class CBodyRollGait : public IGait {
+// A simple gait that keeps the robot in a waiting (standing) posture while optionally cycling a single leg.
+// Initially copied from CLegRollGait and renamed. Behavior can be specialized later.
+class CWaitingGait : public IGait {
    public:
-    CBodyRollGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
-    ~CBodyRollGait() override = default;
+    CWaitingGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                 double legLiftHeight)
+        : node_(std::move(node)), kinematics_(std::move(kinematics)), kLegLiftHeight(legLiftHeight) {};
+    ~CWaitingGait() override = default;
 
     void start() override;
     bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body) override;
@@ -29,6 +33,8 @@ class CBodyRollGait : public IGait {
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
     EGaitState state_ = EGaitState::Stopped;
+
+    double kLegLiftHeight = double(0);
 
     double phase_ = double(0);
 };

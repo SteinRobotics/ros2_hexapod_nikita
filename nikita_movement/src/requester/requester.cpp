@@ -38,10 +38,7 @@ void CRequester::initializeRequestHandlers() {
 
     requestHandlers_ = {
         {MovementRequest::NO_REQUEST,
-         [this](const MovementRequest& msg) {
-             RCLCPP_INFO_STREAM(node_->get_logger(),
-                                "CRequester::onMovementRequest: NO_REQUEST: " << msg.name);
-         }},
+         [this](const MovementRequest&) { activeRequest_ = MovementRequest::NO_REQUEST; }},
         {MovementRequest::LAYDOWN, bind(&CRequester::requestSequence)},
         {MovementRequest::STAND_UP, bind(&CRequester::requestSequence)},
         {MovementRequest::WAITING, bind(&CRequester::requestWaiting)},
@@ -76,64 +73,19 @@ void CRequester::sendServoRequest(const double duration_s, const bool blocking) 
     }
 }
 
-void CRequester::requestMoveToStand(const MovementRequest& msg) {
+void CRequester::requestMoveToStand([[maybe_unused]] const MovementRequest& msg) {
     activeRequest_ = MovementRequest::MOVE_TO_STAND;
-
-    kinematics_->setHead(0.0, 0.0);
-    // set the legs to the standing position
-    //TODO improve the calculation of the lifted legs
-    bool tripodFirstGroupLegsLifted = kinematics_->getLegsPositions().at(ELegIndex::LeftFront).z >
-                                      kinematics_->getLegsStandingPositions().at(ELegIndex::LeftFront).z;
-    gaitController_->liftLegsTripodGroup(tripodFirstGroupLegsLifted);
-    sendServoRequest(msg.duration_s / 2.0);
-    // set the legs to the standing position
-    kinematics_->moveBody(kinematics_->getLegsStandingPositions());
-    sendServoRequest(msg.duration_s / 2.0);
+    gaitController_->requestStopSelectedGait();
 }
 
-void CRequester::requestWaiting(const MovementRequest& msg) {
+void CRequester::requestWaiting([[maybe_unused]] const MovementRequest& msg) {
     activeRequest_ = MovementRequest::WAITING;
-
-    auto currentLegsPositions = kinematics_->getLegsPositions();
-    auto currentHeadPostion = kinematics_->getHead();
-
-    kinematics_->setHead(0.0, 0.0);
-
-    auto zPostionUp = kinematics_->getLegsStandingPositions().at(ELegIndex::LeftFront).z + 0.02;
-    auto zPostionDown = zPostionUp - 0.04;
-
-    std::map<ELegIndex, CPosition> waitingPositionUp;
-    std::map<ELegIndex, CPosition> waitingPositionDown;
-
-    for (auto& [legIndex, position] : kinematics_->getLegsStandingPositions()) {
-        waitingPositionUp[legIndex] = CPosition(position.x, position.y, zPostionUp);
-        waitingPositionDown[legIndex] = CPosition(position.x, position.y, zPostionDown);
-    }
-
-    int numberOfIterations = 5;
-    double waitingTime = msg.duration_s / double(numberOfIterations);
-
-    for (int i = 0; i < numberOfIterations; ++i) {
-        kinematics_->moveBody(waitingPositionUp);
-        sendServoRequest(waitingTime);
-
-        kinematics_->moveBody(waitingPositionDown);
-        sendServoRequest(waitingTime);
-    }
-    //
-    kinematics_->moveBody(currentLegsPositions);
-    kinematics_->setHead(currentHeadPostion);
-    sendServoRequest(waitingTime);
+    gaitController_->setGait(CGaitController::EGaitType::Waiting);
 }
 
 void CRequester::requestMove([[maybe_unused]] const MovementRequest& msg) {
-    if (activeRequest_ != MovementRequest::MOVE) {
-        gaitController_->setGait(CGaitController::EGaitType::Tripod);
-    }
     activeRequest_ = MovementRequest::MOVE;
-    // RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::requestMove: velocity: "
-    //                                             << velocity_.linear.x << ", " << velocity_.linear.y << ", "
-    //                                             << velocity_.angular.z);
+    gaitController_->setGait(CGaitController::EGaitType::Tripod);
 }
 
 void CRequester::requestSequence(const MovementRequest& msg) {
@@ -147,8 +99,6 @@ void CRequester::requestSequence(const MovementRequest& msg) {
 
         if (action.legAngles.has_value()) {
             const auto& legAnglesMap = action.legAngles.value();
-            // Apply angles for all legs contained in the map
-            RCLCPP_INFO_STREAM(node_->get_logger(), "setLegAngles to");
             for (const auto& [legIndex, anglesData] : legAnglesMap) {
                 CLegAngles legAngles(anglesData.degCoxa, anglesData.degFemur, anglesData.degTibia);
                 kinematics_->setLegAngles(legIndex, legAngles);
@@ -197,25 +147,14 @@ void CRequester::requestHighFive(const MovementRequest& msg) {
     sendServoRequest(double(msg.duration_s / 3.0));
 }
 
-void CRequester::requestLegsWave(const MovementRequest& msg) {
+void CRequester::requestLegsWave([[maybe_unused]] const MovementRequest& msg) {
     activeRequest_ = MovementRequest::LEGS_WAVE;
-    [[maybe_unused]] auto tmp = msg;  // Suppress unused variable warning
+    gaitController_->setGait(CGaitController::EGaitType::LegWave);
 }
 
-void CRequester::requestBodyRoll(const MovementRequest& msg) {
+void CRequester::requestBodyRoll([[maybe_unused]] const MovementRequest& msg) {
     activeRequest_ = MovementRequest::BODY_ROLL;
-    [[maybe_unused]] auto tmp = msg;  // Suppress unused variable warning
-
-    // for (int i = 0; i <= 360; i += 10) {
-    //     auto x = sin(deg2rad(double(i))) * 4.0;
-    //     auto y = sin(deg2rad(double(i))) * 4.0;
-    //     auto requestedBody = CPose(x, y, 0.0);
-    //     kinematics_->setHead(0.0, 0.0);
-    // }
-
-    // auto requestedBody = CPose();
-    // requestedBody.orientation.roll = 20.0;
-    // kinematics_->setHead(0.0, 10.0);
+    gaitController_->setGait(CGaitController::EGaitType::BodyRoll);
 }
 
 void CRequester::requestBite(const MovementRequest& msg) {
@@ -273,7 +212,7 @@ void CRequester::requestTestLegs(const MovementRequest& msg) {
 
     for (const auto& [legIndex, leg] : kinematics_->getLegs()) {
         RCLCPP_INFO_STREAM(node_->get_logger(),
-                           "CRequester:: requestTestLegs: " << legIndexToName.at(legIndex));
+                           "CRequester:: requestTestLegs: " << magic_enum::enum_name(legIndex));
 
         CLegAngles legAngles = leg.angles_;
         CLegAngles origLegAngles = legAngles;
@@ -295,6 +234,13 @@ void CRequester::requestTestLegs(const MovementRequest& msg) {
 // ------------------------------------------------------------------------------------------------------------
 void CRequester::onMovementTypeRequest(const MovementRequest& msg) {
     RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::onMovementRequest: " << msg.name);
+
+    // Sequence is requested
+    if (msg.duration_s > 0.0) {
+        // setCallbackDuration(msg.duration_s);
+        // set the active request type to NO_REQUEST in the callback
+    }
+
     // check that the new request is inside the requestHandlers_ map
     if (requestHandlers_.find(msg.type) == requestHandlers_.end()) {
         RCLCPP_ERROR_STREAM(node_->get_logger(),
@@ -313,10 +259,7 @@ void CRequester::onMovementBodyPoseRequest(const nikita_interfaces::msg::Pose& m
 }
 
 void CRequester::update(std::chrono::milliseconds timeslice) {
-    // TODO remove this if condition
-    if (activeRequest_ == MovementRequest::MOVE) {
-        // while the movement request is active update the gait controller
-        gaitController_->updateSelectedGait(velocity_, poseBody_);
+    if (gaitController_->updateSelectedGait(velocity_, poseBody_)) {
         double duration = double(timeslice.count() / 1000.0);
         sendServoRequest(duration, false);
     }

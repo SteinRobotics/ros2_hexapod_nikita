@@ -1,30 +1,28 @@
-#include "requester/gait_legroll.hpp"
+#include "requester/gait_legwave.hpp"
+
+#include <magic_enum.hpp>
 
 #include "requester/kinematics.hpp"
 
 namespace nikita_movement {
 
-CLegRollGait::CLegRollGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
-    : node_(std::move(node)), kinematics_(std::move(kinematics)) {
-}
-
-void CLegRollGait::start() {
-    // state_ = EGaitState::Starting;
+void CGaitLegWave::start() {
     state_ = EGaitState::Running;
     phase_ = 0.0;
     activeLegIndex_ = ELegIndex::RightFront;
 }
 
-void CLegRollGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
-    if (state_ == EGaitState::Stopping) {
-        state_ = EGaitState::Stopped;
-        return;
-    }
+bool CGaitLegWave::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
     if (state_ == EGaitState::Stopped) {
-        return;
+        return false;
     }
     constexpr double deltaPhase = 0.1;
     phase_ += deltaPhase;
+
+    if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, deltaPhase)) {
+        state_ = EGaitState::Stopped;
+        return false;
+    }
 
     const auto baseFootPos = kinematics_->getLegsStandingPositions();
 
@@ -32,24 +30,27 @@ void CLegRollGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const C
         // reset last leg to neutral position
         kinematics_->setSingleFeet(activeLegIndex_, baseFootPos.at(activeLegIndex_));
 
-        //activate next leg
-        activeLegIndex_ = (static_cast<ELegIndex>((static_cast<int>(activeLegIndex_) + 1) % 6));
+        // advance to the next leg
+        const auto values = magic_enum::enum_values<ELegIndex>();
+        const std::size_t idx = magic_enum::enum_index(activeLegIndex_).value();
+        activeLegIndex_ = values[(idx + 1) % values.size()];
         phase_ = 0.0;
     }
 
     auto targetPosition = baseFootPos.at(activeLegIndex_);
-    targetPosition.z = baseFootPos.at(activeLegIndex_).z + LEG_LIFT_HEIGHT * std::sin(phase_);  // validate +
+    targetPosition.z = baseFootPos.at(activeLegIndex_).z + kLegLiftHeight * std::sin(phase_);
 
     kinematics_->setSingleFeet(activeLegIndex_, targetPosition);
+    return true;
 }
 
-void CLegRollGait::requestStop() {
+void CGaitLegWave::requestStop() {
     if (state_ == EGaitState::Running) {
         state_ = EGaitState::Stopping;
     }
 }
 
-void CLegRollGait::cancelStop() {
+void CGaitLegWave::cancelStop() {
     if (state_ == EGaitState::Stopping) {
         state_ = EGaitState::Running;
     }

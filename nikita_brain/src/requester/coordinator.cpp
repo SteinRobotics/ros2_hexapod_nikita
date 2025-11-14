@@ -47,23 +47,28 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     // BUTTONS
     if (msg.button_a) {
         newMovementType = MovementRequest::WATCH;
+        comment = "ich sehe mich um";
         duration_s = 5.0;
     } else if (msg.button_b) {
         newMovementType = MovementRequest::HIGH_FIVE;
         comment = "ich gebe dir ein High Five";
         duration_s = 5.0;
     } else if (msg.button_x) {
-        // stop listening
+        newMovementType = MovementRequest::BODY_ROLL;
+        comment = "ich rolle den Rumpf";
     } else if (msg.button_y) {
-        // start listening
+        newMovementType = MovementRequest::LEGS_WAVE;
+        comment = "was ist eine Beinewelle";
     } else if (msg.button_l1) {
         newMovementType = MovementRequest::LOOK_LEFT;
         duration_s = 3.0;
     } else if (msg.button_l2) {
+        // TODO add function
     } else if (msg.button_r1) {
         newMovementType = MovementRequest::LOOK_RIGHT;
         duration_s = 3.0;
     } else if (msg.button_r2) {
+        // TODO add function
     } else if (msg.button_start) {
         newMovementType = MovementRequest::TRANSPORT;
         duration_s = 3.0;
@@ -133,7 +138,9 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         timerLeaveMove_->stop();
     }
 
-    if (newMovementType == MovementRequest::NO_REQUEST) {
+    // no new request
+    if (newMovementType == MovementRequest::NO_REQUEST &&
+        actualMovementType_ == MovementRequest::NO_REQUEST) {
         return;
     }
     submitRequestMove(newMovementType, duration_s, body, velocity, comment, Prio::High);

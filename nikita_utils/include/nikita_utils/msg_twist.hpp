@@ -13,7 +13,7 @@ namespace utils {
 
 constexpr double EPS = 1e-6;
 
-inline bool isZero(const geometry_msgs::msg::Twist& t) {
+inline bool isTwistZero(const geometry_msgs::msg::Twist& t) {
     const std::array<double, 6> vals{t.linear.x,  t.linear.y,  t.linear.z,
                                      t.angular.x, t.angular.y, t.angular.z};
     return std::all_of(vals.begin(), vals.end(),
@@ -29,17 +29,15 @@ inline bool hasChanged(const geometry_msgs::msg::Twist& t1, const geometry_msgs:
                        [threshold](double d) { return !std::isfinite(d) || std::abs(d) > threshold; });
 }
 
-double linearMagnitude(const geometry_msgs::msg::Twist& t) {
-    return std::sqrt(t.linear.x * t.linear.x + t.linear.y * t.linear.y + t.linear.z * t.linear.z);
-}
+// double linearMagnitude(const geometry_msgs::msg::Twist& t) {
+//     return std::sqrt(t.linear.x * t.linear.x + t.linear.y * t.linear.y + t.linear.z * t.linear.z);
+// }
 
-double angularMagnitude(const geometry_msgs::msg::Twist& t) {
-    return std::sqrt(t.angular.x * t.angular.x + t.angular.y * t.angular.y + t.angular.z * t.angular.z);
-}
+// double angularMagnitude(const geometry_msgs::msg::Twist& t) {
+//     return std::sqrt(t.angular.x * t.angular.x + t.angular.y * t.angular.y + t.angular.z * t.angular.z);
+// }
 
 }  // namespace utils
 
-using utils::angularMagnitude;
 using utils::hasChanged;
-using utils::isZero;
-using utils::linearMagnitude;
+using utils::isTwistZero;

@@ -115,8 +115,8 @@ void CActionPackagesParser::parsePresetLegAngles(const std::string& key, const Y
         const double coxa = allNode["coxa"] ? allNode["coxa"].as<double>() : 0.0;
         const double femur = allNode["femur"] ? allNode["femur"].as<double>() : 0.0;
         const double tibia = allNode["tibia"] ? allNode["tibia"].as<double>() : 0.0;
-        for (const auto& kv : legNameToIndex) {
-            defaultLegAngles_[key][kv.second] = CLegAngles(coxa, femur, tibia);
+        for (ELegIndex idx : magic_enum::enum_values<ELegIndex>()) {
+            defaultLegAngles_[key][idx] = CLegAngles(coxa, femur, tibia);
         }
     }
     // Per-leg overrides
@@ -125,15 +125,15 @@ void CActionPackagesParser::parsePresetLegAngles(const std::string& key, const Y
         if (legName == "All") continue;
         const YAML::Node& node = it2->second;
         if (!node || !node.IsMap()) continue;
-        auto nameIt = legNameToIndex.find(legName);
-        if (nameIt == legNameToIndex.end()) {
+        auto idxOpt = magic_enum::enum_cast<ELegIndex>(legName);
+        if (!idxOpt.has_value()) {
             RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in legAngles preset: " << legName);
             continue;
         }
         const double coxa = node["coxa"] ? node["coxa"].as<double>() : 0.0;
         const double femur = node["femur"] ? node["femur"].as<double>() : 0.0;
         const double tibia = node["tibia"] ? node["tibia"].as<double>() : 0.0;
-        defaultLegAngles_[key][nameIt->second] = CLegAngles(coxa, femur, tibia);
+        defaultLegAngles_[key][*idxOpt] = CLegAngles(coxa, femur, tibia);
     }
 }
 
@@ -145,8 +145,8 @@ void CActionPackagesParser::parsePresetFootPositions(const std::string& key, con
         const double x = allNode["x"] ? allNode["x"].as<double>() : 0.0;
         const double y = allNode["y"] ? allNode["y"].as<double>() : 0.0;
         const double z = allNode["z"] ? allNode["z"].as<double>() : 0.0;
-        for (const auto& kv : legNameToIndex) {
-            defaultFootPositions_[key][kv.second] = CPosition(x, y, z);
+        for (ELegIndex idx : magic_enum::enum_values<ELegIndex>()) {
+            defaultFootPositions_[key][idx] = CPosition(x, y, z);
         }
     }
     // Per-leg overrides
@@ -155,15 +155,15 @@ void CActionPackagesParser::parsePresetFootPositions(const std::string& key, con
         if (legName == "All") continue;
         const YAML::Node& node = it2->second;
         if (!node || !node.IsMap()) continue;
-        auto nameIt = legNameToIndex.find(legName);
-        if (nameIt == legNameToIndex.end()) {
+        auto idxOpt = magic_enum::enum_cast<ELegIndex>(legName);
+        if (!idxOpt.has_value()) {
             RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in footPositions preset: " << legName);
             continue;
         }
         const double x = node["x"] ? node["x"].as<double>() : 0.0;
         const double y = node["y"] ? node["y"].as<double>() : 0.0;
         const double z = node["z"] ? node["z"].as<double>() : 0.0;
-        defaultFootPositions_[key][nameIt->second] = CPosition(x, y, z);
+        defaultFootPositions_[key][*idxOpt] = CPosition(x, y, z);
     }
 }
 
@@ -355,14 +355,14 @@ std::map<ELegIndex, CLegAngles> CActionPackagesParser::parseLegAnglesNode(const 
                     double coxa = val["coxa"] ? val["coxa"].as<double>() : 0.0;
                     double femur = val["femur"] ? val["femur"].as<double>() : 0.0;
                     double tibia = val["tibia"] ? val["tibia"].as<double>() : 0.0;
-                    for (const auto& [name, idx] : legNameToIndex) {
+                    for (ELegIndex idx : magic_enum::enum_values<ELegIndex>()) {
                         legsMap[idx] = CLegAngles(coxa, femur, tibia);
                     }
-                } else if (legNameToIndex.count(key)) {
+                } else if (auto idxOpt = magic_enum::enum_cast<ELegIndex>(key); idxOpt.has_value()) {
                     double coxa = val["coxa"] ? val["coxa"].as<double>() : 0.0;
                     double femur = val["femur"] ? val["femur"].as<double>() : 0.0;
                     double tibia = val["tibia"] ? val["tibia"].as<double>() : 0.0;
-                    legsMap[legNameToIndex.at(key)] = CLegAngles(coxa, femur, tibia);
+                    legsMap[*idxOpt] = CLegAngles(coxa, femur, tibia);
                 } else {
                     RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in legs map: " << key);
                 }
@@ -395,12 +395,13 @@ std::map<ELegIndex, CPosition> CActionPackagesParser::parseFootPositionsNode(con
                     double x = val["x"] ? val["x"].as<double>() : 0.0;
                     double y = val["y"] ? val["y"].as<double>() : 0.0;
                     double z = val["z"] ? val["z"].as<double>() : 0.0;
-                    for (const auto& [name, idx] : legNameToIndex) posMap[idx] = CPosition(x, y, z);
-                } else if (legNameToIndex.count(key)) {
+                    for (ELegIndex idx : magic_enum::enum_values<ELegIndex>())
+                        posMap[idx] = CPosition(x, y, z);
+                } else if (auto idxOpt = magic_enum::enum_cast<ELegIndex>(key); idxOpt.has_value()) {
                     double x = val["x"] ? val["x"].as<double>() : 0.0;
                     double y = val["y"] ? val["y"].as<double>() : 0.0;
                     double z = val["z"] ? val["z"].as<double>() : 0.0;
-                    posMap[legNameToIndex.at(key)] = CPosition(x, y, z);
+                    posMap[*idxOpt] = CPosition(x, y, z);
                 } else {
                     RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in footPositions: " << key);
                 }

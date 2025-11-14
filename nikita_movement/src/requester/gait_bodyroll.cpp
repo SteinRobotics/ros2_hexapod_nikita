@@ -11,18 +11,13 @@ CBodyRollGait::CBodyRollGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr
 void CBodyRollGait::start() {
     state_ = EGaitState::Starting;
     phase_ = 0.0;
-    state_ = EGaitState::Running;
 }
 
-void CBodyRollGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
-    if (state_ == EGaitState::Stopping) {
-        state_ = EGaitState::Stopped;
-        return;
-    }
+bool CBodyRollGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
     if (state_ == EGaitState::Stopped) {
-        return;
+        return false;
     }
-    constexpr double deltaPhase = 0.1;
+    constexpr double deltaPhase = 0.01;
     phase_ += deltaPhase;
     phase_ = std::fmod(phase_, TWO_PI);
 
@@ -30,30 +25,43 @@ void CBodyRollGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const 
     if (state_ == EGaitState::Starting && phase_ > M_PI_4) {
         state_ = EGaitState::Running;
     }
+    if (state_ == EGaitState::StopPending && utils::areSinCosValuesEqual(phase_, deltaPhase)) {
+        state_ = EGaitState::Stopping;
+    }
+
+    if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, deltaPhase)) {
+        state_ = EGaitState::Stopped;
+        return false;
+    }
+
     const auto baseFootPos = kinematics_->getLegsStandingPositions();
 
     auto body = CPose();
 
+    // Roll is always a sine wave
     body.orientation.roll = kinematics_->BODY_MAX_ROLL * std::sin(phase_);
 
-    // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
-    if (state_ == EGaitState::Starting) {
-        body.orientation.pitch = kinematics_->BODY_MAX_PITCH * std::sin(phase_);
-    } else {
+    // Pitch behavior depends on state
+    if (state_ == EGaitState::Running || state_ == EGaitState::StopPending) {
         body.orientation.pitch = kinematics_->BODY_MAX_PITCH * std::cos(phase_);
+    } else if (state_ == EGaitState::Starting || state_ == EGaitState::Stopping) {
+        // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
+        body.orientation.pitch = kinematics_->BODY_MAX_PITCH * std::sin(phase_);
     }
 
     kinematics_->moveBody(baseFootPos, body);
+    return true;
 }
 
 void CBodyRollGait::requestStop() {
     if (state_ == EGaitState::Running) {
-        state_ = EGaitState::Stopping;
+        state_ = EGaitState::StopPending;
     }
 }
 
 void CBodyRollGait::cancelStop() {
-    if (state_ == EGaitState::Stopping) {
+    // if the state is not in state StopPending, cancel the transition to Stop is not possible
+    if (state_ == EGaitState::StopPending) {
         state_ = EGaitState::Running;
     }
 }

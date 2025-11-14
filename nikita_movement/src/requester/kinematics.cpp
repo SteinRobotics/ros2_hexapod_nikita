@@ -47,7 +47,7 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node,
     // body center offsets
     for (uint32_t i = 0; i < LEG_NAMES.size(); i++) {
         auto& legName = LEG_NAMES.at(i);
-        ELegIndex legIndex = legNameToIndex.at(legName);
+        ELegIndex legIndex = legNameToIndex(legName);
         bodyCenterOffsets_[legIndex].x = CENTER_TO_COXA_X.at(i);
         bodyCenterOffsets_[legIndex].y = CENTER_TO_COXA_Y.at(i);
         bodyCenterOffsets_[legIndex].psi = OFFSET_COXA_ANGLE_DEG.at(i);
@@ -73,7 +73,7 @@ void CKinematics::logLegsPositions(std::map<ELegIndex, CLeg>& legs) {
 void CKinematics::logLegPosition(const ELegIndex index, const CLeg& leg) {
     if (!LOG_KINEMATICS_ACTIVE) return;
     RCLCPP_INFO_STREAM(node_->get_logger(),
-                       legIndexToName.at(index)
+                       magic_enum::enum_name(index)
                            << ": \tag: " << std::fixed << std::setprecision(3) << std::setw(3)
                            << leg.angles_.degCoxa << "°, " << std::setw(3) << leg.angles_.degFemur << "°, "
                            << std::setw(3) << leg.angles_.degTibia << "°\t| x: " << std::fixed
@@ -92,7 +92,7 @@ void CKinematics::initializeLegsNew(const std::map<ELegIndex, CPosition>& footTa
                                     std::map<ELegIndex, CLeg>& legs) {
     for (const auto& [legIndex, footTarget] : footTargets) {
         RCLCPP_DEBUG_STREAM(node_->get_logger(), "Initializing leg "
-                                                     << legIndexToName.at(legIndex)
+                                                     << magic_enum::enum_name(legIndex)
                                                      << " to foot target position x: " << footTarget.x
                                                      << ", y: " << footTarget.y << ", z: " << footTarget.z);
         auto leg = CLeg();

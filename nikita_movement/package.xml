@@ -16,6 +16,7 @@
   <depend>nikita_interfaces</depend>
   <depend>nikita_utils</depend>
   <depend>nlohmann-json-dev</depend>
+  <depend>magic_enum</depend>   # sudo apt install libmagicenum-dev
 
   <export>
     <build_type>ament_cmake</build_type>

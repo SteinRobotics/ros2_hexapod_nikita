@@ -6,6 +6,7 @@
 
 #include "nikita_utils/filters.hpp"
 #include "nikita_utils/geometry.hpp"
+#include "nikita_utils/msg_twist.hpp"
 #include "requester/igaits.hpp"
 #include "requester/types.hpp"
 
@@ -20,7 +21,7 @@ class CTripodGait : public IGait {
     ~CTripodGait() override = default;
 
     void start() override;
-    void update(const geometry_msgs::msg::Twist& velocity, const CPose& body) override;
+    bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body) override;
     void requestStop() override;
     void cancelStop() override;
     EGaitState state() const override {
