@@ -100,7 +100,7 @@ void CRequester::requestSequence(const MovementRequest& msg) {
         if (action.legAngles.has_value()) {
             const auto& legAnglesMap = action.legAngles.value();
             for (const auto& [legIndex, anglesData] : legAnglesMap) {
-                CLegAngles legAngles(anglesData.degCoxa, anglesData.degFemur, anglesData.degTibia);
+                CLegAngles legAngles(anglesData.coxa_deg, anglesData.femur_deg, anglesData.tibia_deg);
                 kinematics_->setLegAngles(legIndex, legAngles);
             }
         }
@@ -117,7 +117,7 @@ void CRequester::requestSequence(const MovementRequest& msg) {
             kinematics_->moveBody(legPositions, bodyPos);
         }
         if (action.head.has_value()) {
-            kinematics_->setHead(action.head->degYaw, action.head->degPitch);
+            kinematics_->setHead(action.head->yaw_deg, action.head->pitch_deg);
         }
         double duration_s = msg.duration_s * action.factorDuration;
         sendServoRequest(duration_s);
@@ -214,11 +214,11 @@ void CRequester::requestTestLegs(const MovementRequest& msg) {
         RCLCPP_INFO_STREAM(node_->get_logger(),
                            "CRequester:: requestTestLegs: " << magic_enum::enum_name(legIndex));
 
-        CLegAngles legAngles = leg.angles_;
+        CLegAngles legAngles = leg.angles_deg_;
         CLegAngles origLegAngles = legAngles;
-        legAngles.degFemur += 10.0;
-        legAngles.degTibia += 10.0;
-        legAngles.degCoxa += 10.0;
+        legAngles.femur_deg += 10.0;
+        legAngles.tibia_deg += 10.0;
+        legAngles.coxa_deg += 10.0;
         kinematics_->setLegAngles(legIndex, legAngles);
         sendServoRequest(msg.duration_s / 3.0);
 

@@ -25,6 +25,10 @@ inline ELegIndex legNameToIndex(std::string_view name) {
     return magic_enum::enum_cast<ELegIndex>(name).value();
 }
 
+inline std::string legIndexToName(ELegIndex index) {
+    return std::string(magic_enum::enum_name(index));
+}
+
 class CPosition {
    public:
     CPosition() = default;
@@ -90,31 +94,59 @@ class CBodyCenterOffset {
 
 class CLegAngles {
    public:
-    CLegAngles(double degCoxa, double degFemur, double degTibia)
-        : degCoxa(degCoxa), degFemur(degFemur), degTibia(degTibia) {};
+    CLegAngles(double coxa_deg, double femur_deg, double tibia_deg)
+        : coxa_deg(coxa_deg), femur_deg(femur_deg), tibia_deg(tibia_deg) {};
     CLegAngles() = default;
     virtual ~CLegAngles() = default;
 
-    double degCoxa = double(0);
-    double degFemur = double(0);
-    double degTibia = double(0);
+    double coxa_deg = double(0);
+    double femur_deg = double(0);
+    double tibia_deg = double(0);
 };
 
 class CLeg {
    public:
     CLeg() = default;
-    CLeg(CLegAngles angles, CPosition footPos) : angles_(angles), footPos_(footPos) {};
+    CLeg(CLegAngles angles_deg, CPosition foot_pos) : angles_deg_(angles_deg), foot_pos_(foot_pos) {};
 
-    CLegAngles angles_;
-    CPosition footPos_;
+    CLegAngles angles_deg_;
+    CPosition foot_pos_;
 };
 
 class CHead {
    public:
     CHead() = default;
-    CHead(double degYaw, double degPitch) : degYaw(degYaw), degPitch(degPitch) {};
+    CHead(double yaw_deg, double pitch_deg) : yaw_deg(yaw_deg), pitch_deg(pitch_deg) {};
     virtual ~CHead() = default;
 
-    double degYaw = double(0);
-    double degPitch = double(0);
+    double yaw_deg = double(0);
+    double pitch_deg = double(0);
+};
+
+// --------------------------------------------------------
+// ------------------  for future usage ------------------
+struct CJoint {
+    CPosition position_;
+    double angle_rad_ = double(0);
+    double offset_rad = double(0);  // mechanical offset, zero position in rad
+};
+
+struct CLink {
+    double length = double(0);
+};
+
+struct CSegment {
+    CLink link;
+    CJoint joint;
+};
+
+struct CLegSegmentwise {
+    CSegment coxa;
+    CSegment femur;
+    CSegment tibia;
+};
+
+struct CBody {
+    CPose pose;
+    std::map<ELegIndex, CLegSegmentwise> legs;
 };

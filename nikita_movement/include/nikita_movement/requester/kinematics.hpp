@@ -15,7 +15,6 @@
 #include "requester/actionpackagesparser.hpp"
 #include "requester/types.hpp"
 
-
 class CKinematics {
    public:
     CKinematics(std::shared_ptr<rclcpp::Node> node,
@@ -27,7 +26,7 @@ class CKinematics {
     void moveBody(const std::map<ELegIndex, CPosition>& footTargets,
                   const CPose body = CPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
-    void setHead(double degYaw, double degPitch);
+    void setHead(double yaw_deg, double pitch_deg);
     void setHead(CHead head);
 
     std::map<ELegIndex, CPosition> getLegsPositions() const;

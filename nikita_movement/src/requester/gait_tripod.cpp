@@ -126,7 +126,7 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
     kinematics_->moveBody(targetPositions, body);
 
     constexpr double MAX_HEAD_YAW_AMPLITUDE_DEG = 15.0;
-    kinematics_->getHead().degYaw = MAX_HEAD_YAW_AMPLITUDE_DEG * std::sin(phase_);
+    kinematics_->getHead().yaw_deg = MAX_HEAD_YAW_AMPLITUDE_DEG * std::sin(phase_);
     return true;
 }
 

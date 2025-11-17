@@ -19,33 +19,33 @@ void CServoHandler::run(CRequest request, bool blocking) {
     auto targetAngles = std::map<uint32_t, double>();
 
     // set head angles
-    targetAngles[ServoIndex::HEAD_YAW] = request.head().degYaw;
-    targetAngles[ServoIndex::HEAD_PITCH] = request.head().degPitch;
+    targetAngles[ServoIndex::HEAD_YAW] = request.head().yaw_deg;
+    targetAngles[ServoIndex::HEAD_PITCH] = request.head().pitch_deg;
 
     // set leg angles
-    targetAngles[ServoIndex::LEG_RIGHT_FRONT_COXA] = request.legAngles().at(ELegIndex::RightFront).degCoxa;
-    targetAngles[ServoIndex::LEG_RIGHT_FRONT_FEMUR] = request.legAngles().at(ELegIndex::RightFront).degFemur;
-    targetAngles[ServoIndex::LEG_RIGHT_FRONT_TIBIA] = request.legAngles().at(ELegIndex::RightFront).degTibia;
+    targetAngles[ServoIndex::LEG_RIGHT_FRONT_COXA] = request.legAngles().at(ELegIndex::RightFront).coxa_deg;
+    targetAngles[ServoIndex::LEG_RIGHT_FRONT_FEMUR] = request.legAngles().at(ELegIndex::RightFront).femur_deg;
+    targetAngles[ServoIndex::LEG_RIGHT_FRONT_TIBIA] = request.legAngles().at(ELegIndex::RightFront).tibia_deg;
 
-    targetAngles[ServoIndex::LEG_RIGHT_MID_COXA] = request.legAngles().at(ELegIndex::RightMid).degCoxa;
-    targetAngles[ServoIndex::LEG_RIGHT_MID_FEMUR] = request.legAngles().at(ELegIndex::RightMid).degFemur;
-    targetAngles[ServoIndex::LEG_RIGHT_MID_TIBIA] = request.legAngles().at(ELegIndex::RightMid).degTibia;
+    targetAngles[ServoIndex::LEG_RIGHT_MID_COXA] = request.legAngles().at(ELegIndex::RightMid).coxa_deg;
+    targetAngles[ServoIndex::LEG_RIGHT_MID_FEMUR] = request.legAngles().at(ELegIndex::RightMid).femur_deg;
+    targetAngles[ServoIndex::LEG_RIGHT_MID_TIBIA] = request.legAngles().at(ELegIndex::RightMid).tibia_deg;
 
-    targetAngles[ServoIndex::LEG_RIGHT_BACK_COXA] = request.legAngles().at(ELegIndex::RightBack).degCoxa;
-    targetAngles[ServoIndex::LEG_RIGHT_BACK_FEMUR] = request.legAngles().at(ELegIndex::RightBack).degFemur;
-    targetAngles[ServoIndex::LEG_RIGHT_BACK_TIBIA] = request.legAngles().at(ELegIndex::RightBack).degTibia;
+    targetAngles[ServoIndex::LEG_RIGHT_BACK_COXA] = request.legAngles().at(ELegIndex::RightBack).coxa_deg;
+    targetAngles[ServoIndex::LEG_RIGHT_BACK_FEMUR] = request.legAngles().at(ELegIndex::RightBack).femur_deg;
+    targetAngles[ServoIndex::LEG_RIGHT_BACK_TIBIA] = request.legAngles().at(ELegIndex::RightBack).tibia_deg;
 
-    targetAngles[ServoIndex::LEG_LEFT_FRONT_COXA] = request.legAngles().at(ELegIndex::LeftFront).degCoxa;
-    targetAngles[ServoIndex::LEG_LEFT_FRONT_FEMUR] = request.legAngles().at(ELegIndex::LeftFront).degFemur;
-    targetAngles[ServoIndex::LEG_LEFT_FRONT_TIBIA] = request.legAngles().at(ELegIndex::LeftFront).degTibia;
+    targetAngles[ServoIndex::LEG_LEFT_FRONT_COXA] = request.legAngles().at(ELegIndex::LeftFront).coxa_deg;
+    targetAngles[ServoIndex::LEG_LEFT_FRONT_FEMUR] = request.legAngles().at(ELegIndex::LeftFront).femur_deg;
+    targetAngles[ServoIndex::LEG_LEFT_FRONT_TIBIA] = request.legAngles().at(ELegIndex::LeftFront).tibia_deg;
 
-    targetAngles[ServoIndex::LEG_LEFT_MID_COXA] = request.legAngles().at(ELegIndex::LeftMid).degCoxa;
-    targetAngles[ServoIndex::LEG_LEFT_MID_FEMUR] = request.legAngles().at(ELegIndex::LeftMid).degFemur;
-    targetAngles[ServoIndex::LEG_LEFT_MID_TIBIA] = request.legAngles().at(ELegIndex::LeftMid).degTibia;
+    targetAngles[ServoIndex::LEG_LEFT_MID_COXA] = request.legAngles().at(ELegIndex::LeftMid).coxa_deg;
+    targetAngles[ServoIndex::LEG_LEFT_MID_FEMUR] = request.legAngles().at(ELegIndex::LeftMid).femur_deg;
+    targetAngles[ServoIndex::LEG_LEFT_MID_TIBIA] = request.legAngles().at(ELegIndex::LeftMid).tibia_deg;
 
-    targetAngles[ServoIndex::LEG_LEFT_BACK_COXA] = request.legAngles().at(ELegIndex::LeftBack).degCoxa;
-    targetAngles[ServoIndex::LEG_LEFT_BACK_FEMUR] = request.legAngles().at(ELegIndex::LeftBack).degFemur;
-    targetAngles[ServoIndex::LEG_LEFT_BACK_TIBIA] = request.legAngles().at(ELegIndex::LeftBack).degTibia;
+    targetAngles[ServoIndex::LEG_LEFT_BACK_COXA] = request.legAngles().at(ELegIndex::LeftBack).coxa_deg;
+    targetAngles[ServoIndex::LEG_LEFT_BACK_FEMUR] = request.legAngles().at(ELegIndex::LeftBack).femur_deg;
+    targetAngles[ServoIndex::LEG_LEFT_BACK_TIBIA] = request.legAngles().at(ELegIndex::LeftBack).tibia_deg;
 
     servoController_->requestAngles(targetAngles, request.duration());
 

@@ -75,17 +75,17 @@ void CKinematics::logLegPosition(const ELegIndex index, const CLeg& leg) {
     RCLCPP_INFO_STREAM(node_->get_logger(),
                        magic_enum::enum_name(index)
                            << ": \tag: " << std::fixed << std::setprecision(3) << std::setw(3)
-                           << leg.angles_.degCoxa << "°, " << std::setw(3) << leg.angles_.degFemur << "°, "
-                           << std::setw(3) << leg.angles_.degTibia << "°\t| x: " << std::fixed
-                           << std::setprecision(3) << std::setw(3) << leg.footPos_.x << ", y: "
-                           << std::setw(3) << leg.footPos_.y << ", z: " << std::setw(3) << leg.footPos_.z);
+                           << leg.angles_deg_.coxa_deg << "°, " << std::setw(3) << leg.angles_deg_.femur_deg
+                           << "°, " << std::setw(3) << leg.angles_deg_.tibia_deg << "°\t| x: " << std::fixed
+                           << std::setprecision(3) << std::setw(3) << leg.foot_pos_.x << ", y: "
+                           << std::setw(3) << leg.foot_pos_.y << ", z: " << std::setw(3) << leg.foot_pos_.z);
 }
 
 void CKinematics::logHeadPosition() {
     if (!LOG_KINEMATICS_ACTIVE) return;
     RCLCPP_INFO_STREAM(node_->get_logger(),
-                       "Head: \tYaw: " << std::fixed << std::setprecision(3) << std::setw(3) << head_.degYaw
-                                       << "°, Pitch: " << std::setw(3) << head_.degPitch << "°");
+                       "Head: \tYaw: " << std::fixed << std::setprecision(3) << std::setw(3) << head_.yaw_deg
+                                       << "°, Pitch: " << std::setw(3) << head_.pitch_deg << "°");
 }
 
 void CKinematics::initializeLegsNew(const std::map<ELegIndex, CPosition>& footTargets, const CPose body,
@@ -149,7 +149,7 @@ CPosition CKinematics::rotate(const CPosition& point, const COrientation& orient
 
 void CKinematics::calcLegInverseKinematics(const CPosition& targetFeetPos, CLeg& leg,
                                            const ELegIndex& legIndex) {
-    leg.footPos_ = targetFeetPos;
+    leg.foot_pos_ = targetFeetPos;
 
     double agCoxaRad = atan2(targetFeetPos.x, targetFeetPos.y);
     double zOffset = COXA_HEIGHT - targetFeetPos.z;
@@ -181,36 +181,36 @@ void CKinematics::calcLegInverseKinematics(const CPosition& targetFeetPos, CLeg&
     }
     double agTibiaRad = acos(tmpTibia) - (M_PI / 2);
 
-    leg.angles_.degCoxa = float(rad2deg(agCoxaRad - (M_PI / 2)));  // TODO why -90?
-    leg.angles_.degFemur = float(rad2deg(agFemurRad));
-    leg.angles_.degTibia = float(rad2deg(agTibiaRad));
+    leg.angles_deg_.coxa_deg = float(rad2deg(agCoxaRad - (M_PI / 2)));  // TODO why -90?
+    leg.angles_deg_.femur_deg = float(rad2deg(agFemurRad));
+    leg.angles_deg_.tibia_deg = float(rad2deg(agTibiaRad));
 
     // for leg local coordinate system we have to add the body center offset
-    leg.angles_.degCoxa += bodyCenterOffsets_[legIndex].psi;
+    leg.angles_deg_.coxa_deg += bodyCenterOffsets_[legIndex].psi;
 
-    if (leg.angles_.degCoxa > 180.0) {
-        leg.angles_.degCoxa -= 360.0;
-    } else if (leg.angles_.degCoxa < -180.0) {
-        leg.angles_.degCoxa += 360.0;
+    if (leg.angles_deg_.coxa_deg > 180.0) {
+        leg.angles_deg_.coxa_deg -= 360.0;
+    } else if (leg.angles_deg_.coxa_deg < -180.0) {
+        leg.angles_deg_.coxa_deg += 360.0;
     }
 
-    leg.footPos_.x += bodyCenterOffsets_[legIndex].x;
-    leg.footPos_.y += bodyCenterOffsets_[legIndex].y;
+    leg.foot_pos_.x += bodyCenterOffsets_[legIndex].x;
+    leg.foot_pos_.y += bodyCenterOffsets_[legIndex].y;
 }
 
 void CKinematics::calcLegForwardKinematics(const CLegAngles target, CLeg& leg) {
-    leg.angles_ = target;
+    leg.angles_deg_ = target;
 
-    leg.footPos_.x = (COXA_LENGTH + FEMUR_LENGTH * cos(deg2rad(target.degFemur)) +
-                      TIBIA_LENGTH * cos(deg2rad(-90 + target.degFemur + target.degTibia))) *
-                     sin(deg2rad(90 + target.degCoxa));
+    leg.foot_pos_.x = (COXA_LENGTH + FEMUR_LENGTH * cos(deg2rad(target.femur_deg)) +
+                       TIBIA_LENGTH * cos(deg2rad(-90 + target.femur_deg + target.tibia_deg))) *
+                      sin(deg2rad(90 + target.coxa_deg));
 
-    leg.footPos_.y = (COXA_LENGTH + FEMUR_LENGTH * cos(deg2rad(target.degFemur)) +
-                      TIBIA_LENGTH * cos(deg2rad(-90 + target.degFemur + target.degTibia))) *
-                     cos(deg2rad(90 + target.degCoxa));
+    leg.foot_pos_.y = (COXA_LENGTH + FEMUR_LENGTH * cos(deg2rad(target.femur_deg)) +
+                       TIBIA_LENGTH * cos(deg2rad(-90 + target.femur_deg + target.tibia_deg))) *
+                      cos(deg2rad(90 + target.coxa_deg));
 
-    leg.footPos_.z = COXA_HEIGHT + (FEMUR_LENGTH * sin(deg2rad(target.degFemur)) +
-                                    TIBIA_LENGTH * sin(deg2rad(-90 + target.degFemur + target.degTibia)));
+    leg.foot_pos_.z = COXA_HEIGHT + (FEMUR_LENGTH * sin(deg2rad(target.femur_deg)) +
+                                     TIBIA_LENGTH * sin(deg2rad(-90 + target.femur_deg + target.tibia_deg)));
 }
 
 void CKinematics::setSingleFeet(const ELegIndex legIndex, const CPosition& targetFeetPos) {
@@ -222,14 +222,14 @@ void CKinematics::setLegAngles(const ELegIndex index, const CLegAngles& angles) 
 
     // transform to leg coordinate system by subtracting the angle psi
     CLegAngles targetAngles = angles;
-    targetAngles.degCoxa -= bodyCenterOffsets_[index].psi;
+    targetAngles.coxa_deg -= bodyCenterOffsets_[index].psi;
 
     calcLegForwardKinematics(targetAngles, leg);
 
     // transform back to robot coordinate system by adding body center offset and adding psi
-    leg.footPos_.x += bodyCenterOffsets_[index].x;
-    leg.footPos_.y += bodyCenterOffsets_[index].y;
-    leg.angles_.degCoxa += bodyCenterOffsets_[index].psi;
+    leg.foot_pos_.x += bodyCenterOffsets_[index].x;
+    leg.foot_pos_.y += bodyCenterOffsets_[index].y;
+    leg.angles_deg_.coxa_deg += bodyCenterOffsets_[index].psi;
 
     logLegPosition(index, leg);
 }
@@ -239,9 +239,9 @@ void CKinematics::setHead(CHead head) {
     logHeadPosition();
 }
 
-void CKinematics::setHead(double degYaw, double degPitch) {
-    head_.degYaw = degYaw;
-    head_.degPitch = degPitch;
+void CKinematics::setHead(double yaw_deg, double pitch_deg) {
+    head_.yaw_deg = yaw_deg;
+    head_.pitch_deg = pitch_deg;
     logHeadPosition();
 }
 
@@ -250,13 +250,13 @@ std::map<ELegIndex, CLeg>& CKinematics::getLegs() {
 }
 
 CLegAngles& CKinematics::getAngles(ELegIndex index) {
-    return legs_.at(index).angles_;
+    return legs_.at(index).angles_deg_;
 }
 
 std::map<ELegIndex, CLegAngles> CKinematics::getLegsAngles() {
     std::map<ELegIndex, CLegAngles> legAngles;
     for (auto& [index, leg] : legs_) {
-        legAngles[index] = leg.angles_;
+        legAngles[index] = leg.angles_deg_;
     }
     return legAngles;
 }
@@ -264,7 +264,7 @@ std::map<ELegIndex, CLegAngles> CKinematics::getLegsAngles() {
 std::map<ELegIndex, CPosition> CKinematics::getLegsPositions() const {
     std::map<ELegIndex, CPosition> positions;
     for (auto& [legIndex, leg] : legs_) {
-        positions[legIndex] = leg.footPos_;
+        positions[legIndex] = leg.foot_pos_;
     }
     return positions;
 }
@@ -272,7 +272,7 @@ std::map<ELegIndex, CPosition> CKinematics::getLegsPositions() const {
 std::map<ELegIndex, CPosition> CKinematics::getLegsStandingPositions() const {
     std::map<ELegIndex, CPosition> footTargets;
     for (auto& [legIndex, leg] : legsStanding_) {
-        footTargets[legIndex] = leg.footPos_;
+        footTargets[legIndex] = leg.foot_pos_;
     }
     return footTargets;
 }
@@ -280,7 +280,7 @@ std::map<ELegIndex, CPosition> CKinematics::getLegsStandingPositions() const {
 std::map<ELegIndex, CPosition> CKinematics::getLegsLayDownPositions() const {
     std::map<ELegIndex, CPosition> footTargets;
     for (auto& [legIndex, leg] : legsLayDown_) {
-        footTargets[legIndex] = leg.footPos_;
+        footTargets[legIndex] = leg.foot_pos_;
     }
     return footTargets;
 }
