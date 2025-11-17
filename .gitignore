@@ -3,7 +3,8 @@
 # Learn more about .gitignore:
 #     https://www.atlassian.com/git/tutorials/saving-changes/gitignore
 
-.vscode/
+.vscode/*
+!.vscode/tasks.json
 
 # Node artifact files
 node_modules/

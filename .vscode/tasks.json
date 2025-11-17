@@ -1,0 +1,49 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "colcon: build (workspace)",
+            "type": "shell",
+            "command": "colcon build --symlink-install",
+            "options": { "cwd": "${workspaceFolder}" },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": [ ]
+        },
+        {
+            "label": "colcon: build (package)",
+            "type": "shell",
+            "command": "PKG_INPUT=\"${input:packageName}\"; if [ -z \"$PKG_INPUT\" ]; then REL=\"${relativeFileDirname}\"; PKG=\"${REL%%/*}\"; if [ -z \"$PKG\" ]; then PKG=\"$REL\"; fi; else PKG=\"$PKG_INPUT\"; fi; colcon build --packages-select \"$PKG\"",
+            "options": { "cwd": "${workspaceFolder}" },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": [ ]
+        }
+    ],
+    "inputs": [
+        {
+            "id": "packageName",
+            "type": "pickString",
+            "description": "Select package (dropdown)",
+            "options": [
+                "nikita_brain",
+                "nikita_communication",
+                "nikita_hmi",
+                "nikita_interfaces",
+                "nikita_lidar",
+                "nikita_movement",
+                "nikita_servo_controller",
+                "nikita_teleop"
+            ],
+            "default": "${relativeFileDirnameBasename}"
+        }
+    ]
+}
