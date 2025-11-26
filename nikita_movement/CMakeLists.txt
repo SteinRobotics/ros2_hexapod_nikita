@@ -14,6 +14,7 @@ find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(nikita_interfaces REQUIRED)
 find_package(nikita_utils REQUIRED)
@@ -43,6 +44,7 @@ add_library(nikita_movement_core
 )
 target_include_directories(nikita_movement_core PUBLIC include/nikita_movement include/nikita_movement/requester)
 ament_target_dependencies(nikita_movement_core rclcpp std_msgs geometry_msgs std_srvs ament_index_cpp nikita_utils nikita_interfaces)
+ament_target_dependencies(nikita_movement_core sensor_msgs)
 target_link_libraries(nikita_movement_core yaml-cpp::yaml-cpp magic_enum::magic_enum)
 
 add_executable(node_movement
@@ -78,6 +80,15 @@ if(BUILD_TESTING)
     target_link_libraries(test_kinematics nikita_movement_core)
   endif()
 
+  ament_add_gtest(test_new_kinematics
+    test/test_new_kinematics.cpp
+  )
+  if(TARGET test_new_kinematics)
+    ament_target_dependencies(test_new_kinematics rclcpp ament_index_cpp nikita_interfaces)
+    target_include_directories(test_new_kinematics PRIVATE include)
+    target_link_libraries(test_new_kinematics nikita_movement_core)
+  endif()
+
   ament_add_gtest(test_actionpackagesparser
     test/test_actionpackagesparser.cpp
   )
@@ -100,6 +111,24 @@ if(BUILD_TESTING)
   if(TARGET test_gait_bodyroll)
     ament_target_dependencies(test_gait_bodyroll rclcpp nikita_interfaces ament_index_cpp)
     target_link_libraries(test_gait_bodyroll nikita_movement_core)
+  endif()
+
+  ament_add_gtest(test_complete_body_init
+    test/test_complete_body_init.cpp
+  )
+  if(TARGET test_complete_body_init)
+    ament_target_dependencies(test_complete_body_init rclcpp ament_index_cpp nikita_interfaces)
+    target_include_directories(test_complete_body_init PRIVATE include)
+    target_link_libraries(test_complete_body_init nikita_movement_core)
+  endif()
+
+  ament_add_gtest(test_moveBodyNew_publish
+    test/test_moveBodyNew_publish.cpp
+  )
+  if(TARGET test_moveBodyNew_publish)
+    ament_target_dependencies(test_moveBodyNew_publish rclcpp ament_index_cpp nikita_interfaces sensor_msgs)
+    target_include_directories(test_moveBodyNew_publish PRIVATE include)
+    target_link_libraries(test_moveBodyNew_publish nikita_movement_core)
   endif()
 
 endif()

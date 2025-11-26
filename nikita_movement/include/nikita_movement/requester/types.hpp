@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <magic_enum.hpp>
 #include <map>
@@ -125,19 +126,26 @@ class CHead {
 
 // --------------------------------------------------------
 // ------------------  for future usage ------------------
-struct CJoint {
-    CPosition position_;
-    double angle_rad_ = double(0);
-    double offset_rad = double(0);  // mechanical offset, zero position in rad
+struct CJointDesc {
+    double offset_rad = 0.0;
+    double limit_min_rad = -M_PI_2;
+    double limit_max_rad = M_PI_2;
+    // axis info if needed later
+};
+
+struct CJointState {
+    double angle_rad = 0.0;
+    bool dirty = true;
 };
 
 struct CLink {
-    double length = double(0);
+    double length_m = 0.0;
 };
 
 struct CSegment {
-    CLink link;
-    CJoint joint;
+    CLink link;         // geometry: length
+    CJointDesc desc;    // geometry/limit/offset
+    CJointState state;  // runtime
 };
 
 struct CLegSegmentwise {
@@ -149,4 +157,5 @@ struct CLegSegmentwise {
 struct CBody {
     CPose pose;
     std::map<ELegIndex, CLegSegmentwise> legs;
+    std::map<ELegIndex, CBodyCenterOffset> bodyCenterOffsets;
 };
