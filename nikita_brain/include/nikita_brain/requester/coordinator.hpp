@@ -77,9 +77,9 @@ class CCoordinator : public IRequester {
     std::shared_ptr<CSimpleTimer> timerNoRequest_;
 
     std::shared_ptr<CCallbackTimer> timerMovementRequest_;
-    std::shared_ptr<CCallbackTimer> timerLeaveMove_;
+    // std::shared_ptr<CCallbackTimer> timerLeaveMove_;
 
-    void callbackLeaveMove();
+    // void callbackLeaveMove();
 
     std::atomic<bool> isNewMoveRequestLocked_{false};
 
@@ -98,8 +98,7 @@ class CCoordinator : public IRequester {
         {nikita_interfaces::msg::MovementRequest::LAYDOWN, "LAYDOWN"},
         {nikita_interfaces::msg::MovementRequest::STAND_UP, "STAND_UP"},
         {nikita_interfaces::msg::MovementRequest::WAITING, "WAITING"},
-        {nikita_interfaces::msg::MovementRequest::MOVE, "MOVE"},
-        {nikita_interfaces::msg::MovementRequest::MOVE_TO_STAND, "MOVE_TO_STAND"},
+        {nikita_interfaces::msg::MovementRequest::MOVE_TRIPOD, "MOVE_TRIPOD"},
         {nikita_interfaces::msg::MovementRequest::WATCH, "WATCH"},
         {nikita_interfaces::msg::MovementRequest::LOOK_LEFT, "LOOK_LEFT"},
         {nikita_interfaces::msg::MovementRequest::LOOK_RIGHT, "LOOK_RIGHT"},

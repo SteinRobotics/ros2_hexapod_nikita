@@ -126,6 +126,9 @@ CServoController::CServoController(std::shared_ptr<rclcpp::Node> node) : node_(n
                                                     << "° | error code: " << uint32_t(servo.getErrorCode()));
     }
 
+    //
+    // here execute the callback back to CKinematics once all initial angles values are read
+
     auto msg_angles = ServoAngles();
     for (auto& [idx, servo] : servos_) {
         msg_angles.current_angles[idx].angle_deg = servo.getAngle();

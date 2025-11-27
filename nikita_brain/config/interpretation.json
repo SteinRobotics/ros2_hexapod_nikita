@@ -22,6 +22,11 @@
         "pronoun": [ "dich" ],
         "preposition": [ "hin" ]
     },
+    "commandHighFive": {
+        "doing": [ "gib" ],
+        "pronoun": [ "mir" ],
+        "noun": [ "five" ]
+    },
     "commandTransport": {
         "doing": [ "geh", "mach" ],
         "noun": [ "transport" ]

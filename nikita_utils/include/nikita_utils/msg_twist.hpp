@@ -29,14 +29,6 @@ inline bool hasChanged(const geometry_msgs::msg::Twist& t1, const geometry_msgs:
                        [threshold](double d) { return !std::isfinite(d) || std::abs(d) > threshold; });
 }
 
-// double linearMagnitude(const geometry_msgs::msg::Twist& t) {
-//     return std::sqrt(t.linear.x * t.linear.x + t.linear.y * t.linear.y + t.linear.z * t.linear.z);
-// }
-
-// double angularMagnitude(const geometry_msgs::msg::Twist& t) {
-//     return std::sqrt(t.angular.x * t.angular.x + t.angular.y * t.angular.y + t.angular.z * t.angular.z);
-// }
-
 }  // namespace utils
 
 using utils::hasChanged;

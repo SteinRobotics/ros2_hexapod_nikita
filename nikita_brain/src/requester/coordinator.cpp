@@ -29,7 +29,7 @@ CCoordinator::CCoordinator(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     timerMovementRequest_ = std::make_shared<CCallbackTimer>();
     timerErrorRequest_ = std::make_shared<CSimpleTimer>();
     timerNoRequest_ = std::make_shared<CSimpleTimer>(param_activate_movement_waiting_);
-    timerLeaveMove_ = std::make_shared<CCallbackTimer>();
+    // timerLeaveMove_ = std::make_shared<CCallbackTimer>();
 }
 
 void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
@@ -94,27 +94,27 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     if (msg.left_stick_vertical > param_joystick_deadzone_ ||
         msg.left_stick_vertical < -param_joystick_deadzone_) {
         velocity.linear.x = msg.left_stick_vertical * param_velocity_factor_linear_;
-        newMovementType = MovementRequest::MOVE;
+        newMovementType = MovementRequest::MOVE_TRIPOD;
     }
     // float32 left_stick_horizontal # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
     if (msg.left_stick_horizontal > param_joystick_deadzone_ ||
         msg.left_stick_horizontal < -param_joystick_deadzone_) {
         velocity.linear.y = msg.left_stick_horizontal * param_velocity_factor_linear_;
-        newMovementType = MovementRequest::MOVE;
+        newMovementType = MovementRequest::MOVE_TRIPOD;
     }
     // RIGHT_STICK -> rotation
     // float32 right_stick_horizontal  # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
     if (msg.right_stick_horizontal > param_joystick_deadzone_ ||
         msg.right_stick_horizontal < -param_joystick_deadzone_) {
         velocity.angular.z = msg.right_stick_horizontal * param_velocity_factor_rotation_;
-        newMovementType = MovementRequest::MOVE;
+        newMovementType = MovementRequest::MOVE_TRIPOD;
     }
 
     // float32 right_stick_vertical    # TOP  = -1.0, DOWN = 1.0, hangs on 0.004 -> means 0.0
     if (msg.right_stick_vertical > param_joystick_deadzone_ ||
         msg.right_stick_vertical < -param_joystick_deadzone_) {
         body.position.z = msg.right_stick_vertical * param_body_factor_height_;
-        newMovementType = MovementRequest::MOVE;
+        newMovementType = MovementRequest::MOVE_TRIPOD;
     } else {
         body.position.z = 0.0;
     }
@@ -124,18 +124,12 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         return;
     }
 
-    if (actualMovementType_ == MovementRequest::MOVE && newMovementType == MovementRequest::NO_REQUEST &&
-        !timerLeaveMove_->isRunning()) {
+    if (actualMovementType_ == MovementRequest::MOVE_TRIPOD &&
+        newMovementType == MovementRequest::NO_REQUEST) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "end move request");
-        timerLeaveMove_->waitSecondsNonBlocking(3.0, std::bind(&CCoordinator::callbackLeaveMove, this));
         // submit zero velocity request
         submitSingleRequest<CRequestMoveVelocity>(Prio::High, velocity);
         return;
-    }
-    // cancel leave move
-    if (newMovementType == MovementRequest::MOVE && timerLeaveMove_->isRunning()) {
-        RCLCPP_INFO_STREAM(node_->get_logger(), "cancel leave move");
-        timerLeaveMove_->stop();
     }
 
     // no new request
@@ -144,10 +138,6 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         return;
     }
     submitRequestMove(newMovementType, duration_s, body, velocity, comment, Prio::High);
-}
-
-void CCoordinator::callbackLeaveMove() {
-    submitRequestMove(MovementRequest::MOVE_TO_STAND, 1.0, "", Prio::High);
 }
 
 void CCoordinator::speechRecognized(std::string text) {
@@ -163,6 +153,8 @@ void CCoordinator::speechRecognized(std::string text) {
         submitRequestMove(MovementRequest::STAND_UP, 3.0, "ich stehe auf", Prio::High);
     } else if (command == "commandLaydown") {
         submitRequestMove(MovementRequest::LAYDOWN, 3.0, "ich leg mich hin", Prio::High);
+    } else if (command == "commandHighFive") {
+        submitRequestMove(MovementRequest::HIGH_FIVE, 5.0, "ich gebe dir ein High Five", Prio::High);
     } else if (command == "commandWatch") {
         submitRequestMove(MovementRequest::WATCH, 5.0, "ich schaue mich um", Prio::High);
     } else if (command == "commandTurnHead") {
@@ -370,7 +362,7 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
         request_v.push_back(std::make_shared<RequestTalking>(comment));
     }
     // If we are not standing, we need to stand up first
-    if (!isStanding_ && movementType == MovementRequest::MOVE) {
+    if (!isStanding_ && movementType == MovementRequest::MOVE_TRIPOD) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "standup before move request");
         isStanding_ = true;
         // recursive call to first stand up
@@ -400,8 +392,8 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
         isStanding_ = true;
     }
 
-    // Lock the new move request for the given duration except for MOVE requests
-    if (MovementRequest::MOVE == movementType) {
+    // Lock the new move request for the given duration except for MOVE_TRIPOD requests
+    if (MovementRequest::MOVE_TRIPOD == movementType) {
         return;
     }
     isNewMoveRequestLocked_ = true;
