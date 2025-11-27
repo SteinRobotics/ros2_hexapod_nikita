@@ -9,7 +9,7 @@
 using namespace std;
 using namespace utils;
 
-#define LOG_KINEMATICS_ACTIVE false
+#define LOG_KINEMATICS_ACTIVE true
 
 CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node,
                          std::shared_ptr<CActionPackagesParser> actionPackagesParser)

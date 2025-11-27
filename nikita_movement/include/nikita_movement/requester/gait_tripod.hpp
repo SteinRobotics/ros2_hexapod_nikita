@@ -7,6 +7,7 @@
 #include "nikita_utils/filters.hpp"
 #include "nikita_utils/geometry.hpp"
 #include "nikita_utils/msg_twist.hpp"
+#include "nikita_utils/simpletimer.hpp"
 #include "requester/igaits.hpp"
 #include "requester/types.hpp"
 
@@ -47,6 +48,8 @@ class CTripodGait : public IGait {
     bool isStartPhaseDone_ = false;
     bool isLeaveCycleRequested_ = false;
     ELegIndex activeLegIndex_ = ELegIndex::RightFront;
+
+    CSimpleTimer no_velocity_timer_;
 
     geometry_msgs::msg::Twist velocity_{geometry_msgs::msg::Twist()};
 };

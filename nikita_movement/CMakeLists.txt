@@ -34,6 +34,10 @@ set(SOURCES
   src/requester/gait_bodyroll.cpp
   src/requester/gait_legwave.cpp
   src/requester/gait_waiting.cpp
+  src/requester/gait_watch.cpp
+  src/requester/gait_standup.cpp
+  src/requester/gait_laydown.cpp
+  src/requester/gait_highfive.cpp
   src/handler/servohandler.cpp
   src/handler/servo_controller.cpp
   src/handler/servo_protocol.cpp
@@ -113,6 +117,30 @@ if(BUILD_TESTING)
     target_link_libraries(test_gait_bodyroll nikita_movement_core)
   endif()
 
+  ament_add_gtest(test_gait_vertical
+    test/test_gait_vertical.cpp
+  )
+  if(TARGET test_gait_vertical)
+    ament_target_dependencies(test_gait_vertical rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
+    target_link_libraries(test_gait_vertical nikita_movement_core)
+  endif()
+
+  ament_add_gtest(test_gait_highfive
+    test/test_gait_highfive.cpp
+  )
+  if(TARGET test_gait_highfive)
+    ament_target_dependencies(test_gait_highfive rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
+    target_link_libraries(test_gait_highfive nikita_movement_core)
+  endif()
+
+  ament_add_gtest(test_gait_watch
+    test/test_gait_watch.cpp
+  )
+  if(TARGET test_gait_watch)
+    ament_target_dependencies(test_gait_watch rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
+    target_link_libraries(test_gait_watch nikita_movement_core)
+  endif()
+
   ament_add_gtest(test_complete_body_init
     test/test_complete_body_init.cpp
   )
@@ -129,6 +157,14 @@ if(BUILD_TESTING)
     ament_target_dependencies(test_moveBodyNew_publish rclcpp ament_index_cpp nikita_interfaces sensor_msgs)
     target_include_directories(test_moveBodyNew_publish PRIVATE include)
     target_link_libraries(test_moveBodyNew_publish nikita_movement_core)
+  endif()
+
+  ament_add_gtest(test_pose_interpolation
+    test/test_pose_interpolation.cpp
+  )
+  if(TARGET test_pose_interpolation)
+    ament_target_dependencies(test_pose_interpolation nikita_utils nikita_interfaces)
+    target_include_directories(test_pose_interpolation PRIVATE include)
   endif()
 
 endif()

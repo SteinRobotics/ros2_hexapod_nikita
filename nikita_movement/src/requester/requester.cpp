@@ -39,18 +39,17 @@ void CRequester::initializeRequestHandlers() {
     requestHandlers_ = {
         {MovementRequest::NO_REQUEST,
          [this](const MovementRequest&) { activeRequest_ = MovementRequest::NO_REQUEST; }},
-        {MovementRequest::LAYDOWN, bind(&CRequester::requestSequence)},
-        {MovementRequest::STAND_UP, bind(&CRequester::requestSequence)},
-        {MovementRequest::WAITING, bind(&CRequester::requestWaiting)},
-        {MovementRequest::MOVE, bind(&CRequester::requestMove)},
-        {MovementRequest::MOVE_TO_STAND, bind(&CRequester::requestMoveToStand)},
-        {MovementRequest::WATCH, bind(&CRequester::requestSequence)},
+        {MovementRequest::LAYDOWN, bind(&CRequester::requestGait)},
+        {MovementRequest::STAND_UP, bind(&CRequester::requestGait)},
+        {MovementRequest::WAITING, bind(&CRequester::requestGait)},
+        {MovementRequest::MOVE_TRIPOD, bind(&CRequester::requestGait)},
+        {MovementRequest::WATCH, bind(&CRequester::requestGait)},
         {MovementRequest::LOOK_LEFT, bind(&CRequester::requestSequence)},
         {MovementRequest::LOOK_RIGHT, bind(&CRequester::requestSequence)},
         {MovementRequest::DANCE, bind(&CRequester::requestDance)},
-        {MovementRequest::HIGH_FIVE, bind(&CRequester::requestHighFive)},
-        {MovementRequest::LEGS_WAVE, bind(&CRequester::requestLegsWave)},
-        {MovementRequest::BODY_ROLL, bind(&CRequester::requestBodyRoll)},
+        {MovementRequest::HIGH_FIVE, bind(&CRequester::requestGait)},
+        {MovementRequest::LEGS_WAVE, bind(&CRequester::requestGait)},
+        {MovementRequest::BODY_ROLL, bind(&CRequester::requestGait)},
         {MovementRequest::BITE, bind(&CRequester::requestBite)},
         {MovementRequest::STOMP, bind(&CRequester::requestStomp)},
         {MovementRequest::CLAP, bind(&CRequester::requestSequence)},
@@ -73,19 +72,9 @@ void CRequester::sendServoRequest(const double duration_s, const bool blocking) 
     }
 }
 
-void CRequester::requestMoveToStand([[maybe_unused]] const MovementRequest& msg) {
-    activeRequest_ = MovementRequest::MOVE_TO_STAND;
-    gaitController_->requestStopSelectedGait();
-}
-
-void CRequester::requestWaiting([[maybe_unused]] const MovementRequest& msg) {
-    activeRequest_ = MovementRequest::WAITING;
-    gaitController_->setGait(CGaitController::EGaitType::Waiting);
-}
-
-void CRequester::requestMove([[maybe_unused]] const MovementRequest& msg) {
-    activeRequest_ = MovementRequest::MOVE;
-    gaitController_->setGait(CGaitController::EGaitType::Tripod);
+void CRequester::requestGait(const MovementRequest& msg) {
+    activeRequest_ = msg.type;
+    gaitController_->setGait(msg.type);
 }
 
 void CRequester::requestSequence(const MovementRequest& msg) {
@@ -127,34 +116,6 @@ void CRequester::requestSequence(const MovementRequest& msg) {
 void CRequester::requestDance(const MovementRequest& msg) {
     activeRequest_ = MovementRequest::DANCE;
     [[maybe_unused]] auto tmp = msg;  // Suppress unused variable warning
-}
-
-void CRequester::requestHighFive(const MovementRequest& msg) {
-    activeRequest_ = MovementRequest::HIGH_FIVE;
-
-    const CLegAngles anglesRightFrontBefore = kinematics_->getAngles(ELegIndex::RightFront);
-
-    kinematics_->setHead(0.0, -20.0);
-    kinematics_->setLegAngles(ELegIndex::RightFront, CLegAngles(20.0, 50.0, 60.0));
-    sendServoRequest(double(msg.duration_s / 3.0));
-
-    // wait a bit
-    sendServoRequest(double(msg.duration_s / 3.0));
-
-    // move back to the original position
-    kinematics_->setHead(0.0, 0.0);
-    kinematics_->setLegAngles(ELegIndex::RightFront, anglesRightFrontBefore);
-    sendServoRequest(double(msg.duration_s / 3.0));
-}
-
-void CRequester::requestLegsWave([[maybe_unused]] const MovementRequest& msg) {
-    activeRequest_ = MovementRequest::LEGS_WAVE;
-    gaitController_->setGait(CGaitController::EGaitType::LegWave);
-}
-
-void CRequester::requestBodyRoll([[maybe_unused]] const MovementRequest& msg) {
-    activeRequest_ = MovementRequest::BODY_ROLL;
-    gaitController_->setGait(CGaitController::EGaitType::BodyRoll);
 }
 
 void CRequester::requestBite(const MovementRequest& msg) {

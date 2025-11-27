@@ -28,6 +28,18 @@ class RequesterTest : public ::testing::Test {
                               std::vector<double>{0.068, 0.088, 0.068, -0.068, -0.088, -0.068}),
             rclcpp::Parameter("OFFSET_COXA_ANGLE_DEG",
                               std::vector<double>{45.0, 90.0, 135.0, -45.0, -90.0, -135.0}),
+            rclcpp::Parameter("STANDING_FOOT_POS_X",
+                              std::vector<double>{0.092, 0.0, -0.092, 0.092, 0.0, -0.092}),
+            rclcpp::Parameter("STANDING_FOOT_POS_Y",
+                              std::vector<double>{0.092, 0.130, 0.092, -0.092, -0.130, -0.092}),
+            rclcpp::Parameter("STANDING_FOOT_POS_Z",
+                              std::vector<double>{-0.050, -0.050, -0.050, -0.050, -0.050, -0.050}),
+            rclcpp::Parameter("LAYDOWN_FOOT_POS_X",
+                              std::vector<double>{0.071, 0.0, -0.071, 0.071, 0.0, -0.071}),
+            rclcpp::Parameter("LAYDOWN_FOOT_POS_Y",
+                              std::vector<double>{0.071, 0.100, 0.071, -0.071, -0.100, -0.071}),
+            rclcpp::Parameter("LAYDOWN_FOOT_POS_Z",
+                              std::vector<double>{0.010, 0.010, 0.010, 0.010, 0.010, 0.010}),
         });
         node_ = std::make_shared<rclcpp::Node>("test_requester_node", options);
         servoHandlerMock_ = std::make_shared<CServoHandlerMock>(node_);
@@ -59,74 +71,4 @@ TEST_F(RequesterTest, HandleNoRequestMessage) {
     msg.type = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
 
     EXPECT_NO_THROW(requester_->onMovementTypeRequest(msg));
-}
-
-TEST_F(RequesterTest, HandleLayDownRequest) {
-    nikita_interfaces::msg::MovementRequest msg;
-    msg.name = "LAYDOWN";
-    msg.type = nikita_interfaces::msg::MovementRequest::LAYDOWN;
-    msg.duration_s = 1.0;
-
-    EXPECT_NO_THROW(requester_->onMovementTypeRequest(msg));
-
-    auto requests = servoHandlerMock_->getRequests();
-    auto first_request = requests.front();
-
-    for (const auto& pair : first_request->legAngles()) {
-        const auto& angles = pair.second;
-        expectAnglesNear(CLegAngles{0.0, 70.723, -53.320}, angles,
-                         "Leg angles in LAYDOWN do not match expected values");
-    }
-
-    auto duration = first_request->duration();
-    EXPECT_DOUBLE_EQ(1.0, duration);
-    auto head = first_request->head();
-    expectHeadNear(CHead{0.0, -20.0}, head, "Head angles in LAYDOWN do not match expected values");
-}
-
-TEST_F(RequesterTest, HandleStandUpRequest) {
-    nikita_interfaces::msg::MovementRequest msg;
-    msg.name = "STAND_UP";
-    msg.type = nikita_interfaces::msg::MovementRequest::STAND_UP;
-    msg.duration_s = 1.0;
-
-    EXPECT_NO_THROW(requester_->onMovementTypeRequest(msg));
-
-    auto requests = servoHandlerMock_->getRequests();
-    auto first_request = requests.front();
-
-    for (const auto& pair : first_request->legAngles()) {
-        const auto& angles = pair.second;
-        expectAnglesNear(CLegAngles{0.0, 2.276, 7.704}, angles,
-                         "Leg angles in STAND_UP do not match expected values");
-    }
-    auto duration = first_request->duration();
-    EXPECT_DOUBLE_EQ(1.0, duration);
-    auto head = first_request->head();
-    expectHeadNear(CHead{0.0, 0.0}, head, "Head angles in STAND_UP do not match expected values");
-}
-
-TEST_F(RequesterTest, HandleWatchRequest) {
-    nikita_interfaces::msg::MovementRequest msg;
-    msg.name = "WATCH";
-    msg.type = nikita_interfaces::msg::MovementRequest::WATCH;
-    msg.duration_s = 1.0;
-
-    EXPECT_NO_THROW(requester_->onMovementTypeRequest(msg));
-
-    auto requests = servoHandlerMock_->getRequests();
-    auto first_request = requests.front();
-    requests.pop_front();
-
-    auto duration = first_request->duration();
-    EXPECT_DOUBLE_EQ(0.25, duration);
-    auto head = first_request->head();
-    expectHeadNear(CHead{-40.0, 0.0}, head, "Head angles in WATCH do not match expected values");
-
-    auto second_request = requests.front();
-    requests.pop_front();
-    duration = second_request->duration();
-    EXPECT_DOUBLE_EQ(0.25, duration);
-    head = second_request->head();
-    expectHeadNear(CHead{0.0, 0.0}, head, "Head angles in WATCH do not match expected values");
 }

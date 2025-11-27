@@ -4,6 +4,8 @@
 
 namespace nikita_movement {
 
+constexpr double TIME_TO_WAIT_BEFORE_STOP_SEC = 3.0;
+
 CTripodGait::CTripodGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
                          double legLiftHeight, double gaitStepLength, double factorVelocityToGaitCycleTime)
     : node_(std::move(node)),
@@ -11,6 +13,7 @@ CTripodGait::CTripodGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKi
       legLiftHeight_(legLiftHeight),
       gaitStepLength_(gaitStepLength),
       factorVelocityToGaitCycleTime_(factorVelocityToGaitCycleTime) {
+    no_velocity_timer_.stop();
 }
 
 void CTripodGait::start() {
@@ -24,6 +27,11 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
     }
 
     if (utils::isTwistZero(velocity) && state_ == EGaitState::Running) {
+        if (!no_velocity_timer_.isRunning()) {
+            no_velocity_timer_.start();
+        } else if (no_velocity_timer_.haveSecondsElapsed(TIME_TO_WAIT_BEFORE_STOP_SEC)) {
+            requestStop();
+        }
         return false;
     }
 
