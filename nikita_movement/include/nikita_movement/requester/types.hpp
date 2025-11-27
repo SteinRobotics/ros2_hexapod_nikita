@@ -56,6 +56,11 @@ class CPosition {
     double x = double(0);
     double y = double(0);
     double z = double(0);
+
+    // Linear interpolation member: returns a point between this and 'target' at parameter alpha in [0,1]
+    inline CPosition linearInterpolate(const CPosition& target, double alpha) const {
+        return CPosition(x + (target.x - x) * alpha, y + (target.y - y) * alpha, z + (target.z - z) * alpha);
+    }
 };
 
 class COrientation {
@@ -67,6 +72,12 @@ class COrientation {
     double roll = double(0);
     double pitch = double(0);
     double yaw = double(0);
+
+    // Linear interpolation member: returns an orientation between this and 'target' at parameter alpha in [0,1]
+    inline COrientation linearInterpolate(const COrientation& target, double alpha) const {
+        return COrientation(roll + (target.roll - roll) * alpha, pitch + (target.pitch - pitch) * alpha,
+                            yaw + (target.yaw - yaw) * alpha);
+    }
 };
 
 class CPose {
@@ -84,6 +95,14 @@ class CPose {
 
     CPosition position;
     COrientation orientation;
+
+    // Linear interpolation member: interpolate position and orientation
+    inline CPose linearInterpolate(const CPose& target, double alpha) const {
+        CPose out;
+        out.position = position.linearInterpolate(target.position, alpha);
+        out.orientation = orientation.linearInterpolate(target.orientation, alpha);
+        return out;
+    }
 };
 
 class CBodyCenterOffset {
@@ -103,6 +122,13 @@ class CLegAngles {
     double coxa_deg = double(0);
     double femur_deg = double(0);
     double tibia_deg = double(0);
+
+    // Linear interpolation member: interpolate each joint angle (degrees)
+    inline CLegAngles linearInterpolate(const CLegAngles& target, double alpha) const {
+        return CLegAngles(coxa_deg + (target.coxa_deg - coxa_deg) * alpha,
+                          femur_deg + (target.femur_deg - femur_deg) * alpha,
+                          tibia_deg + (target.tibia_deg - tibia_deg) * alpha);
+    }
 };
 
 class CLeg {

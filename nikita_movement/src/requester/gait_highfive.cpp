@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include "nikita_utils/linear_interpolation.hpp"
-#include "requester/interpolation.hpp"
 #include "requester/kinematics.hpp"
 
 namespace {
@@ -100,7 +99,8 @@ void CHighFiveGait::cancelStop() {
 
 void CHighFiveGait::applyInterpolatedPose(double alpha) {
     alpha = std::clamp(alpha, 0.0, 1.0);
-    const auto legAngles = nikita_utils::linearInterpolate(initial_leg_angles_, target_leg_angles_, alpha);
+    // use CLegAngles member interpolation
+    const auto legAngles = initial_leg_angles_.linearInterpolate(target_leg_angles_, alpha);
     kinematics_->setLegAngles(ELegIndex::RightFront, legAngles);
 
     const double headYaw =

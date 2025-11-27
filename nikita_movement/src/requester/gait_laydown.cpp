@@ -43,10 +43,8 @@ bool CLayDownGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const C
     std::map<ELegIndex, CPosition> target_positions;
     for (const auto& [legIndex, laydown_pos] : laydown_targets) {
         auto origin_pos = origin_positions_.at(legIndex);
-        CPosition blendedPos;
-        blendedPos.x = nikita_utils::linearInterpolate(origin_pos.x, laydown_pos.x, progress);
-        blendedPos.y = nikita_utils::linearInterpolate(origin_pos.y, laydown_pos.y, progress);
-        blendedPos.z = nikita_utils::linearInterpolate(origin_pos.z, laydown_pos.z, progress);
+        // use CPosition member interpolation for clarity and fewer scalar calls
+        CPosition blendedPos = origin_pos.linearInterpolate(laydown_pos, progress);
         target_positions[legIndex] = blendedPos;
     }
     kinematics_->moveBody(target_positions, body);

@@ -159,13 +159,6 @@ if(BUILD_TESTING)
     target_link_libraries(test_moveBodyNew_publish nikita_movement_core)
   endif()
 
-  ament_add_gtest(test_pose_interpolation
-    test/test_pose_interpolation.cpp
-  )
-  if(TARGET test_pose_interpolation)
-    ament_target_dependencies(test_pose_interpolation nikita_utils nikita_interfaces)
-    target_include_directories(test_pose_interpolation PRIVATE include)
-  endif()
 
 endif()
 

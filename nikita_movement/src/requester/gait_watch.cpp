@@ -3,7 +3,6 @@
 #include <algorithm>
 
 #include "nikita_utils/linear_interpolation.hpp"
-#include "requester/interpolation.hpp"
 #include "requester/kinematics.hpp"
 
 namespace {
@@ -90,9 +89,10 @@ void CWatchGait::applyInterpolatedPose(const PoseTarget& from, const PoseTarget&
     const double headPitch = nikita_utils::linearInterpolate(from.headPitch, to.headPitch, alpha);
 
     CPose bodyPose = initial_body_pose_;
-    bodyPose.orientation =
-        nikita_utils::linearInterpolate(COrientation{from.bodyRoll, from.bodyPitch, from.bodyYaw},
-                                        COrientation{to.bodyRoll, to.bodyPitch, to.bodyYaw}, alpha);
+    // interpolate orientation using member method on COrientation
+    COrientation fromOri(from.bodyRoll, from.bodyPitch, from.bodyYaw);
+    COrientation toOri(to.bodyRoll, to.bodyPitch, to.bodyYaw);
+    bodyPose.orientation = fromOri.linearInterpolate(toOri, alpha);
 
     kinematics_->moveBody(base_foot_positions_, bodyPose);
     kinematics_->setHead(headYaw, headPitch);

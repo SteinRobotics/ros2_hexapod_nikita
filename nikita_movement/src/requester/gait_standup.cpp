@@ -43,10 +43,8 @@ bool CStandUpGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const C
     std::map<ELegIndex, CPosition> target_positions;
     for (const auto& [legIndex, standing_position] : standingTargets) {
         auto origin_position = origin_positions_.at(legIndex);
-        CPosition blendedPos;
-        blendedPos.x = nikita_utils::linearInterpolate(origin_position.x, standing_position.x, progress);
-        blendedPos.y = nikita_utils::linearInterpolate(origin_position.y, standing_position.y, progress);
-        blendedPos.z = nikita_utils::linearInterpolate(origin_position.z, standing_position.z, progress);
+        // use CPosition member interpolation instead of per-component scalar interpolation
+        CPosition blendedPos = origin_position.linearInterpolate(standing_position, progress);
         target_positions[legIndex] = blendedPos;
     }
     kinematics_->moveBody(target_positions, body);
