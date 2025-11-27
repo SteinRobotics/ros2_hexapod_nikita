@@ -32,11 +32,11 @@ class CMovement : public IHandler {
     void timerCallback();
 
     std::shared_ptr<rclcpp::Node> node_;
-    rclcpp::Publisher<nikita_interfaces::msg::MovementRequest>::SharedPtr pubMovementType_;
-    rclcpp::Publisher<nikita_interfaces::msg::Pose>::SharedPtr pubBodyPose_;
-    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pubCmdVel_;
+    rclcpp::Publisher<nikita_interfaces::msg::MovementRequest>::SharedPtr pub_movement_type_;
+    rclcpp::Publisher<nikita_interfaces::msg::Pose>::SharedPtr pub_body_pose_;
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_cmd_vel_;
 
-    std::shared_ptr<CCallbackTimer> callbackTimer_;
+    std::shared_ptr<CCallbackTimer> callback_timer_;
 };
 
 }  // namespace brain

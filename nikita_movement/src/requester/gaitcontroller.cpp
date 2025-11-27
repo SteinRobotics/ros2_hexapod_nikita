@@ -6,6 +6,7 @@
 
 // Concrete gait implementations
 #include "requester/gait_bodyroll.hpp"
+#include "requester/gait_clap.hpp"
 #include "requester/gait_highfive.hpp"
 #include "requester/gait_laydown.hpp"
 #include "requester/gait_legwave.hpp"
@@ -39,6 +40,8 @@ std::string movementRequestToString(MovementRequestMsg::_type_type type) {
             return "LEGS_WAVE";
         case MovementRequestMsg::BODY_ROLL:
             return "BODY_ROLL";
+        case MovementRequestMsg::CLAP:
+            return "CLAP";
         default:
             return "UNKNOWN(" + std::to_string(type) + ")";
     }
@@ -66,6 +69,7 @@ CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared
     gait_standup_ = std::make_unique<CStandUpGait>(node_, kinematics_);
     gait_laydown_ = std::make_unique<CLayDownGait>(node_, kinematics_);
     gait_highfive_ = std::make_unique<CHighFiveGait>(node_, kinematics_);
+    gait_clap_ = std::make_unique<CClapGait>(node_, kinematics_);
 
     // Default active gait
     // TODO change to Waiting?
@@ -74,15 +78,16 @@ CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared
 
 CGaitController::~CGaitController() = default;
 
-void CGaitController::setGait(CGaitController::MovementRequestType type) {
+void CGaitController::setGait(nikita_interfaces::msg::MovementRequest request) {
     RCLCPP_INFO(node_->get_logger(), "CGaitController::setGait to request %s",
-                movementRequestToString(type).c_str());
+                movementRequestToString(request.type).c_str());
 
     assert(active_gait_);
+    pending_type_ = MovementRequestMsg::NO_REQUEST;
 
     // If there's an active gait and the same gait is requested again, handle
     // transient states (Stopped -> start, Stopping -> cancelStop) and return.
-    if (type == active_type_) {
+    if (request.type == active_type_) {
         if (active_gait_->state() == EGaitState::Stopped) {
             active_gait_->start();
         }
@@ -94,25 +99,16 @@ void CGaitController::setGait(CGaitController::MovementRequestType type) {
 
     // If the active gait is not yet stopped, request stop and set pending type
     if (active_gait_->state() != EGaitState::Stopped) {
-        pending_type_ = type;
+        pending_type_ = request.type;
         active_gait_->requestStop();
         return;
     }
-
-    if (pending_type_ != MovementRequestMsg::NO_REQUEST) {
-        RCLCPP_WARN(node_->get_logger(),
-                    "CGaitController::setGait: overriding pending gait %s with new request %s",
-                    movementRequestToString(pending_type_).c_str(), movementRequestToString(type).c_str());
-        pending_type_ = MovementRequestMsg::NO_REQUEST;
-    }
-
-    switchGait(type);
+    switchGait(request.type);
 }
 
 void CGaitController::switchGait(CGaitController::MovementRequestType type) {
     RCLCPP_INFO(node_->get_logger(), "CGaitController: switching to request %s",
                 movementRequestToString(type).c_str());
-
     pending_type_ = MovementRequestMsg::NO_REQUEST;
     active_type_ = type;
     switch (type) {
@@ -139,6 +135,9 @@ void CGaitController::switchGait(CGaitController::MovementRequestType type) {
             break;
         case MovementRequestMsg::HIGH_FIVE:
             active_gait_ = gait_highfive_.get();
+            break;
+        case MovementRequestMsg::CLAP:
+            active_gait_ = gait_clap_.get();
             break;
         default:
             RCLCPP_ERROR(node_->get_logger(),

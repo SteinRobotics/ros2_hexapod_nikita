@@ -34,44 +34,44 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node,
     HEAD_MAX_YAW = node->declare_parameter<double>("HEAD_MAX_YAW", rclcpp::PARAMETER_DOUBLE);
     HEAD_MAX_PITCH = node->declare_parameter<double>("HEAD_MAX_PITCH", rclcpp::PARAMETER_DOUBLE);
 
-    sqFemurLength_ = pow(FEMUR_LENGTH, 2);
-    sqTibiaLength_ = pow(TIBIA_LENGTH, 2);
+    sq_femur_length_ = pow(FEMUR_LENGTH, 2);
+    sq_tibia_length_ = pow(TIBIA_LENGTH, 2);
 
     RCLCPP_INFO_STREAM(node_->get_logger(), "Kinematics before bodyCenterOffsets_:");
 
     // body center offsets
     for (uint32_t i = 0; i < LEG_NAMES.size(); i++) {
-        auto& legName = LEG_NAMES.at(i);
-        ELegIndex legIndex = legNameToIndex(legName);
-        bodyCenterOffsets_[legIndex].x = CENTER_TO_COXA_X.at(i);
-        bodyCenterOffsets_[legIndex].y = CENTER_TO_COXA_Y.at(i);
-        bodyCenterOffsets_[legIndex].psi = OFFSET_COXA_ANGLE_DEG.at(i);
+        auto& leg_name = LEG_NAMES.at(i);
+        ELegIndex leg_index = legNameToIndex(leg_name);
+        bodyCenterOffsets_[leg_index].x = CENTER_TO_COXA_X.at(i);
+        bodyCenterOffsets_[leg_index].y = CENTER_TO_COXA_Y.at(i);
+        bodyCenterOffsets_[leg_index].psi_deg = OFFSET_COXA_ANGLE_DEG.at(i);
     }
 
-    auto footPositionsStanding = actionPackagesParser_->getFootPositions("footPositions_standing");
-    initializeLegsNew(footPositionsStanding, body_, legs_);
-    initializeLegsNew(footPositionsStanding, body_, legsStanding_);
+    auto foot_positions_standing = actionPackagesParser_->getFootPositions("footPositions_standing");
+    initializeLegsNew(foot_positions_standing, body_, legs_);
+    initializeLegsNew(foot_positions_standing, body_, legsStanding_);
 
-    auto footPositionsLaying = actionPackagesParser_->getFootPositions("footPositions_laydown");
-    initializeLegsNew(footPositionsLaying, body_, legsLayDown_);
+    auto foot_positions_laying = actionPackagesParser_->getFootPositions("footPositions_laydown");
+    initializeLegsNew(foot_positions_laying, body_, legsLayDown_);
 
     // initialize complete_body_ with entries for all legs and copy offsets
     complete_body_.pose = CPose();
-    for (auto legIndex : magic_enum::enum_values<ELegIndex>()) {
+    for (auto leg_index : magic_enum::enum_values<ELegIndex>()) {
         CLegSegmentwise seg;
         seg.coxa.link.length_m = COXA_LENGTH;
         seg.femur.link.length_m = FEMUR_LENGTH;
         seg.tibia.link.length_m = TIBIA_LENGTH;
         // initialize coxa offset from configured body center offsets
-        seg.coxa.desc.offset_rad = deg2rad(bodyCenterOffsets_.at(legIndex).psi);
-        complete_body_.legs[legIndex] = seg;
+        seg.coxa.desc.offset_rad = deg2rad(bodyCenterOffsets_.at(leg_index).psi_deg);
+        complete_body_.legs[leg_index] = seg;
     }
     // TODO adapt bodyCenterOffsets_ to new structure
-    for (auto legIndex : magic_enum::enum_values<ELegIndex>()) {
-        auto& offset = complete_body_.bodyCenterOffsets[legIndex];
-        offset.x = bodyCenterOffsets_.at(legIndex).x;
-        offset.y = bodyCenterOffsets_.at(legIndex).y;
-        offset.psi = bodyCenterOffsets_.at(legIndex).psi;
+    for (auto leg_index : magic_enum::enum_values<ELegIndex>()) {
+        auto& offset = complete_body_.bodyCenterOffsets[leg_index];
+        offset.x = bodyCenterOffsets_.at(leg_index).x;
+        offset.y = bodyCenterOffsets_.at(leg_index).y;
+        offset.psi_deg = bodyCenterOffsets_.at(leg_index).psi_deg;
     }
 
     // Initialize joint state publisher
@@ -107,17 +107,17 @@ void CKinematics::logHeadPosition() {
 
 void CKinematics::initializeLegsNew(const std::map<ELegIndex, CPosition>& footTargets, const CPose body,
                                     std::map<ELegIndex, CLeg>& legs) {
-    for (const auto& [legIndex, footTarget] : footTargets) {
+    for (const auto& [leg_index, foot_target] : footTargets) {
         RCLCPP_DEBUG_STREAM(node_->get_logger(), "Initializing leg "
-                                                     << magic_enum::enum_name(legIndex)
-                                                     << " to foot target position x: " << footTarget.x
-                                                     << ", y: " << footTarget.y << ", z: " << footTarget.z);
+                                                     << magic_enum::enum_name(leg_index)
+                                                     << " to foot target position x: " << foot_target.x
+                                                     << ", y: " << foot_target.y << ", z: " << foot_target.z);
         auto leg = CLeg();
-        CPosition coxaPosition(bodyCenterOffsets_.at(legIndex).x, bodyCenterOffsets_.at(legIndex).y, 0.0);
-        CPosition legBase = rotate(coxaPosition, body.orientation) + body.position;
-        CPosition footRel = footTarget - legBase;
-        calcLegInverseKinematics(footRel, leg, legIndex);
-        legs[legIndex] = leg;
+        CPosition coxa_position(bodyCenterOffsets_.at(leg_index).x, bodyCenterOffsets_.at(leg_index).y, 0.0);
+        CPosition leg_base = rotate(coxa_position, body.orientation) + body.position;
+        CPosition foot_rel = foot_target - leg_base;
+        calcLegInverseKinematics(foot_rel, leg, leg_index);
+        legs[leg_index] = leg;
     }
     logLegsPositions(legs);
 }
@@ -125,12 +125,12 @@ void CKinematics::initializeLegsNew(const std::map<ELegIndex, CPosition>& footTa
 void CKinematics::moveBody(const std::map<ELegIndex, CPosition>& footTargets, const CPose body) {
     body_ = body;
 
-    for (auto& [legIndex, footTarget] : footTargets) {
-        auto& leg = legs_.at(legIndex);
-        CPosition coxaPosition(bodyCenterOffsets_.at(legIndex).x, bodyCenterOffsets_.at(legIndex).y, 0.0);
-        CPosition legBase = rotate(coxaPosition, body.orientation) + body.position;
-        CPosition footRel = footTarget - legBase;
-        calcLegInverseKinematics(footRel, leg, legIndex);
+    for (auto& [leg_index, foot_target] : footTargets) {
+        auto& leg = legs_.at(leg_index);
+        CPosition coxa_position(bodyCenterOffsets_.at(leg_index).x, bodyCenterOffsets_.at(leg_index).y, 0.0);
+        CPosition leg_base = rotate(coxa_position, body.orientation) + body.position;
+        CPosition foot_rel = foot_target - leg_base;
+        calcLegInverseKinematics(foot_rel, leg, leg_index);
     }
     logLegsPositions(legs_);
     // publish joint values after computing inverse kinematics
@@ -143,48 +143,48 @@ void CKinematics::moveBody(const std::map<ELegIndex, CPosition>& footTargets, co
 //  - ensure a CLegSegmentwise entry exists and is initialized with link lengths and offsets
 //  - call solveIKSegmentwise(hip_pose, footTarget, legSeg)
 //  - write back resulting joint angles (degrees) and foot position into the existing CLeg
-void CKinematics::moveBodyNew(const std::map<ELegIndex, CPosition>& footTargets, const CPose bodyPose) {
-    complete_body_.pose = bodyPose;
+void CKinematics::moveBodyNew(const std::map<ELegIndex, CPosition>& footTargets, const CPose body_pose) {
+    complete_body_.pose = body_pose;
 
-    for (const auto& [legIndex, footTarget] : footTargets) {
+    for (const auto& [leg_index, foot_target] : footTargets) {
         // Prepare hip pose: compute hip base position (coxa joint position) in world/body frame
-        CPosition coxaPosition(complete_body_.bodyCenterOffsets.at(legIndex).x,
-                               complete_body_.bodyCenterOffsets.at(legIndex).y, 0.0);
-        CPosition legBase = rotate(coxaPosition, bodyPose.orientation) + bodyPose.position;
+        CPosition coxa_position(complete_body_.bodyCenterOffsets.at(leg_index).x,
+                                complete_body_.bodyCenterOffsets.at(leg_index).y, 0.0);
+        CPosition leg_base = rotate(coxa_position, body_pose.orientation) + body_pose.position;
         CPose hip_pose;
-        hip_pose.position = legBase;
-        hip_pose.orientation = bodyPose.orientation;
+        hip_pose.position = leg_base;
+        hip_pose.orientation = body_pose.orientation;
 
         // Ensure an entry for this leg in complete_body_.legs exists and is initialized
-        CLegSegmentwise& legSeg = complete_body_.legs[legIndex];
+        CLegSegmentwise& leg_seg = complete_body_.legs[leg_index];
 
         // initialize geometry if missing (lengths)
-        if (legSeg.coxa.link.length_m == 0.0) {
-            legSeg.coxa.link.length_m = COXA_LENGTH;
+        if (leg_seg.coxa.link.length_m == 0.0) {
+            leg_seg.coxa.link.length_m = COXA_LENGTH;
         }
-        if (legSeg.femur.link.length_m == 0.0) {
-            legSeg.femur.link.length_m = FEMUR_LENGTH;
+        if (leg_seg.femur.link.length_m == 0.0) {
+            leg_seg.femur.link.length_m = FEMUR_LENGTH;
         }
-        if (legSeg.tibia.link.length_m == 0.0) {
-            legSeg.tibia.link.length_m = TIBIA_LENGTH;
+        if (leg_seg.tibia.link.length_m == 0.0) {
+            leg_seg.tibia.link.length_m = TIBIA_LENGTH;
         }
 
         // Set coxa offset from body center offsets (psi) if not already set
         // complete_body_.psi is stored in degrees
-        double psi_deg = complete_body_.bodyCenterOffsets.at(legIndex).psi;
-        legSeg.coxa.desc.offset_rad = deg2rad(psi_deg);
+        double psi_deg = complete_body_.bodyCenterOffsets.at(leg_index).psi_deg;
+        leg_seg.coxa.desc.offset_rad = deg2rad(psi_deg);
 
         // Call segment-wise IK: footTarget is in world/body coordinates
-        bool within_limits = solveIKSegmentwise(hip_pose, footTarget, legSeg);
+        bool within_limits = solveIKSegmentwise(hip_pose, foot_target, leg_seg);
 
         // Map results back into the simple CLeg structure used by the rest of the system
-        auto& leg = legs_.at(legIndex);
+        auto& leg = legs_.at(leg_index);
 
         // coxa: state.angle_rad is stored without the desc.offset_rad (see solveIKSegmentwise mapping)
         // earlier code and tests agree on the mapping: CLegAngles.coxa_deg == rad2deg(state.angle_rad) + OFFSET_COXA_ANGLE_DEG[idx]
-        double coxa_state_rad = legSeg.coxa.state.angle_rad;
-        double femur_state_rad = legSeg.femur.state.angle_rad;
-        double tibia_state_rad = legSeg.tibia.state.angle_rad;
+        double coxa_state_rad = leg_seg.coxa.state.angle_rad;
+        double femur_state_rad = leg_seg.femur.state.angle_rad;
+        double tibia_state_rad = leg_seg.tibia.state.angle_rad;
 
         CLegAngles outAngles;
         outAngles.coxa_deg = float(rad2deg(coxa_state_rad) + psi_deg);
@@ -196,13 +196,13 @@ void CKinematics::moveBodyNew(const std::map<ELegIndex, CPosition>& footTargets,
         // Compute the actual foot position from the (possibly clamped) segment-wise
         // joint states and write it into the simple CLeg structure. This keeps
         // `legs_` consistent with `complete_body_.legs` after IK.
-        CPosition actualFoot = computeFootPositionSegmentwise(hip_pose, legSeg);
-        leg.foot_pos_ = actualFoot;
+        CPosition actual_foot = computeFootPositionSegmentwise(hip_pose, leg_seg);
+        leg.foot_pos_ = actual_foot;
 
         // Optionally log a warning if IK had to clamp
         if (!within_limits) {
             RCLCPP_WARN_STREAM(node_->get_logger(), "moveBodyNew: IK result for "
-                                                        << magic_enum::enum_name(legIndex)
+                                                        << magic_enum::enum_name(leg_index)
                                                         << " required clamping or was out of range");
         }
     }
@@ -222,11 +222,11 @@ void CKinematics::publishJointStates() {
     msg.name.reserve(legs_.size() * 3);
     msg.position.reserve(legs_.size() * 3);
 
-    for (const auto& [legIndex, leg] : legs_) {
-        std::string legName = std::string(magic_enum::enum_name(legIndex));
-        msg.name.push_back(legName + "_coxa_joint");
-        msg.name.push_back(legName + "_femur_joint");
-        msg.name.push_back(legName + "_tibia_joint");
+    for (const auto& [leg_index, leg] : legs_) {
+        std::string leg_name = std::string(magic_enum::enum_name(leg_index));
+        msg.name.push_back(leg_name + "_coxa_joint");
+        msg.name.push_back(leg_name + "_femur_joint");
+        msg.name.push_back(leg_name + "_tibia_joint");
 
         // publish positions in radians
         msg.position.push_back(deg2rad(leg.angles_deg_.coxa_deg));
@@ -249,9 +249,9 @@ CPosition CKinematics::rotate(const CPosition& point, const COrientation& orient
     double pz = point.z;
 
     // Rotation angles are in degrees, convert to radians
-    double rollRad = deg2rad(orientation.roll);
-    double pitchRad = deg2rad(orientation.pitch);
-    double yawRad = deg2rad(orientation.yaw);
+    double rollRad = deg2rad(orientation.roll_deg);
+    double pitchRad = deg2rad(orientation.pitch_deg);
+    double yawRad = deg2rad(orientation.yaw_deg);
 
     double cosRoll = cos(rollRad);
     double sinRoll = sin(rollRad);
@@ -288,7 +288,7 @@ void CKinematics::calcLegInverseKinematics(const CPosition& targetFeetPos, CLeg&
     double sqL = pow(zOffset, 2) + pow(lLegTopView - COXA_LENGTH, 2);
     double L = sqrt(sqL);
 
-    double tmpFemur = (sqTibiaLength_ - sqFemurLength_ - sqL) / (-2 * FEMUR_LENGTH * L);
+    double tmpFemur = (sq_tibia_length_ - sq_femur_length_ - sqL) / (-2 * FEMUR_LENGTH * L);
     if (abs(tmpFemur) > 1.0) {
         RCLCPP_ERROR_STREAM(node_->get_logger(), "ERROR tmpFemur = " << tmpFemur);
         RCLCPP_ERROR_STREAM(node_->get_logger(),
@@ -297,7 +297,7 @@ void CKinematics::calcLegInverseKinematics(const CPosition& targetFeetPos, CLeg&
     }
     double agFemurRad = acos(zOffset / L) + acos(tmpFemur) - (M_PI / 2);
 
-    double tmpTibia = (sqL - sqTibiaLength_ - sqFemurLength_) / (-2 * FEMUR_LENGTH * TIBIA_LENGTH);
+    double tmpTibia = (sqL - sq_tibia_length_ - sq_femur_length_) / (-2 * FEMUR_LENGTH * TIBIA_LENGTH);
     if (abs(tmpTibia) > 1.0) {
         RCLCPP_ERROR_STREAM(node_->get_logger(), "ERROR tmpTibia = " << tmpTibia);
         RCLCPP_ERROR_STREAM(node_->get_logger(),
@@ -311,7 +311,7 @@ void CKinematics::calcLegInverseKinematics(const CPosition& targetFeetPos, CLeg&
     leg.angles_deg_.tibia_deg = float(rad2deg(agTibiaRad));
 
     // for leg local coordinate system we have to add the body center offset
-    leg.angles_deg_.coxa_deg += bodyCenterOffsets_[legIndex].psi;
+    leg.angles_deg_.coxa_deg += bodyCenterOffsets_[legIndex].psi_deg;
 
     if (leg.angles_deg_.coxa_deg > 180.0) {
         leg.angles_deg_.coxa_deg -= 360.0;
@@ -347,14 +347,14 @@ void CKinematics::setLegAngles(const ELegIndex index, const CLegAngles& angles) 
 
     // transform to leg coordinate system by subtracting the angle psi
     CLegAngles targetAngles = angles;
-    targetAngles.coxa_deg -= bodyCenterOffsets_[index].psi;
+    targetAngles.coxa_deg -= bodyCenterOffsets_[index].psi_deg;
 
     calcLegForwardKinematics(targetAngles, leg);
 
     // transform back to robot coordinate system by adding body center offset and adding psi
     leg.foot_pos_.x += bodyCenterOffsets_[index].x;
     leg.foot_pos_.y += bodyCenterOffsets_[index].y;
-    leg.angles_deg_.coxa_deg += bodyCenterOffsets_[index].psi;
+    leg.angles_deg_.coxa_deg += bodyCenterOffsets_[index].psi_deg;
 
     logLegPosition(index, leg);
 }
@@ -454,9 +454,9 @@ CPosition computeFootPositionSegmentwise(const CPosition& hip_base, const CLegSe
 CPosition computeFootPositionSegmentwise(const CPose& hip_pose, const CLegSegmentwise& leg) {
     CPosition local = computeFootPositionSegmentwise(CPosition(0.0, 0.0, 0.0), leg);
     // local currently computed relative to hip at (0,0,0). Rotate by hip orientation (roll->pitch->yaw)
-    const double roll = hip_pose.orientation.roll;
-    const double pitch = hip_pose.orientation.pitch;
-    const double yaw = hip_pose.orientation.yaw;
+    const double roll = hip_pose.orientation.roll_deg;
+    const double pitch = hip_pose.orientation.pitch_deg;
+    const double yaw = hip_pose.orientation.yaw_deg;
 
     // rotate local vector (apply roll, then pitch, then yaw)
     double local_after_roll_x = local.x;

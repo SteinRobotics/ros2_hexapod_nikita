@@ -16,13 +16,7 @@ class CServoHandlerMock : public CServoHandler {
     }
     virtual ~CServoHandlerMock() = default;
 
-    // Store a servo request (called by requester code under test)
-    void appendRequest(CRequest request) override {
-        requests_.push_back(std::make_shared<CRequest>(request));
-    }
-
-    // Non-queue request: store as well
-    void requestWithoutQueue(CRequest request) override {
+    void run(CRequest request) override {
         requests_.push_back(std::make_shared<CRequest>(request));
     }
 

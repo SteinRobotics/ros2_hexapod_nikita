@@ -43,41 +43,41 @@ class CPIDController {
         kd_ = kd;
     }
 
-    void setOutputLimits(double minOut, double maxOut) {
-        minOutput_ = std::min(minOut, maxOut);
-        maxOutput_ = std::max(minOut, maxOut);
-        hasOutputLimits_ = true;
+    void setOutputLimits(double min_out, double max_out) {
+        minOutput_ = std::min(min_out, max_out);
+        maxOutput_ = std::max(min_out, max_out);
+        has_output_limits_ = true;
     }
 
     void clearOutputLimits() {
-        hasOutputLimits_ = false;
+        has_output_limits_ = false;
         minOutput_ = -std::numeric_limits<double>::infinity();
         maxOutput_ = std::numeric_limits<double>::infinity();
     }
 
-    void setIntegralLimits(double minInt, double maxInt) {
-        minIntegral_ = std::min(minInt, maxInt);
-        maxIntegral_ = std::max(minInt, maxInt);
-        hasIntegralLimits_ = true;
+    void setIntegralLimits(double min_int, double max_int) {
+        minIntegral_ = std::min(min_int, max_int);
+        maxIntegral_ = std::max(min_int, max_int);
+        has_integral_limits_ = true;
     }
 
     void clearIntegralLimits() {
-        hasIntegralLimits_ = false;
+        has_integral_limits_ = false;
         minIntegral_ = -std::numeric_limits<double>::infinity();
         maxIntegral_ = std::numeric_limits<double>::infinity();
     }
 
     void reset() {
         integral_ = 0.0;
-        prevError_ = 0.0;
-        firstUpdate_ = true;
+        prev_error_ = 0.0;
+        first_update_ = true;
     }
 
     double getIntegral() const {
         return integral_;
     }
     double getLastError() const {
-        return prevError_;
+        return prev_error_;
     }
 
     double update(double setpoint, double measurement, double dt) {
@@ -89,7 +89,7 @@ class CPIDController {
         // Integral (only accumulate if Ki != 0)
         if (ki_ != 0.0 && dt > 0.0) {
             integral_ += error * dt;
-            if (hasIntegralLimits_) {
+            if (has_integral_limits_) {
                 integral_ = std::clamp(integral_, minIntegral_, maxIntegral_);
             }
         }
@@ -97,16 +97,16 @@ class CPIDController {
 
         // Derivative (only if Kd != 0 and not first update)
         double d = 0.0;
-        if (!firstUpdate_ && kd_ != 0.0 && dt > 0.0) {
-            double derivative = (error - prevError_) / dt;
+        if (!first_update_ && kd_ != 0.0 && dt > 0.0) {
+            double derivative = (error - prev_error_) / dt;
             d = kd_ * derivative;
         }
 
-        prevError_ = error;
-        firstUpdate_ = false;
+        prev_error_ = error;
+        first_update_ = false;
 
         double output = p + i + d;
-        if (hasOutputLimits_) {
+        if (has_output_limits_) {
             output = std::clamp(output, minOutput_, maxOutput_);
         }
         return output;
@@ -120,15 +120,15 @@ class CPIDController {
 
     // State
     double integral_ = 0.0;
-    double prevError_ = 0.0;
-    bool firstUpdate_ = true;
+    double prev_error_ = 0.0;
+    bool first_update_ = true;
 
     // Limits
-    bool hasOutputLimits_ = false;
+    bool has_output_limits_ = false;
     double minOutput_ = -std::numeric_limits<double>::infinity();
     double maxOutput_ = std::numeric_limits<double>::infinity();
 
-    bool hasIntegralLimits_ = false;
+    bool has_integral_limits_ = false;
     double minIntegral_ = -std::numeric_limits<double>::infinity();
     double maxIntegral_ = std::numeric_limits<double>::infinity();
 };

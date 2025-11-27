@@ -14,22 +14,23 @@ bool CWaitingGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const C
     if (state_ == EGaitState::Stopped) {
         return false;
     }
-    constexpr double deltaPhase = 0.1;
-    phase_ += deltaPhase;
+    constexpr double kDeltaPhase = 0.1;
+    phase_ += kDeltaPhase;
 
     // When stopping, finish current lift cycle cleanly.
-    if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, deltaPhase)) {
+    if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, kDeltaPhase)) {
         state_ = EGaitState::Stopped;
         return false;
     }
 
-    const auto baseFootPos = kinematics_->getLegsStandingPositions();
-    auto bodyTarget = CPose();
+    const auto base_foot_pos = kinematics_->getLegsStandingPositions();
+    auto body_target = CPose();
+    ;
 
-    const auto kBodyLiftHeight = 0.05;                           // 5 cm body lift for visual effect
-    bodyTarget.position.z = kBodyLiftHeight * std::sin(phase_);  // Small body bounce for visual effect
+    constexpr double kBodyLiftHeight = 0.05;                      // 5 cm body lift for visual effect
+    body_target.position.z = kBodyLiftHeight * std::sin(phase_);  // Small body bounce for visual effect
 
-    kinematics_->moveBody(baseFootPos, bodyTarget);
+    kinematics_->moveBody(base_foot_pos, body_target);
     return true;
 }
 

@@ -9,38 +9,44 @@ namespace nikita_movement {
 void CGaitLegWave::start() {
     state_ = EGaitState::Running;
     phase_ = 0.0;
-    activeLegIndex_ = ELegIndex::RightFront;
+    active_leg_index_ = ELegIndex::RightFront;
 }
 
-bool CGaitLegWave::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
+bool CGaitLegWave::update(const geometry_msgs::msg::Twist& velocity, const CPose& /*body*/) {
     if (state_ == EGaitState::Stopped) {
         return false;
     }
-    constexpr double deltaPhase = 0.1;
-    phase_ += deltaPhase;
+    // TODO: calc velocity_mag to delta_phase
+    constexpr double delta_phase = 0.1;
+    phase_ += delta_phase;
 
-    if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, deltaPhase)) {
+    if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, delta_phase)) {
         state_ = EGaitState::Stopped;
         return false;
     }
 
-    const auto baseFootPos = kinematics_->getLegsStandingPositions();
+    // TODO better use kinematics_->getLegsPositions()
+    const auto base_foot_pos = kinematics_->getLegsStandingPositions();
 
     if (phase_ >= M_PI) {
         // reset last leg to neutral position
-        kinematics_->setSingleFeet(activeLegIndex_, baseFootPos.at(activeLegIndex_));
+        kinematics_->setSingleFeet(active_leg_index_, base_foot_pos.at(active_leg_index_));
 
         // advance to the next leg
-        const auto values = magic_enum::enum_values<ELegIndex>();
-        const std::size_t idx = magic_enum::enum_index(activeLegIndex_).value();
-        activeLegIndex_ = values[(idx + 1) % values.size()];
+        int forward = true;
+        if (velocity.linear.x < 0.0) {
+            forward = false;
+        }
+        active_leg_index_ = leg_order_[(std::find(leg_order_.begin(), leg_order_.end(), active_leg_index_) -
+                                        leg_order_.begin() + (1 * forward)) %
+                                       leg_order_.size()];
         phase_ = 0.0;
     }
 
-    auto targetPosition = baseFootPos.at(activeLegIndex_);
-    targetPosition.z = baseFootPos.at(activeLegIndex_).z + kLegLiftHeight * std::sin(phase_);
+    auto target_position = base_foot_pos.at(active_leg_index_);
+    target_position.z = base_foot_pos.at(active_leg_index_).z + kLegLiftHeight * std::sin(phase_);
 
-    kinematics_->setSingleFeet(activeLegIndex_, targetPosition);
+    kinematics_->setSingleFeet(active_leg_index_, target_position);
     return true;
 }
 

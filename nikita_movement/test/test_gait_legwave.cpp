@@ -4,19 +4,18 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "requester/actionpackagesparser.hpp"
-#include "requester/gait_watch.hpp"
+#include "requester/gait_legwave.hpp"
 #include "requester/kinematics.hpp"
 
 using namespace nikita_movement;
 
 namespace {
 constexpr int kMaxIterations = 400;
-constexpr double kHeadSweepThreshold = 30.0;
-constexpr double kBodySweepThreshold = 15.0;
+constexpr double kLegLiftHeight = 0.02;
 constexpr double kTolerance = 1e-3;
 }  // namespace
 
-class WatchGaitTest : public ::testing::Test {
+class LegWaveGaitTest : public ::testing::Test {
    protected:
     void SetUp() override {
         if (!rclcpp::ok()) {
@@ -39,7 +38,7 @@ class WatchGaitTest : public ::testing::Test {
                               std::vector<double>{45.0, 90.0, 135.0, -45.0, -90.0, -135.0}),
         });
 
-        node_ = std::make_shared<rclcpp::Node>("test_gait_watch_node", options);
+        node_ = std::make_shared<rclcpp::Node>("test_gait_legwave_node", options);
         actionPackagesParser_ = std::make_shared<CActionPackagesParser>(node_);
         kinematics_ = std::make_shared<CKinematics>(node_, actionPackagesParser_);
     }
@@ -57,55 +56,37 @@ class WatchGaitTest : public ::testing::Test {
     std::shared_ptr<CKinematics> kinematics_;
 };
 
-TEST_F(WatchGaitTest, SweepsHeadAndBodyAndReturns) {
-    CWatchGait gait(node_, kinematics_);
-    const auto initialHead = kinematics_->getHead();
-    const auto initialBody = kinematics_->getBody();
+TEST_F(LegWaveGaitTest, LiftOccursDuringRun) {
+    CGaitLegWave gait(node_, kinematics_, kLegLiftHeight);
+    const auto standing = kinematics_->getLegsStandingPositions();
 
     gait.start();
     geometry_msgs::msg::Twist twist;
 
-    bool seenLeftHead = false;
-    bool seenRightHead = false;
-    bool seenLeftBody = false;
-    bool seenRightBody = false;
-
+    bool seen_lift = false;
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
         gait.update(twist, CPose());
-        const auto head = kinematics_->getHead();
-        const auto body = kinematics_->getBody();
-        if (head.yaw_deg <= initialHead.yaw_deg - kHeadSweepThreshold) {
-            seenLeftHead = true;
+        const auto pos = kinematics_->getLegsPositions();
+        for (const auto& kv : standing) {
+            const auto& idx = kv.first;
+            const auto& base = kv.second;
+            const auto& now = pos.at(idx);
+            if (now.z >= base.z + (0.5 * kLegLiftHeight)) {
+                seen_lift = true;
+                break;
+            }
         }
-        if (head.yaw_deg >= initialHead.yaw_deg + kHeadSweepThreshold) {
-            seenRightHead = true;
-        }
-        if (body.orientation.yaw_deg <= initialBody.orientation.yaw_deg - kBodySweepThreshold) {
-            seenLeftBody = true;
-        }
-        if (body.orientation.yaw_deg >= initialBody.orientation.yaw_deg + kBodySweepThreshold) {
-            seenRightBody = true;
-        }
+        if (seen_lift) break;
     }
 
-    EXPECT_TRUE(seenLeftHead);
-    EXPECT_TRUE(seenRightHead);
-    EXPECT_TRUE(seenLeftBody);
-    EXPECT_TRUE(seenRightBody);
+    EXPECT_TRUE(seen_lift);
     EXPECT_LT(iterations, kMaxIterations);
-
-    const auto finalHead = kinematics_->getHead();
-    const auto finalBody = kinematics_->getBody();
-    EXPECT_NEAR(finalHead.yaw_deg, initialHead.yaw_deg, kTolerance);
-    EXPECT_NEAR(finalHead.pitch_deg, initialHead.pitch_deg, kTolerance);
-    EXPECT_NEAR(finalBody.orientation.yaw_deg, initialBody.orientation.yaw_deg, kTolerance);
 }
 
-TEST_F(WatchGaitTest, StopRequestReturnsToOrigin) {
-    CWatchGait gait(node_, kinematics_);
-    const auto initialHead = kinematics_->getHead();
-    const auto initialBody = kinematics_->getBody();
+TEST_F(LegWaveGaitTest, StopRequestReturnsToNeutral) {
+    CGaitLegWave gait(node_, kinematics_, kLegLiftHeight);
+    const auto standing = kinematics_->getLegsStandingPositions();
 
     gait.start();
     geometry_msgs::msg::Twist twist;
@@ -123,9 +104,13 @@ TEST_F(WatchGaitTest, StopRequestReturnsToOrigin) {
 
     EXPECT_LT(iterations, kMaxIterations);
 
-    const auto finalHead = kinematics_->getHead();
-    const auto finalBody = kinematics_->getBody();
-    EXPECT_NEAR(finalHead.yaw_deg, initialHead.yaw_deg, kTolerance);
-    EXPECT_NEAR(finalHead.pitch_deg, initialHead.pitch_deg, kTolerance);
-    EXPECT_NEAR(finalBody.orientation.yaw_deg, initialBody.orientation.yaw_deg, kTolerance);
+    const auto final_pos = kinematics_->getLegsPositions();
+    for (const auto& kv : standing) {
+        const auto& idx = kv.first;
+        const auto& base = kv.second;
+        const auto& now = final_pos.at(idx);
+        EXPECT_NEAR(now.x, base.x, kTolerance);
+        EXPECT_NEAR(now.y, base.y, kTolerance);
+        EXPECT_NEAR(now.z, base.z, 1e-2);  // allow slightly larger tolerance for IK/clamping
+    }
 }

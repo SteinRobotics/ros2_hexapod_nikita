@@ -42,7 +42,7 @@ class CRequester {
    private:
     rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr m_subMovementRequest;
 
-    void initializeRequestHandlers();
+    void initialize_request_handlers();
     void requestGait(const nikita_interfaces::msg::MovementRequest& msg);
     void requestMoveToStand(const nikita_interfaces::msg::MovementRequest& msg);
     void requestWatch(const nikita_interfaces::msg::MovementRequest& msg);
@@ -58,11 +58,8 @@ class CRequester {
 
     void requestNeutral(const nikita_interfaces::msg::MovementRequest& msg);
     void requestCalibrate(const nikita_interfaces::msg::MovementRequest& msg);
-    void requestSequence(const nikita_interfaces::msg::MovementRequest& msg);
 
-    void liftLegsFirstTripodGroup();
-
-    void sendServoRequest(const double duration_s, const bool blocking = true);
+    void sendServoRequest(const double duration_s);
 
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
@@ -77,9 +74,7 @@ class CRequester {
     // rclcpp::Subscription<nikita_interfaces::msg::ServoStatus>::SharedPtr subServoStatus_;
     uint8_t activeRequest_ = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
     std::unordered_map<uint8_t, std::function<void(const nikita_interfaces::msg::MovementRequest&)>>
-        requestHandlers_;
+        request_handlers_;
     geometry_msgs::msg::Twist velocity_;
     nikita_interfaces::msg::Pose poseBody_;
-    bool transitionToMoveActive_ = false;
-    bool transitionFromMoveActive_ = false;
 };

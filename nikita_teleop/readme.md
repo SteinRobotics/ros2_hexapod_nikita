@@ -1,3 +1,13 @@
+# new
+
+https://index.ros.org/p/joy/
+ros2 run joy joy_enumerate_devices
+
+This is for topic_joy to topic_twist
+https://github.com/ros2/teleop_twist_joy
+ros2 launch teleop_twist_joy teleop-launch.py joy_config:='ps3'
+
+
 
 # pyglet
 https://github.com/pyglet/pyglet

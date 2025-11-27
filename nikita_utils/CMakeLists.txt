@@ -60,6 +60,15 @@ if(BUILD_TESTING)
     target_include_directories(test_filters PRIVATE include)
     target_link_libraries(test_filters nikita_utils)
   endif()
+
+  ament_add_gtest(test_geometry
+    test/test_geometry.cpp
+  )
+  if(TARGET test_geometry)
+    ament_target_dependencies(test_geometry rclcpp ament_index_cpp geometry_msgs nikita_interfaces)
+    target_include_directories(test_geometry PRIVATE include)
+    target_link_libraries(test_geometry nikita_utils)
+  endif()
 endif()
 
 

@@ -104,8 +104,8 @@ class CKinematics {
 
     CBody complete_body_ = {};  // rename later to body_
 
-    double sqFemurLength_ = 0.0;
-    double sqTibiaLength_ = 0.0;
+    double sq_femur_length_ = 0.0;
+    double sq_tibia_length_ = 0.0;
     // Publisher for joint states (coxa/femur/tibia for each leg)
     // Use the non-templated PublisherBase pointer here to avoid requiring
     // the sensor_msgs header in this public header file. The concrete

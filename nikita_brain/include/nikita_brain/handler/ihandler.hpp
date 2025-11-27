@@ -17,16 +17,16 @@ class IHandler {
     virtual void cancel() = 0;
 
     bool done() {
-        return isDone_;
+        return is_done_;
     };
 
     void setDone(bool state) {
-        isDone_ = state;
+        is_done_ = state;
     }
 
     // replace protected with private and use the setDone() method
    protected:
-    bool isDone_ = true;
+    bool is_done_ = true;
     rclcpp::TimerBase::SharedPtr timer_;
 };
 

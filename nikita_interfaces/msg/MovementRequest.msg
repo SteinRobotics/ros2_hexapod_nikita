@@ -1,4 +1,5 @@
 std_msgs/Header header
+# Types:
 uint8 NO_REQUEST = 0
 uint8 LAYDOWN = 1
 uint8 STAND_UP = 2
@@ -22,8 +23,13 @@ uint8 TESTLEGS = 18
 uint8 NEUTRAL = 101  # set all servos position 0, used for calibration
 uint8 CALIBRATE = 102  # set all feets to kiss point ground, used for calibration
 
+# Directions:
+uint8 CLOCKWISE = 0
+uint8 ANTICLOCKWISE = 1
+
 uint8 type 0
-float64 duration_s 1.0
+uint8 direction 0
+float64 duration_s 1.0   # duration of 1 cycle
 string name
 
 

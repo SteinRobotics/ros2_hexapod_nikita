@@ -51,25 +51,25 @@ class CSimpleTimer {
 
     /// Start the timer (records start time and marks running).
     void start() {
-        startTime_ = std::chrono::steady_clock::now();
-        isRunning_ = true;
+        start_time_ = std::chrono::steady_clock::now();
+        is_running_ = true;
     }
 
     /// Stop the timer (clears running flag). Does not cancel detached threads.
     void stop() {
-        isRunning_ = false;
+        is_running_ = false;
     }
 
     bool isRunning() const {
-        return isRunning_;
+        return is_running_;
     }
 
     /// Seconds elapsed since start() as fractional seconds. Returns 0 if not
     /// running.
     double getSecondsElapsed() const {
-        if (!isRunning_) return 0;
+        if (!is_running_) return 0;
         auto now = std::chrono::steady_clock::now();
-        std::chrono::duration<double> elapsed = now - startTime_;
+        std::chrono::duration<double> elapsed = now - start_time_;
         return elapsed.count();
     }
 
@@ -101,8 +101,8 @@ class CSimpleTimer {
     // }
 
    private:
-    std::chrono::steady_clock::time_point startTime_;
-    std::atomic<bool> isRunning_ = false;
+    std::chrono::steady_clock::time_point start_time_;
+    std::atomic<bool> is_running_ = false;
 };
 
 }  // namespace utils

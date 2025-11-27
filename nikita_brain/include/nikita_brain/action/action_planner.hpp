@@ -29,18 +29,18 @@ class CActionPlanner {
 
    private:
     std::shared_ptr<rclcpp::Node> node_;
-    std::list<std::vector<std::shared_ptr<RequestBase>>> requestsHighestPrio_;
-    std::list<std::vector<std::shared_ptr<RequestBase>>> requestsHighPrio_;
-    std::list<std::vector<std::shared_ptr<RequestBase>>> requestsNormalPrio_;
-    std::vector<std::shared_ptr<RequestBase>> activeRequests_;
-    std::vector<std::shared_ptr<RequestBase>> requestBackground_;
-    Prio activePrio_ = Prio::Background;
+    std::list<std::vector<std::shared_ptr<RequestBase>>> requests_highest_prio_;
+    std::list<std::vector<std::shared_ptr<RequestBase>>> requests_high_prio_;
+    std::list<std::vector<std::shared_ptr<RequestBase>>> requests_normal_prio_;
+    std::vector<std::shared_ptr<RequestBase>> active_requests_;
+    std::vector<std::shared_ptr<RequestBase>> request_background_;
+    Prio active_prio_ = Prio::Background;
 
     std::vector<std::shared_ptr<IHandler>> handlers_;
-    bool isDone_ = true;
-    std::shared_ptr<CSystem> handlerSystem_;
-    std::shared_ptr<CCommunication> handlerCommunication_;
-    std::shared_ptr<CMovement> handlerMovement_;
+    bool is_done_ = true;
+    std::shared_ptr<CSystem> handler_system_;
+    std::shared_ptr<CCommunication> handler_communication_;
+    std::shared_ptr<CMovement> handler_movement_;
 };
 
 }  // namespace brain

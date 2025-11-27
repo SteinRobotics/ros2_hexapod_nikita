@@ -10,7 +10,6 @@
 //
 #include "nikita_interfaces/msg/servo_index.hpp"
 //
-#include <nikita_utils/callback_timer.hpp>
 
 #include "requester/kinematics.hpp"
 #include "servo_controller.hpp"
@@ -44,19 +43,13 @@ class CServoHandler {
     CServoHandler(std::shared_ptr<rclcpp::Node> node);
     virtual ~CServoHandler() = default;
 
-    virtual void requestWithoutQueue(CRequest request);
-    virtual void appendRequest(CRequest request);
-    bool isDone();
+    virtual void run(CRequest request);
+
+    std::shared_ptr<CServoController> getServoController() const {
+        return servoController_;
+    }
 
    private:
-    void run(CRequest request, bool blocking = true);
-    void executeNextPendingRequest();
-    void cancelRunningRequest();
-    void timerCallback();
-
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CServoController> servoController_;
-    std::shared_ptr<CCallbackTimer> callbackTimer_;
-    std::list<CRequest> pendingRequests_;
-    bool isDone_ = true;
 };

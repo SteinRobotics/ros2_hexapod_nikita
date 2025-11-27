@@ -90,7 +90,7 @@ TEST_F(NewKinematicsTest, Segmentwise_IK_FK_roundtrip) {
     hip_pose.position.x = kin_->CENTER_TO_COXA_X.at(static_cast<size_t>(idx));
     hip_pose.position.y = kin_->CENTER_TO_COXA_Y.at(static_cast<size_t>(idx));
     hip_pose.position.z = kin_->COXA_HEIGHT;  // hip height
-    hip_pose.orientation.roll = hip_pose.orientation.pitch = hip_pose.orientation.yaw = 0.0;
+    hip_pose.orientation.roll_deg = hip_pose.orientation.pitch_deg = hip_pose.orientation.yaw_deg = 0.0;
 
     // forward FK (segmentwise)
     CPosition foot = computeFootPositionSegmentwise(hip_pose, leg);

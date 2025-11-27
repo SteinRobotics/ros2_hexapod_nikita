@@ -11,8 +11,8 @@ TEST(GeometryUtils, SinValueNearZero_ExactZero) {
 }
 
 TEST(GeometryUtils, SinValueNearZero_EqualSmall) {
-    double phase = 0.1;
-    double threshold = 0.1;
+    double phase = 0.09;
+    double threshold = 0.10;
     EXPECT_TRUE(isSinValueNearZero(phase, threshold));
 }
 
@@ -33,5 +33,23 @@ TEST(GeometryUtils, SinValueNearZero_NegativePhase) {
 TEST(GeometryUtils, SinValueNearZero_LargeThresholdAlwaysTrue) {
     double phase = 2.0;         // arbitrary
     double threshold = M_PI_2;  // sin(threshold) == 1
+    EXPECT_TRUE(isSinValueNearZero(phase, threshold));
+}
+
+TEST(GeometryUtils, SinValueNearZero_nearPi) {
+    double phase = M_PI - 0.05;
+    double threshold = 0.1;
+    EXPECT_TRUE(isSinValueNearZero(phase, threshold));
+}
+
+TEST(GeometryUtils, SinValueNearZero_near2Pi) {
+    double phase = TWO_PI - 0.05;
+    double threshold = 0.1;
+    EXPECT_TRUE(isSinValueNearZero(phase, threshold));
+}
+
+TEST(GeometryUtils, SinValueNearZero_nearZero) {
+    double phase = 0 + 0.05;
+    double threshold = 0.1;
     EXPECT_TRUE(isSinValueNearZero(phase, threshold));
 }

@@ -66,25 +66,27 @@ class CPosition {
 class COrientation {
    public:
     COrientation() = default;
-    COrientation(double roll, double pitch, double yaw) : roll(roll), pitch(pitch), yaw(yaw) {};
+    COrientation(double roll_deg, double pitch_deg, double yaw_deg)
+        : roll_deg(roll_deg), pitch_deg(pitch_deg), yaw_deg(yaw_deg) {};
     virtual ~COrientation() = default;
 
-    double roll = double(0);
-    double pitch = double(0);
-    double yaw = double(0);
+    double roll_deg = double(0);
+    double pitch_deg = double(0);
+    double yaw_deg = double(0);
 
     // Linear interpolation member: returns an orientation between this and 'target' at parameter alpha in [0,1]
     inline COrientation linearInterpolate(const COrientation& target, double alpha) const {
-        return COrientation(roll + (target.roll - roll) * alpha, pitch + (target.pitch - pitch) * alpha,
-                            yaw + (target.yaw - yaw) * alpha);
+        return COrientation(roll_deg + (target.roll_deg - roll_deg) * alpha,
+                            pitch_deg + (target.pitch_deg - pitch_deg) * alpha,
+                            yaw_deg + (target.yaw_deg - yaw_deg) * alpha);
     }
 };
 
 class CPose {
    public:
     CPose() = default;
-    CPose(double x, double y, double z, double roll, double pitch, double yaw)
-        : position(x, y, z), orientation(roll, pitch, yaw) {};
+    CPose(double x, double y, double z, double roll_deg, double pitch_deg, double yaw_deg)
+        : position(x, y, z), orientation(roll_deg, pitch_deg, yaw_deg) {};
     CPose(CPosition position, COrientation orientation) : position(position), orientation(orientation) {};
 
     CPose(const nikita_interfaces::msg::Pose& pose)
@@ -109,7 +111,7 @@ class CBodyCenterOffset {
    public:
     double x = double(0);
     double y = double(0);
-    double psi = double(0);
+    double psi_deg = double(0);
 };
 
 class CLegAngles {

@@ -162,14 +162,14 @@ class IRequester {
     virtual void update() = 0;
 
     void setDone(bool done) {
-        isDone_ = done;
+        is_done_ = done;
     }
-    bool isDone() {
-        return isDone_;
+    bool done() const {
+        return is_done_;
     }
 
    private:
-    bool isDone_ = false;
+    bool is_done_ = false;
 };
 
 }  // namespace brain

@@ -23,9 +23,9 @@ inline void expectAnglesNear(const CLegAngles& expected, const CLegAngles& actua
 // Compare CPose component-wise (position + orientation)
 inline void expectPoseNear(const CPose& expected, const CPose& actual, const std::string& msg = "") {
     expectPositionNear(expected.position, actual.position, msg);
-    EXPECT_DOUBLE_EQ(expected.orientation.roll, actual.orientation.roll) << msg;
-    EXPECT_DOUBLE_EQ(expected.orientation.pitch, actual.orientation.pitch) << msg;
-    EXPECT_DOUBLE_EQ(expected.orientation.yaw, actual.orientation.yaw) << msg;
+    EXPECT_DOUBLE_EQ(expected.orientation.roll_deg, actual.orientation.roll_deg) << msg;
+    EXPECT_DOUBLE_EQ(expected.orientation.pitch_deg, actual.orientation.pitch_deg) << msg;
+    EXPECT_DOUBLE_EQ(expected.orientation.yaw_deg, actual.orientation.yaw_deg) << msg;
 }
 
 // Compare CLeg (angles + foot position)

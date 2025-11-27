@@ -18,10 +18,16 @@
 
 #include <chrono>
 #include <cmath>
+#include <functional>
 #include <memory>
+#include <thread>
 
-using namespace nikita_interfaces::msg;
+#include "handler/leg_servo_conversion.hpp"
 using namespace std::chrono_literals;
+using nikita_interfaces::msg::ServoAngle;
+using nikita_interfaces::msg::ServoAngles;
+using nikita_interfaces::msg::ServoDirectRequest;
+using nikita_interfaces::msg::ServoStatus;
 using std::placeholders::_1;
 
 CServoController::CServoController(std::shared_ptr<rclcpp::Node> node) : node_(node) {
@@ -126,15 +132,18 @@ CServoController::CServoController(std::shared_ptr<rclcpp::Node> node) : node_(n
                                                     << "° | error code: " << uint32_t(servo.getErrorCode()));
     }
 
-    //
-    // here execute the callback back to CKinematics once all initial angles values are read
-
     auto msg_angles = ServoAngles();
     for (auto& [idx, servo] : servos_) {
         msg_angles.current_angles[idx].angle_deg = servo.getAngle();
         msg_angles.current_angles[idx].name = servo.getName();
     }
     msg_angles.header.stamp = node_->get_clock()->now();
+
+    if (initialAnglesCallback_) {
+        auto initial_leg_angles_deg = leg_servo_conversion::servoAnglesMsgToLegAngles(msg_angles);
+        initialAnglesCallback_(initial_leg_angles_deg);
+    }
+
     pubAngles_->publish(msg_angles);
 
     timer_ = node_->create_wall_timer(100ms, std::bind(&CServoController::onTimerStatus, this));
@@ -310,4 +319,8 @@ void CServoController::onServoDirectRequestReceived(const ServoDirectRequest& ms
         default:
             break;
     }
+}
+
+void CServoController::setInitialAnglesCallback(InitialAnglesCallback callback) {
+    initialAnglesCallback_ = std::move(callback);
 }

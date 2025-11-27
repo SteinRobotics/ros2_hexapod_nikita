@@ -35,7 +35,10 @@ class CGaitLegWave : public IGait {
     double kLegLiftHeight = double(0);
 
     double phase_ = double(0);
-    ELegIndex activeLegIndex_ = ELegIndex::RightFront;
+    ELegIndex active_leg_index_ = ELegIndex::RightFront;
+
+    std::vector<ELegIndex> leg_order_ = {ELegIndex::RightFront, ELegIndex::RightMid, ELegIndex::RightBack,
+                                         ELegIndex::LeftFront,  ELegIndex::LeftMid,  ELegIndex::LeftBack};
 };
 
 }  // namespace nikita_movement

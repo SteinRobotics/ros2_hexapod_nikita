@@ -10,25 +10,25 @@ using namespace nikita_interfaces::msg;
 namespace brain {
 
 CMovement::CMovement(std::shared_ptr<rclcpp::Node> node) : node_(node) {
-    callbackTimer_ = std::make_unique<CCallbackTimer>();
-    pubMovementType_ = node_->create_publisher<MovementRequest>("cmd_movement_type", 10);
-    pubBodyPose_ = node_->create_publisher<Pose>("cmd_body_pose", 10);
-    pubCmdVel_ = node_->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
+    callback_timer_ = std::make_unique<CCallbackTimer>();
+    pub_movement_type_ = node_->create_publisher<MovementRequest>("cmd_movement_type", 10);
+    pub_body_pose_ = node_->create_publisher<Pose>("cmd_body_pose", 10);
+    pub_cmd_vel_ = node_->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
 }
 
 void CMovement::run(std::shared_ptr<CRequestMovementType> request) {
     setDone(false);
-    pubMovementType_->publish(request->movementRequest());
-    callbackTimer_->waitSecondsNonBlocking(request->movementRequest().duration_s,
-                                           std::bind(&CMovement::timerCallback, this));
+    pub_movement_type_->publish(request->movementRequest());
+    callback_timer_->waitSecondsNonBlocking(request->movementRequest().duration_s,
+                                            std::bind(&CMovement::timerCallback, this));
 }
 
 void CMovement::run(std::shared_ptr<CRequestMoveBody> request) {
-    pubBodyPose_->publish(request->pose());
+    pub_body_pose_->publish(request->pose());
 }
 
 void CMovement::run(std::shared_ptr<CRequestMoveVelocity> request) {
-    pubCmdVel_->publish(request->velocity());
+    pub_cmd_vel_->publish(request->velocity());
 }
 
 void CMovement::timerCallback() {

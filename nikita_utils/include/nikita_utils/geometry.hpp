@@ -18,31 +18,33 @@ inline double deg2rad(double degrees) {
     return degrees * M_PI / 180.0;
 }
 
-inline bool isSinValueNearZero(double angle, double angleThreshold) {
-    auto outputLower = std::sin(angle);
-    auto outputUpper = std::sin(angle + angleThreshold);
+inline bool isSinValueNearZero(double angle_rad, double angle_rad_threshold) {
+    auto angle_rad_modulo_pi = std::fmod(angle_rad, M_PI);
 
-    int32_t signOutputLower = (outputLower >= 0.0) ? 1 : -1;
-    int32_t signOutputUpper = (outputUpper >= 0.0) ? 1 : -1;
-
-    return signOutputLower != signOutputUpper;
+    if (std::abs(angle_rad_modulo_pi) <= angle_rad_threshold) {
+        return true;
+    }
+    if (std::abs(angle_rad_modulo_pi - M_PI) <= angle_rad_threshold) {
+        return true;
+    }
+    return false;
 }
 
-inline bool isCosValueNearZero(double angle, double angleThreshold) {
-    auto outputLower = std::cos(angle);
-    auto outputUpper = std::cos(angle + angleThreshold);
+inline bool isCosValueNearZero(double angle, double angle_threshold) {
+    auto output_lower = std::cos(angle);
+    auto output_upper = std::cos(angle + angle_threshold);
 
-    int32_t signOutputLower = (outputLower >= 0.0) ? 1 : -1;
-    int32_t signOutputUpper = (outputUpper >= 0.0) ? 1 : -1;
+    int32_t sign_output_lower = (output_lower >= 0.0) ? 1 : -1;
+    int32_t sign_output_upper = (output_upper >= 0.0) ? 1 : -1;
 
-    return signOutputLower != signOutputUpper;
+    return sign_output_lower != sign_output_upper;
 }
 
 // M_PI_4 means that sin and cos values are equal at that point
-inline bool areSinCosValuesEqual(double angle, double angleThreshold) {
-    auto angleModulo = std::fmod(std::abs(angle), M_PI_4);
-    auto diff = angleModulo - M_PI_4;
-    return std::abs(diff) <= angleThreshold;
+inline bool areSinCosValuesEqual(double angle_rad, double angle_rad_threshold) {
+    auto angle_modulo = std::fmod(std::abs(angle_rad), M_PI_4);
+    auto diff = angle_modulo - M_PI_4;
+    return std::abs(diff) <= angle_rad_threshold;
 }
 
 }  // namespace utils

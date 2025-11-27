@@ -7,12 +7,13 @@ namespace nikita_movement {
 constexpr double TIME_TO_WAIT_BEFORE_STOP_SEC = 3.0;
 
 CTripodGait::CTripodGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
-                         double legLiftHeight, double gaitStepLength, double factorVelocityToGaitCycleTime)
+                         double leg_lift_height, double gait_step_length,
+                         double factor_velocity_to_gait_cycle_time)
     : node_(std::move(node)),
       kinematics_(std::move(kinematics)),
-      legLiftHeight_(legLiftHeight),
-      gaitStepLength_(gaitStepLength),
-      factorVelocityToGaitCycleTime_(factorVelocityToGaitCycleTime) {
+      leg_lift_height_(leg_lift_height),
+      gait_step_length_(gait_step_length),
+      factor_velocity_to_gait_cycle_time_(factor_velocity_to_gait_cycle_time) {
     no_velocity_timer_.stop();
 }
 
@@ -31,6 +32,7 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
             no_velocity_timer_.start();
         } else if (no_velocity_timer_.haveSecondsElapsed(TIME_TO_WAIT_BEFORE_STOP_SEC)) {
             requestStop();
+            no_velocity_timer_.stop();
         }
         return false;
     }
@@ -61,77 +63,83 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
     double norm_rot = angular_z / combined_mag;
 
     // the velocity is taken into account to calculate the gait cycle time with combined_mag
-    double deltaPhase = factorVelocityToGaitCycleTime_ * combined_mag;
-    phase_ += deltaPhase;
+    double delta_phase = factor_velocity_to_gait_cycle_time_ * combined_mag;
+    phase_ += delta_phase;
 
     // this if condition is only relevant for the first movement of the FirstTripod legs and only for 0 < phase_ < M_PI_4
     // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
     if (state_ == EGaitState::Starting && phase_ > M_PI_4) {
         state_ = EGaitState::Running;
     }
-    if (state_ == EGaitState::StopPending && utils::areSinCosValuesEqual(phase_, deltaPhase)) {
+    if (state_ == EGaitState::StopPending && utils::areSinCosValuesEqual(phase_, delta_phase)) {
+        RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopping state, pahse_: %.4f",
+                    phase_);
         state_ = EGaitState::Stopping;
     }
-    if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, deltaPhase)) {
+    if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, delta_phase)) {
+        RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopped state, phase_: %.4f",
+                    phase_);
+        phase_ = 0.0;
         state_ = EGaitState::Stopped;
-        return false;
+        // run one last update
     }
 
     // RCLCPP_INFO(node_->get_logger(), "CGaitController::updateTripodGait: phase: %.4f", phase_);
 
-    std::map<ELegIndex, CPosition> targetPositions;
+    std::map<ELegIndex, CPosition> target_positions;
 
     for (auto& [index, leg] : kinematics_->getLegs()) {
-        bool isFirstTripodActive = std::ranges::find(groupFirstTripod_, index) != groupFirstTripod_.end();
+        bool is_first_tripod_active =
+            std::ranges::find(group_first_tripod_, index) != group_first_tripod_.end();
 
-        double phaseOffset = isFirstTripodActive ? 0.0 : M_PI;
-        double phaseWithOffset = phase_ + phaseOffset + M_PI_2;
+        double phase_offset = is_first_tripod_active ? 0.0 : M_PI;
+        double phase_with_offset = phase_ + phase_offset + M_PI_2;
 
-        double step = gaitStepLength_ * cos(phaseWithOffset);
+        double step = gait_step_length_ * cos(phase_with_offset);
 
         double lift = 0.0;
         if (state_ == EGaitState::Running || state_ == EGaitState::StopPending) {
-            lift = legLiftHeight_ * std::max(0.0, sin(phaseWithOffset));
+            lift = leg_lift_height_ * std::max(0.0, sin(phase_with_offset));
         } else if (state_ == EGaitState::Starting || state_ == EGaitState::Stopping) {
             // this if condition is only relevant for the first movement of the FirstTripod legs and only for 0 < phase_ < M_PI_4
             // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
 
             // Starting is using the first half of the sine (0 to M_PI_4) to lift the leg up, target is 1
             // Stopping is using the second half of the sine wave (M_PI_4 to M_PI_2), to bring the leg down, target is 0
-            lift = legLiftHeight_ * std::max(0.0, sin(phase_));
+            lift = leg_lift_height_ * std::max(0.0, sin(phase_));
         }
 
-        const auto baseFootPos = kinematics_->getLegsStandingPositions().at(index);
+        const auto base_foot_pos = kinematics_->getLegsStandingPositions().at(index);
 
         // linear
-        double deltaX = norm_x * step;
-        double deltaY = norm_y * step;
+        double delta_x = norm_x * step;
+        double delta_y = norm_y * step;
 
         // rotation
-        double legVecX = baseFootPos.x;
-        double legVecY = baseFootPos.y;
-        double len = std::sqrt(legVecX * legVecX + legVecY * legVecY);
+        double leg_vec_x = base_foot_pos.x;
+        double leg_vec_y = base_foot_pos.y;
+        double len = std::sqrt(leg_vec_x * leg_vec_x + leg_vec_y * leg_vec_y);
 
-        double rotX = 0.0;
-        double rotY = 0.0;
+        double rot_x = 0.0;
+        double rot_y = 0.0;
 
         if (len > 1e-6) {
-            double dirX = -legVecY / len;
-            double dirY = legVecX / len;
+            double dir_x = -leg_vec_y / len;
+            double dir_y = leg_vec_x / len;
 
-            rotX = dirX * step * norm_rot;
-            rotY = dirY * step * norm_rot;
+            rot_x = dir_x * step * norm_rot;
+            rot_y = dir_y * step * norm_rot;
         }
 
         CPosition target;
-        target.x = baseFootPos.x + deltaX + rotX;
-        target.y = baseFootPos.y + deltaY + rotY;
-        target.z = baseFootPos.z + lift;
+        target.x = base_foot_pos.x + delta_x + rot_x;
+        target.y = base_foot_pos.y + delta_y + rot_y;
+        target.z = base_foot_pos.z + lift;
 
-        targetPositions[index] = target;
+        target_positions[index] = target;
     }
 
-    kinematics_->moveBody(targetPositions, body);
+    kinematics_->moveBody(target_positions, body);
 
     constexpr double MAX_HEAD_YAW_AMPLITUDE_DEG = 15.0;
     kinematics_->getHead().yaw_deg = MAX_HEAD_YAW_AMPLITUDE_DEG * std::sin(phase_);

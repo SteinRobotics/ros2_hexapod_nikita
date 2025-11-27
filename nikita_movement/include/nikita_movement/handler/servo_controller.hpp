@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -15,6 +16,7 @@
 #include "nikita_interfaces/msg/servo_direct_request.hpp"
 #include "nikita_interfaces/msg/servo_status.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "requester/types.hpp"
 #include "servo_protocol.hpp"
 #include "std_msgs/msg/header.hpp"
 
@@ -112,6 +114,9 @@ class CServoController {
     void onServoDirectRequestReceived(const nikita_interfaces::msg::ServoDirectRequest& msg);
     void triggerConnection();
 
+    using InitialAnglesCallback = std::function<void(const std::map<ELegIndex, CLegAngles>&)>;
+    void setInitialAnglesCallback(InitialAnglesCallback callback);
+
    private:
     void onTimerStatus();
 
@@ -133,4 +138,5 @@ class CServoController {
     rclcpp::Time lastTime_;
 
     std::shared_ptr<CServoProtocol> protocol_;
+    InitialAnglesCallback initialAnglesCallback_ = nullptr;
 };

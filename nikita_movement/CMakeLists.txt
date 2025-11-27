@@ -33,11 +33,13 @@ set(SOURCES
   src/requester/gait_ripple.cpp
   src/requester/gait_bodyroll.cpp
   src/requester/gait_legwave.cpp
+  src/requester/gait_look.cpp
   src/requester/gait_waiting.cpp
   src/requester/gait_watch.cpp
   src/requester/gait_standup.cpp
   src/requester/gait_laydown.cpp
   src/requester/gait_highfive.cpp
+  src/requester/gait_clap.cpp
   src/handler/servohandler.cpp
   src/handler/servo_controller.cpp
   src/handler/servo_protocol.cpp
@@ -133,6 +135,14 @@ if(BUILD_TESTING)
     target_link_libraries(test_gait_highfive nikita_movement_core)
   endif()
 
+  ament_add_gtest(test_gait_clap
+    test/test_gait_clap.cpp
+  )
+  if(TARGET test_gait_clap)
+    ament_target_dependencies(test_gait_clap rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
+    target_link_libraries(test_gait_clap nikita_movement_core)
+  endif()
+
   ament_add_gtest(test_gait_watch
     test/test_gait_watch.cpp
   )
@@ -157,6 +167,31 @@ if(BUILD_TESTING)
     ament_target_dependencies(test_moveBodyNew_publish rclcpp ament_index_cpp nikita_interfaces sensor_msgs)
     target_include_directories(test_moveBodyNew_publish PRIVATE include)
     target_link_libraries(test_moveBodyNew_publish nikita_movement_core)
+  endif()
+
+  ament_add_gtest(test_leg_servo_conversion
+    test/test_leg_servo_conversion.cpp
+  )
+  if(TARGET test_leg_servo_conversion)
+    ament_target_dependencies(test_leg_servo_conversion rclcpp nikita_interfaces)
+    target_include_directories(test_leg_servo_conversion PRIVATE include)
+    target_link_libraries(test_leg_servo_conversion nikita_movement_core)
+  endif()
+
+  ament_add_gtest(test_gait_legwave
+    test/test_gait_legwave.cpp
+  )
+  if(TARGET test_gait_legwave)
+    ament_target_dependencies(test_gait_legwave rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
+    target_link_libraries(test_gait_legwave nikita_movement_core)
+  endif()
+
+  ament_add_gtest(test_gait_controller
+    test/test_gait_controller.cpp
+  )
+  if(TARGET test_gait_controller)
+    ament_target_dependencies(test_gait_controller rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
+    target_link_libraries(test_gait_controller nikita_movement_core)
   endif()
 
 

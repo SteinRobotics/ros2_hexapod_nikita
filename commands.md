@@ -77,27 +77,9 @@ ros2 topic pub --once /cmd_movement_type nikita_interfaces/msg/MovementRequest "
     sec: 0
     nanosec: 0
   frame_id: ''
-type: 1
-duration_ms: 2000
-name: 'manual'
-velocity:
-  linear:
-    x: 0.00
-    y: 0.0
-    z: 0.0
-  angular:
-    x: 0.0
-    y: 0.0
-    z: 0.0
-body:
-  position:
-    x: 0.0
-    y: 0.0
-    z: 0.0
-  orientation:
-    roll: 0.0
-    pitch: 0.0
-    yaw: 0.0
+type: 12
+duration_s: 2000
+name: 'BODY_ROLL'
 "
 ---
 

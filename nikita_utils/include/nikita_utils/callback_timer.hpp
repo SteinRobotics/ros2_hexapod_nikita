@@ -48,16 +48,16 @@ class CCallbackTimer {
 
     /// Start the timer (marks running).
     void start() {
-        isRunning_ = true;
+        is_running_ = true;
     }
 
     /// Stop the timer (clears running flag). Does not cancel detached threads.
     void stop() {
-        isRunning_ = false;
+        is_running_ = false;
     }
 
     bool isRunning() const {
-        return isRunning_;
+        return is_running_;
     }
 
     /**
@@ -75,7 +75,7 @@ class CCallbackTimer {
         // Run the callback in a detached thread and stop the timer after callback runs.
         std::thread([seconds, callback, this]() {
             std::this_thread::sleep_for(std::chrono::duration<double>(seconds));
-            if (isRunning_) {
+            if (is_running_) {
                 callback();
             }
             // mark timer stopped after callback
@@ -84,7 +84,7 @@ class CCallbackTimer {
     }
 
    private:
-    std::atomic<bool> isRunning_ = false;
+    std::atomic<bool> is_running_ = false;
 };
 
 }  // namespace utils

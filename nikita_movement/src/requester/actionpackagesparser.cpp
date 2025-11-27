@@ -31,7 +31,7 @@ void CActionPackagesParser::readYaml() {
                 RCLCPP_DEBUG_STREAM(node_->get_logger(), "Skipping non-sequence top-level key: " << key);
                 continue;
             }
-            std::vector<CActionPackage> actionPackage;
+            std::vector<CActionPackage> action_package;
             for (const auto& step : it.second) {
                 // each step should be a map describing head/body/legs/footPositions
                 if (!step.IsMap()) {
@@ -39,9 +39,9 @@ void CActionPackagesParser::readYaml() {
                                        "Skipping invalid step (not a map) in package: " << key);
                     continue;
                 }
-                parseYamlStep(step, actionPackage);
+                parseYamlStep(step, action_package);
             }
-            actionPackages_[key] = actionPackage;
+            actionPackages_[key] = action_package;
         }
     } catch (const std::exception& e) {
         RCLCPP_ERROR_STREAM(node_->get_logger(), "Error parsing YAML: " << yaml_path << " : " << e.what());
@@ -121,13 +121,13 @@ void CActionPackagesParser::parsePresetLegAngles(const std::string& key, const Y
     }
     // Per-leg overrides
     for (auto it2 = val.begin(); it2 != val.end(); ++it2) {
-        const std::string legName = it2->first.as<std::string>();
-        if (legName == "All") continue;
+        const std::string leg_name = it2->first.as<std::string>();
+        if (leg_name == "All") continue;
         const YAML::Node& node = it2->second;
         if (!node || !node.IsMap()) continue;
-        auto idxOpt = magic_enum::enum_cast<ELegIndex>(legName);
+        auto idxOpt = magic_enum::enum_cast<ELegIndex>(leg_name);
         if (!idxOpt.has_value()) {
-            RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in legAngles preset: " << legName);
+            RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in legAngles preset: " << leg_name);
             continue;
         }
         const double coxa = node["coxa"] ? node["coxa"].as<double>() : 0.0;
@@ -151,13 +151,13 @@ void CActionPackagesParser::parsePresetFootPositions(const std::string& key, con
     }
     // Per-leg overrides
     for (auto it2 = val.begin(); it2 != val.end(); ++it2) {
-        const std::string legName = it2->first.as<std::string>();
-        if (legName == "All") continue;
+        const std::string leg_name = it2->first.as<std::string>();
+        if (leg_name == "All") continue;
         const YAML::Node& node = it2->second;
         if (!node || !node.IsMap()) continue;
-        auto idxOpt = magic_enum::enum_cast<ELegIndex>(legName);
+        auto idxOpt = magic_enum::enum_cast<ELegIndex>(leg_name);
         if (!idxOpt.has_value()) {
-            RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in footPositions preset: " << legName);
+            RCLCPP_DEBUG_STREAM(node_->get_logger(), "Unknown leg key in footPositions preset: " << leg_name);
             continue;
         }
         const double x = node["x"] ? node["x"].as<double>() : 0.0;
@@ -174,13 +174,13 @@ void CActionPackagesParser::parsePresetHead(const std::string& key, const YAML::
 }
 
 void CActionPackagesParser::parsePresetBody(const std::string& key, const YAML::Node& val) {
-    double roll = 0.0, pitch = 0.0, yaw = 0.0;
+    double roll_deg = 0.0, pitch_deg = 0.0, yaw_deg = 0.0;
     double x = 0.0, y = 0.0, z = 0.0;
     if (val["orientation"] && val["orientation"].IsMap()) {
         const auto& o = val["orientation"];
-        roll = o["roll"] ? o["roll"].as<double>() : 0.0;
-        pitch = o["pitch"] ? o["pitch"].as<double>() : 0.0;
-        yaw = o["yaw"] ? o["yaw"].as<double>() : 0.0;
+        roll_deg = o["roll"] ? o["roll"].as<double>() : 0.0;
+        pitch_deg = o["pitch"] ? o["pitch"].as<double>() : 0.0;
+        yaw_deg = o["yaw"] ? o["yaw"].as<double>() : 0.0;
     }
     if (val["direction"] && val["direction"].IsMap()) {
         const auto& d = val["direction"];
@@ -188,11 +188,11 @@ void CActionPackagesParser::parsePresetBody(const std::string& key, const YAML::
         y = d["y"] ? d["y"].as<double>() : 0.0;
         z = d["z"] ? d["z"].as<double>() : 0.0;
     }
-    defaultBodies_[key] = CPose(x, y, z, roll, pitch, yaw);
+    defaultBodies_[key] = CPose(x, y, z, roll_deg, pitch_deg, yaw_deg);
 }
 
 void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
-                                          std::vector<CActionPackage>& actionPackage) {
+                                          std::vector<CActionPackage>& action_package) {
     CActionPackage action;
 
     // No debug dumps: keep output quiet in CI
@@ -224,7 +224,7 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
         if (!posMap.empty()) action.footPositions = posMap;
     }
 
-    actionPackage.push_back(action);
+    action_package.push_back(action);
 }
 
 std::vector<CActionPackage>& CActionPackagesParser::getRequests(const std::string& packageName) {
@@ -290,7 +290,7 @@ CHead CActionPackagesParser::parseHeadNode(const YAML::Node& headNode) {
 }
 
 CPose CActionPackagesParser::parseBodyNode(const YAML::Node& bodyNode) {
-    double roll = 0.0, pitch = 0.0, yaw = 0.0;
+    double roll_deg = 0.0, pitch_deg = 0.0, yaw_deg = 0.0;
     double x = 0.0, y = 0.0, z = 0.0;
 
     std::vector<YAML::Node> bodyEntries;
@@ -305,14 +305,14 @@ CPose CActionPackagesParser::parseBodyNode(const YAML::Node& bodyNode) {
             YAML::Node orientNode = entry["orientation"];
             if (orientNode.IsSequence()) {
                 for (const auto& orientationEntry : orientNode) {
-                    if (orientationEntry["roll"]) roll = orientationEntry["roll"].as<double>();
-                    if (orientationEntry["pitch"]) pitch = orientationEntry["pitch"].as<double>();
-                    if (orientationEntry["yaw"]) yaw = orientationEntry["yaw"].as<double>();
+                    if (orientationEntry["roll"]) roll_deg = orientationEntry["roll"].as<double>();
+                    if (orientationEntry["pitch"]) pitch_deg = orientationEntry["pitch"].as<double>();
+                    if (orientationEntry["yaw"]) yaw_deg = orientationEntry["yaw"].as<double>();
                 }
             } else if (orientNode.IsMap()) {
-                if (orientNode["roll"]) roll = orientNode["roll"].as<double>();
-                if (orientNode["pitch"]) pitch = orientNode["pitch"].as<double>();
-                if (orientNode["yaw"]) yaw = orientNode["yaw"].as<double>();
+                if (orientNode["roll"]) roll_deg = orientNode["roll"].as<double>();
+                if (orientNode["pitch"]) pitch_deg = orientNode["pitch"].as<double>();
+                if (orientNode["yaw"]) yaw_deg = orientNode["yaw"].as<double>();
             }
         }
         if (entry["direction"]) {
@@ -331,7 +331,7 @@ CPose CActionPackagesParser::parseBodyNode(const YAML::Node& bodyNode) {
         }
     }
 
-    return CPose(x, y, z, roll, pitch, yaw);
+    return CPose(x, y, z, roll_deg, pitch_deg, yaw_deg);
 }
 
 std::map<ELegIndex, CLegAngles> CActionPackagesParser::parseLegAnglesNode(const YAML::Node& legsNode) {

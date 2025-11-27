@@ -16,6 +16,7 @@
 #include "nikita_utils/geometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "requester/gait_bodyroll.hpp"
+#include "requester/gait_clap.hpp"
 #include "requester/gait_highfive.hpp"
 #include "requester/gait_laydown.hpp"
 #include "requester/gait_legwave.hpp"
@@ -35,7 +36,7 @@ class CGaitController {
 
     using MovementRequestType = nikita_interfaces::msg::MovementRequest::_type_type;
 
-    void setGait(MovementRequestType type);
+    void setGait(nikita_interfaces::msg::MovementRequest request);
     MovementRequestType currentGait() const {
         return active_type_;
     }
@@ -59,6 +60,7 @@ class CGaitController {
     std::unique_ptr<nikita_movement::IGait> gait_standup_;
     std::unique_ptr<nikita_movement::IGait> gait_laydown_;
     std::unique_ptr<nikita_movement::IGait> gait_highfive_;
+    std::unique_ptr<nikita_movement::IGait> gait_clap_;
 
     double kFactorVelocityToGaitCycleTime = double(0);
     double kLegLiftHeight = double(0);

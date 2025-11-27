@@ -110,17 +110,17 @@ CWatchGait::PoseTarget CWatchGait::composeTarget(double headYawDelta, double hea
     PoseTarget target;
     target.headYaw = initial_head_.yaw_deg + headYawDelta;
     target.headPitch = initial_head_.pitch_deg + headPitchDelta;
-    target.bodyRoll = initial_body_pose_.orientation.roll;
-    target.bodyPitch = initial_body_pose_.orientation.pitch;
-    target.bodyYaw = initial_body_pose_.orientation.yaw + bodyYawDelta;
+    target.bodyRoll = initial_body_pose_.orientation.roll_deg;
+    target.bodyPitch = initial_body_pose_.orientation.pitch_deg;
+    target.bodyYaw = initial_body_pose_.orientation.yaw_deg + bodyYawDelta;
     return target;
 }
 
 CWatchGait::PoseTarget CWatchGait::captureCurrentTarget() const {
     const auto head = kinematics_->getHead();
     const auto body = kinematics_->getBody();
-    return PoseTarget{head.yaw_deg, head.pitch_deg, body.orientation.roll, body.orientation.pitch,
-                      body.orientation.yaw};
+    return PoseTarget{head.yaw_deg, head.pitch_deg, body.orientation.roll_deg, body.orientation.pitch_deg,
+                      body.orientation.yaw_deg};
 }
 
 }  // namespace nikita_movement
