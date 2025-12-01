@@ -4,6 +4,8 @@
 
 #include "requester/gaitcontroller.hpp"
 
+#include <magic_enum.hpp>
+
 // Concrete gait implementations
 #include "requester/gait_bodyroll.hpp"
 #include "requester/gait_clap.hpp"
@@ -16,40 +18,16 @@
 #include "requester/gait_waiting.hpp"
 #include "requester/gait_watch.hpp"
 
-namespace {
-
-using MovementRequestMsg = nikita_interfaces::msg::MovementRequest;
-
-std::string movementRequestToString(MovementRequestMsg::_type_type type) {
-    switch (type) {
-        case MovementRequestMsg::NO_REQUEST:
-            return "NO_REQUEST";
-        case MovementRequestMsg::MOVE_TRIPOD:
-            return "MOVE_TRIPOD";
-        case MovementRequestMsg::WATCH:
-            return "WATCH";
-        case MovementRequestMsg::WAITING:
-            return "WAITING";
-        case MovementRequestMsg::STAND_UP:
-            return "STAND_UP";
-        case MovementRequestMsg::LAYDOWN:
-            return "LAYDOWN";
-        case MovementRequestMsg::HIGH_FIVE:
-            return "HIGH_FIVE";
-        case MovementRequestMsg::LEGS_WAVE:
-            return "LEGS_WAVE";
-        case MovementRequestMsg::BODY_ROLL:
-            return "BODY_ROLL";
-        case MovementRequestMsg::CLAP:
-            return "CLAP";
-        default:
-            return "UNKNOWN(" + std::to_string(type) + ")";
-    }
-}
-
-}  // namespace
-
+using nikita_interfaces::msg::MovementRequest;
 using namespace nikita_movement;
+
+nikita_interfaces::msg::MovementRequest CGaitController::createMsg(std::string name,
+                                                                   MovementRequestType type) {
+    nikita_interfaces::msg::MovementRequest msg;
+    msg.name = name;
+    msg.type = type;
+    return msg;
+}
 
 CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
     : node_(node), kinematics_(kinematics) {
@@ -59,35 +37,34 @@ CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared
     kLegLiftHeight = node->declare_parameter<double>("LEG_LIFT_HEIGHT", rclcpp::PARAMETER_DOUBLE);
 
     // Create all gait instances
-    gait_tripod_ = std::make_unique<CTripodGait>(node_, kinematics_, kLegLiftHeight, kGaitStepLength,
-                                                 kFactorVelocityToGaitCycleTime);
-    gait_ripple_ = std::make_unique<CRippleGait>(node_, kinematics_);
-    gait_bodyroll_ = std::make_unique<CBodyRollGait>(node_, kinematics_);
-    gait_legwave_ = std::make_unique<CGaitLegWave>(node_, kinematics_, kLegLiftHeight);
-    gait_waiting_ = std::make_unique<CWaitingGait>(node_, kinematics_, kLegLiftHeight);
-    gait_watch_ = std::make_unique<CWatchGait>(node_, kinematics_);
-    gait_standup_ = std::make_unique<CStandUpGait>(node_, kinematics_);
-    gait_laydown_ = std::make_unique<CLayDownGait>(node_, kinematics_);
-    gait_highfive_ = std::make_unique<CHighFiveGait>(node_, kinematics_);
-    gait_clap_ = std::make_unique<CClapGait>(node_, kinematics_);
+    gaits_[MovementRequest::MOVE_TRIPOD] = std::make_shared<CTripodGait>(
+        node_, kinematics_, kLegLiftHeight, kGaitStepLength, kFactorVelocityToGaitCycleTime);
+    gaits_[MovementRequest::MOVE_RIPPLE] = std::make_shared<CRippleGait>(node_, kinematics_);
+    gaits_[MovementRequest::BODY_ROLL] = std::make_shared<CBodyRollGait>(node_, kinematics_);
+    gaits_[MovementRequest::LEGS_WAVE] = std::make_shared<CGaitLegWave>(node_, kinematics_, kLegLiftHeight);
+    gaits_[MovementRequest::WAITING] = std::make_shared<CWaitingGait>(node_, kinematics_, kLegLiftHeight);
+    gaits_[MovementRequest::WATCH] = std::make_shared<CWatchGait>(node_, kinematics_);
+    gaits_[MovementRequest::STAND_UP] = std::make_shared<CStandUpGait>(node_, kinematics_);
+    gaits_[MovementRequest::LAYDOWN] = std::make_shared<CLayDownGait>(node_, kinematics_);
+    gaits_[MovementRequest::HIGH_FIVE] = std::make_shared<CHighFiveGait>(node_, kinematics_);
+    gaits_[MovementRequest::CLAP] = std::make_shared<CClapGait>(node_, kinematics_);
 
     // Default active gait
-    // TODO change to Waiting?
-    active_gait_ = gait_tripod_.get();
+    active_gait_ = gaits_[MovementRequest::STAND_UP];
+    active_request_ = createMsg("STAND_UP", MovementRequest::STAND_UP);
+    pending_request_ = createMsg("NO_REQUEST", MovementRequest::NO_REQUEST);
 }
 
 CGaitController::~CGaitController() = default;
 
 void CGaitController::setGait(nikita_interfaces::msg::MovementRequest request) {
-    RCLCPP_INFO(node_->get_logger(), "CGaitController::setGait to request %s",
-                movementRequestToString(request.type).c_str());
+    RCLCPP_INFO(node_->get_logger(), "CGaitController::setGait to request %s", request.name.c_str());
 
-    assert(active_gait_);
-    pending_type_ = MovementRequestMsg::NO_REQUEST;
+    pending_request_ = createMsg("NO_REQUEST", MovementRequest::NO_REQUEST);
 
     // If there's an active gait and the same gait is requested again, handle
     // transient states (Stopped -> start, Stopping -> cancelStop) and return.
-    if (request.type == active_type_) {
+    if (request.type == active_request_.type) {
         if (active_gait_->state() == EGaitState::Stopped) {
             active_gait_->start();
         }
@@ -99,65 +76,36 @@ void CGaitController::setGait(nikita_interfaces::msg::MovementRequest request) {
 
     // If the active gait is not yet stopped, request stop and set pending type
     if (active_gait_->state() != EGaitState::Stopped) {
-        pending_type_ = request.type;
+        pending_request_ = request;
         active_gait_->requestStop();
         return;
     }
-    switchGait(request.type);
+    switchGait(request);
 }
 
-void CGaitController::switchGait(CGaitController::MovementRequestType type) {
-    RCLCPP_INFO(node_->get_logger(), "CGaitController: switching to request %s",
-                movementRequestToString(type).c_str());
-    pending_type_ = MovementRequestMsg::NO_REQUEST;
-    active_type_ = type;
-    switch (type) {
-        case MovementRequestMsg::MOVE_TRIPOD:
-            active_gait_ = gait_tripod_.get();
-            break;
-        case MovementRequestMsg::BODY_ROLL:
-            active_gait_ = gait_bodyroll_.get();
-            break;
-        case MovementRequestMsg::LEGS_WAVE:
-            active_gait_ = gait_legwave_.get();
-            break;
-        case MovementRequestMsg::WAITING:
-            active_gait_ = gait_waiting_.get();
-            break;
-        case MovementRequestMsg::WATCH:
-            active_gait_ = gait_watch_.get();
-            break;
-        case MovementRequestMsg::STAND_UP:
-            active_gait_ = gait_standup_.get();
-            break;
-        case MovementRequestMsg::LAYDOWN:
-            active_gait_ = gait_laydown_.get();
-            break;
-        case MovementRequestMsg::HIGH_FIVE:
-            active_gait_ = gait_highfive_.get();
-            break;
-        case MovementRequestMsg::CLAP:
-            active_gait_ = gait_clap_.get();
-            break;
-        default:
-            RCLCPP_ERROR(node_->get_logger(),
-                         "CGaitController::setGait: requested gait not available for request %s",
-                         movementRequestToString(type).c_str());
-            return;
-    }
+void CGaitController::switchGait(nikita_interfaces::msg::MovementRequest request) {
+    RCLCPP_INFO_STREAM(node_->get_logger(), "CGaitController: switching to request " << request.name);
+    pending_request_ = createMsg("NO_REQUEST", MovementRequest::NO_REQUEST);
+    active_request_ = request;
 
+    if (!gaits_.contains(request.type)) {
+        RCLCPP_ERROR_STREAM(
+            node_->get_logger(),
+            "CGaitController::setGait: requested gait not available for request " << request.name);
+        return;
+    }
+    active_gait_ = gaits_[request.type];
     active_gait_->start();
 }
 
 bool CGaitController::updateSelectedGait(const geometry_msgs::msg::Twist& velocity, CPose body) {
-    assert(active_gait_);
-    if (pending_type_ != MovementRequestMsg::NO_REQUEST && active_gait_->state() == EGaitState::Stopped) {
-        switchGait(pending_type_);
+    if (pending_request_.type != MovementRequest::NO_REQUEST &&
+        active_gait_->state() == EGaitState::Stopped) {
+        switchGait(pending_request_);
     }
     return active_gait_->update(velocity, body);
 }
 
 void CGaitController::requestStopSelectedGait() {
-    assert(active_gait_);
     active_gait_->requestStop();
 }

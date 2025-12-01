@@ -38,7 +38,7 @@ class CGaitController {
 
     void setGait(nikita_interfaces::msg::MovementRequest request);
     MovementRequestType currentGait() const {
-        return active_type_;
+        return active_request_.type;
     }
 
     bool updateSelectedGait(const geometry_msgs::msg::Twist& velocity,
@@ -46,27 +46,20 @@ class CGaitController {
     void requestStopSelectedGait();
 
    private:
-    void switchGait(MovementRequestType type);
+    void switchGait(nikita_interfaces::msg::MovementRequest request);
+    static nikita_interfaces::msg::MovementRequest createMsg(std::string name, MovementRequestType type);
 
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
 
-    std::unique_ptr<nikita_movement::IGait> gait_tripod_;
-    std::unique_ptr<nikita_movement::IGait> gait_ripple_;
-    std::unique_ptr<nikita_movement::IGait> gait_bodyroll_;
-    std::unique_ptr<nikita_movement::IGait> gait_legwave_;
-    std::unique_ptr<nikita_movement::IGait> gait_waiting_;
-    std::unique_ptr<nikita_movement::IGait> gait_watch_;
-    std::unique_ptr<nikita_movement::IGait> gait_standup_;
-    std::unique_ptr<nikita_movement::IGait> gait_laydown_;
-    std::unique_ptr<nikita_movement::IGait> gait_highfive_;
-    std::unique_ptr<nikita_movement::IGait> gait_clap_;
+    std::map<MovementRequestType, std::shared_ptr<nikita_movement::IGait>> gaits_;
 
     double kFactorVelocityToGaitCycleTime = double(0);
     double kLegLiftHeight = double(0);
     double kGaitStepLength = double(0);
 
-    nikita_movement::IGait* active_gait_ = nullptr;
-    MovementRequestType pending_type_ = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
-    MovementRequestType active_type_ = nikita_interfaces::msg::MovementRequest::MOVE_TRIPOD;
+    std::shared_ptr<nikita_movement::IGait> active_gait_ = nullptr;
+
+    nikita_interfaces::msg::MovementRequest active_request_;
+    nikita_interfaces::msg::MovementRequest pending_request_;
 };
