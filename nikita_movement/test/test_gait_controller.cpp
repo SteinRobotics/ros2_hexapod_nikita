@@ -84,17 +84,17 @@ class GaitControllerTest : public ::testing::Test {
     std::unique_ptr<CGaitController> controller_;
 };
 
-// Test: Verify default gait is MOVE_TRIPOD
-TEST_F(GaitControllerTest, DefaultGaitIsTripod) {
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::MOVE_TRIPOD);
+// Test: Verify default gait is STAND_UP
+TEST_F(GaitControllerTest, DefaultGaitIsStandUp) {
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::STAND_UP);
 }
 
-// Test: Switch from TRIPOD to WAITING
-TEST_F(GaitControllerTest, SwitchFromTripodToWaiting) {
+// Test: Switch from STAND_UP to WAITING
+TEST_F(GaitControllerTest, SwitchFromStandUpToWaiting) {
     auto vel = createZeroVelocity();
 
-    // Verify we start with TRIPOD
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::MOVE_TRIPOD);
+    // Verify we start with STAND_UP
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::STAND_UP);
 
     // Request stop and wait for it to complete
     controller_->requestStopSelectedGait();
@@ -266,8 +266,8 @@ TEST_F(GaitControllerTest, RequestSameGaitTwice) {
 TEST_F(GaitControllerTest, SwitchWhileRunning) {
     auto vel = createForwardVelocity();
 
-    // Start with TRIPOD running
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::MOVE_TRIPOD);
+    // Start with STAND_UP running
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::STAND_UP);
 
     // Run a few iterations to ensure gait is active
     for (int i = 0; i < 5; ++i) {
