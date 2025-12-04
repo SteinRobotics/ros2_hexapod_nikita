@@ -118,6 +118,7 @@ class CServoController {
     void setInitialAnglesCallback(InitialAnglesCallback callback);
 
    private:
+    void initServos();
     void onTimerStatus();
 
     double ticks_to_angle(int ticks, int idx);

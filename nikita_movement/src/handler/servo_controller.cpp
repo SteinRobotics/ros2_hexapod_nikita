@@ -82,7 +82,9 @@ CServoController::CServoController(std::shared_ptr<rclcpp::Node> node) : node_(n
 
     pubAngles_ = node_->create_publisher<ServoAngles>("servo_angles", 10);
     pubStatus_ = node_->create_publisher<ServoStatus>("servo_status", 10);
+}
 
+void CServoController::initServos() {
     RCLCPP_INFO_STREAM(node_->get_logger(), "CServoController: initializing servos... " << servos_.size());
 
     for (auto& [idx, servo] : servos_) {
@@ -140,6 +142,7 @@ CServoController::CServoController(std::shared_ptr<rclcpp::Node> node) : node_(n
     msg_angles.header.stamp = node_->get_clock()->now();
 
     if (initialAnglesCallback_) {
+        RCLCPP_INFO_STREAM(node_->get_logger(), "initial servo angles received, invoking callback.");
         auto initial_leg_angles_deg = leg_servo_conversion::servoAnglesMsgToLegAngles(msg_angles);
         initialAnglesCallback_(initial_leg_angles_deg);
     }
@@ -322,5 +325,7 @@ void CServoController::onServoDirectRequestReceived(const ServoDirectRequest& ms
 }
 
 void CServoController::setInitialAnglesCallback(InitialAnglesCallback callback) {
+    RCLCPP_INFO(node_->get_logger(), "setInitialAnglesCallback");
     initialAnglesCallback_ = std::move(callback);
+    initServos();
 }

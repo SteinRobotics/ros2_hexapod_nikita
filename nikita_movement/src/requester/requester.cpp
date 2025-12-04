@@ -18,12 +18,15 @@ CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServ
         servoHandler_ = std::make_shared<CServoHandler>(node);
     }
 
-    if (auto controller = servoHandler_->getServoController()) {
-        controller->setInitialAnglesCallback([this](const std::map<ELegIndex, CLegAngles>& initial_angles) {
-            for (const auto& [leg_index, leg_angles] : initial_angles) {
-                kinematics_->setLegAngles(leg_index, leg_angles);
-            }
-        });
+    if (auto servo_controller = servoHandler_->getServoController()) {
+        servo_controller->setInitialAnglesCallback(
+            [this](const std::map<ELegIndex, CLegAngles>& initial_angles) {
+                RCLCPP_INFO_STREAM(node_->get_logger(),
+                                   "on Callback: initial servo angles received, setting kinematics.");
+                for (const auto& [leg_index, leg_angles] : initial_angles) {
+                    kinematics_->setLegAngles(leg_index, leg_angles);
+                }
+            });
     }
 
     initialize_request_handlers();

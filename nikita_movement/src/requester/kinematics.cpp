@@ -133,8 +133,6 @@ void CKinematics::moveBody(const std::map<ELegIndex, CPosition>& footTargets, co
         calcLegInverseKinematics(foot_rel, leg, leg_index);
     }
     logLegsPositions(legs_);
-    // publish joint values after computing inverse kinematics
-    publishJointStates();
 }
 
 // New moveBody implementation using the segment-wise IK solver (solveIKSegmentwise).
