@@ -14,6 +14,7 @@ CTripodGait::CTripodGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKi
       leg_lift_height_(leg_lift_height),
       gait_step_length_(gait_step_length),
       factor_velocity_to_gait_cycle_time_(factor_velocity_to_gait_cycle_time) {
+    head_max_yaw_amplitude_ = node_->declare_parameter<double>("HEAD_MAX_YAW_TRIPOD", 15.0);
     no_velocity_timer_.stop();
 }
 
@@ -72,7 +73,7 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
         state_ = EGaitState::Running;
     }
     if (state_ == EGaitState::StopPending && utils::areSinCosValuesEqual(phase_, delta_phase)) {
-        RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopping state, pahse_: %.4f",
+        RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopping state, phase_: %.4f",
                     phase_);
         state_ = EGaitState::Stopping;
     }
@@ -83,8 +84,6 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
         state_ = EGaitState::Stopped;
         // run one last update
     }
-
-    // RCLCPP_INFO(node_->get_logger(), "CGaitController::updateTripodGait: phase: %.4f", phase_);
 
     std::map<ELegIndex, CPosition> target_positions;
 
@@ -141,8 +140,7 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
 
     kinematics_->moveBody(target_positions, body);
 
-    constexpr double MAX_HEAD_YAW_AMPLITUDE_DEG = 15.0;
-    kinematics_->getHead().yaw_deg = MAX_HEAD_YAW_AMPLITUDE_DEG * std::sin(phase_);
+    kinematics_->getHead().yaw_deg = head_max_yaw_amplitude_ * std::sin(phase_);
     return true;
 }
 

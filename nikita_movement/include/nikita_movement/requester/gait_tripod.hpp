@@ -35,6 +35,7 @@ class CTripodGait : public IGait {
     double leg_lift_height_ = double(0);
     double gait_step_length_ = double(0);
     double factor_velocity_to_gait_cycle_time_ = double(0);
+    double head_max_yaw_amplitude_ = double(0);
     EGaitState state_ = EGaitState::Stopped;
 
     bool use_group1_ = true;
