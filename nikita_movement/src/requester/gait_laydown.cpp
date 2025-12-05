@@ -15,7 +15,7 @@ CLayDownGait::CLayDownGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     : node_(std::move(node)), kinematics_(std::move(kinematics)) {
 }
 
-void CLayDownGait::start() {
+void CLayDownGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     RCLCPP_INFO(node_->get_logger(), "CLayDownGait::start called, beginning laydown gait.");
     phase_ = 0.0;
     origin_positions_ = kinematics_->getLegsPositions();

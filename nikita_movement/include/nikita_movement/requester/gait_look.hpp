@@ -13,10 +13,9 @@ namespace nikita_movement {
 
 class CGaitHeadLook {
    public:
-    CGaitHeadLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
-                  double amplitude_deg = 15.0, double speed = 1.0);
+    CGaitHeadLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
 
-    void start();
+    void start(double duration_s, uint8_t direction);
     bool update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/);
     void requestStop();
     void cancelStop();

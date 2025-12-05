@@ -17,7 +17,7 @@ CWatchGait::CWatchGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKine
     : node_(std::move(node)), kinematics_(std::move(kinematics)) {
 }
 
-void CWatchGait::start() {
+void CWatchGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     initial_head_ = kinematics_->getHead();
     initial_body_pose_ = kinematics_->getBody();
     base_foot_positions_ = kinematics_->getLegsPositions();

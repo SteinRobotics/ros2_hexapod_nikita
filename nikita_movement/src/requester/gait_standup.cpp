@@ -15,7 +15,7 @@ CStandUpGait::CStandUpGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     : node_(std::move(node)), kinematics_(std::move(kinematics)) {
 }
 
-void CStandUpGait::start() {
+void CStandUpGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     RCLCPP_INFO(node_->get_logger(), "CStandUpGait::start called, beginning standup gait.");
     phase_ = 0.0;
     origin_positions_ = kinematics_->getLegsPositions();

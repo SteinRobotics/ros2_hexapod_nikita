@@ -21,7 +21,7 @@ CClapGait::CClapGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinema
     : node_(std::move(node)), kinematics_(std::move(kinematics)) {
 }
 
-void CClapGait::start() {
+void CClapGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     // Store initial positions
     initial_foot_positions_ = kinematics_->getLegsPositions();
     initial_body_pose_ = kinematics_->getBody();

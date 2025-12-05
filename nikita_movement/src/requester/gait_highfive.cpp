@@ -17,7 +17,7 @@ CHighFiveGait::CHighFiveGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr
     : node_(std::move(node)), kinematics_(std::move(kinematics)) {
 }
 
-void CHighFiveGait::start() {
+void CHighFiveGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     initial_leg_angles_ = kinematics_->getAngles(ELegIndex::RightFront);
     initial_head_ = kinematics_->getHead();
 

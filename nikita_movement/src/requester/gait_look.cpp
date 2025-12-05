@@ -7,15 +7,11 @@ namespace nikita_movement {
 constexpr double DEFAULT_PHASE_INCREMENT = 0.05;
 constexpr double EPSILON_PHASE = 1e-9;
 
-CGaitHeadLook::CGaitHeadLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
-                             double amplitude_deg, double speed)
-    : node_(std::move(node)),
-      kinematics_(std::move(kinematics)),
-      amplitude_deg_(amplitude_deg),
-      speed_(speed) {
+CGaitHeadLook::CGaitHeadLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
+    : node_(node), kinematics_(kinematics) {
 }
 
-void CGaitHeadLook::start() {
+void CGaitHeadLook::start(double /*duration_s*/, uint8_t /*direction*/) {
     state_ = EGaitState::Starting;
     phase_ = 0.0;
 }

@@ -60,7 +60,7 @@ void CGaitController::setGait(nikita_interfaces::msg::MovementRequest request) {
     // transient states (Stopped -> start, Stopping -> cancelStop) and return.
     if (request.type == active_request_.type) {
         if (active_gait_->state() == EGaitState::Stopped) {
-            active_gait_->start();
+            active_gait_->start(request.duration_s, request.direction);
         }
         if (active_gait_->state() == EGaitState::Stopping) {
             active_gait_->cancelStop();
@@ -85,7 +85,7 @@ void CGaitController::switchGait(nikita_interfaces::msg::MovementRequest request
     active_request_ = request;
 
     active_gait_ = gaits_[request.type];
-    active_gait_->start();
+    active_gait_->start(request.duration_s, request.direction);
 }
 
 bool CGaitController::updateSelectedGait(const geometry_msgs::msg::Twist& velocity, CPose body) {

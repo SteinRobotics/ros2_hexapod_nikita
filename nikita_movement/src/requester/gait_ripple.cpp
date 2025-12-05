@@ -8,7 +8,7 @@ CRippleGait::CRippleGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKi
     : node_(std::move(node)), kinematics_(std::move(kinematics)) {
 }
 
-void CRippleGait::start() {
+void CRippleGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     state_ = EGaitState::Starting;
     state_ = EGaitState::Running;
 }

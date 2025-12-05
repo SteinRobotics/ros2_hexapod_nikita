@@ -8,7 +8,7 @@ CWaitingGait::CWaitingGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     kLegLiftHeight_ = node_->declare_parameter<double>("LEG_LIFT_HEIGHT_WAITING", rclcpp::PARAMETER_DOUBLE);
 }
 
-void CWaitingGait::start() {
+void CWaitingGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     // Directly enter Running; no distinct Starting phase needed.
     state_ = EGaitState::Running;
     phase_ = 0.0;

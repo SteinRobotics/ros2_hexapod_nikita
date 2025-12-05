@@ -17,7 +17,7 @@ class CGaitLegWave : public IGait {
     CGaitLegWave(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
     ~CGaitLegWave() override = default;
 
-    void start() override;
+    void start(double duration_s, uint8_t direction) override;
     bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body) override;
     void requestStop() override;
     void cancelStop() override;

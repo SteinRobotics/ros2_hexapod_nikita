@@ -17,7 +17,7 @@ CTripodGait::CTripodGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKi
     target_positions_ = kinematics_->getLegsStandingPositions();
 }
 
-void CTripodGait::start() {
+void CTripodGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     state_ = EGaitState::Starting;
     phase_ = 0.0;
 }

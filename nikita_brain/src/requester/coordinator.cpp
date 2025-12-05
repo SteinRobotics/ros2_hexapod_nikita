@@ -165,13 +165,16 @@ void CCoordinator::speechRecognized(std::string text) {
         submitRequestMove(MovementRequest::WATCH, 5.0, "ich schaue mich um", Prio::High);
     } else if (command == "commandTurnHead") {
         uint8_t direction = 0;
+        std::string text = "";
         if (textInterpreter_->lettersIdentified("links", identifiedWords)) {
             direction = MovementRequest::ANTICLOCKWISE;
+            text = "ich schaue nach links";
         } else if (textInterpreter_->lettersIdentified("rechts", identifiedWords)) {
             direction = MovementRequest::CLOCKWISE;
+            text = "ich schaue nach rechts";
         }
-        submitRequestMove(MovementRequest::LOOK, 3.0, "ich schaue nach rechts", Prio::High, std::nullopt,
-                          std::nullopt, direction);
+        submitRequestMove(MovementRequest::LOOK, 3.0, text, Prio::High, std::nullopt, std::nullopt,
+                          direction);
     } else if (command == "commandMove") {
         constexpr double kVelocityLinear_ = 0.005;
         geometry_msgs::msg::Twist velocity;

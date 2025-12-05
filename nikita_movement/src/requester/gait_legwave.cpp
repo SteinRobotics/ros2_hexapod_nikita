@@ -12,7 +12,7 @@ CGaitLegWave::CGaitLegWave(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
         node_->declare_parameter<double>("GAIT_LEG_WAVE_LEG_LIFT_HEIGHT", rclcpp::PARAMETER_DOUBLE);
 }
 
-void CGaitLegWave::start() {
+void CGaitLegWave::start(double /*duration_s*/, uint8_t /*direction*/) {
     state_ = EGaitState::Running;
     phase_ = 0.0;
     active_leg_index_ = ELegIndex::RightFront;

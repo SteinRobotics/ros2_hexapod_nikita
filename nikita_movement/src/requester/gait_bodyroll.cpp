@@ -8,7 +8,7 @@ CBodyRollGait::CBodyRollGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr
     : node_(std::move(node)), kinematics_(std::move(kinematics)) {
 }
 
-void CBodyRollGait::start() {
+void CBodyRollGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     state_ = EGaitState::Starting;
     phase_ = 0.0;
 }
