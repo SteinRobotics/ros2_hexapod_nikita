@@ -87,11 +87,13 @@ class CCoordinator : public IRequester {
     bool isStanding_ = false;
     bool isRelayOn_ = false;
 
-    float param_velocity_factor_linear_ = 0.0;
-    float param_velocity_factor_rotation_ = 0.0;
-    float param_body_factor_height_ = 0.0;
-    float param_joystick_deadzone_ = 0.0;
-    float param_activate_movement_waiting_ = false;
+    double kVelocityFactorLinear_ = 0.0;
+    double kVelocityFactorRotation_ = 0.0;
+    double kBodyFactorHeight_ = 0.0;
+    double kMinBodyHeight_ = 0.0;
+    double kMaxBodyHeight_ = 0.0;
+    double kJoystickDeadzone_ = 0.0;
+    bool kActivateMovementWaiting_ = false;
 
     std::map<const uint32_t, const std::string> movementTypeName_ = {
         {nikita_interfaces::msg::MovementRequest::NO_REQUEST, "NO_REQUEST"},

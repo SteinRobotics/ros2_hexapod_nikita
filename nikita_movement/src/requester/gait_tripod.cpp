@@ -4,15 +4,15 @@
 
 namespace nikita_movement {
 
-constexpr double TIME_TO_WAIT_BEFORE_STOP_SEC = 3.0;
+constexpr double kTimeToWaitBeforeStopSec = 3.0;
 
 CTripodGait::CTripodGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
-    : node_(std::move(node)), kinematics_(std::move(kinematics)) {
+    : node_(node), kinematics_(kinematics) {
     kFactorVelocityToGaitCycleTime_ =
         node_->declare_parameter<double>("FACTOR_VELOCITY_TO_GAIT_CYCLE_TIME", rclcpp::PARAMETER_DOUBLE);
     kGaitStepLength_ = node_->declare_parameter<double>("GAIT_STEP_LENGTH", rclcpp::PARAMETER_DOUBLE);
     kLegLiftHeight_ = node_->declare_parameter<double>("LEG_LIFT_HEIGHT", rclcpp::PARAMETER_DOUBLE);
-    kHeadMaxYawAmplitude_ = node_->declare_parameter<double>("HEAD_MAX_YAW_TRIPOD", 15.0);
+    kHeadMaxYawAmplitude_ = node_->declare_parameter<double>("HEAD_MAX_YAW_TRIPOD", rclcpp::PARAMETER_DOUBLE);
     no_velocity_timer_.stop();
 }
 
@@ -29,7 +29,7 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
     if (utils::isTwistZero(velocity) && state_ == EGaitState::Running) {
         if (!no_velocity_timer_.isRunning()) {
             no_velocity_timer_.start();
-        } else if (no_velocity_timer_.haveSecondsElapsed(TIME_TO_WAIT_BEFORE_STOP_SEC)) {
+        } else if (no_velocity_timer_.haveSecondsElapsed(kTimeToWaitBeforeStopSec)) {
             requestStop();
             no_velocity_timer_.stop();
         }

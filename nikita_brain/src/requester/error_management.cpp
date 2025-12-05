@@ -10,37 +10,36 @@ namespace brain {
 
 CErrorManagement::CErrorManagement(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     node_->declare_parameter("supply_voltage", rclcpp::PARAMETER_DOUBLE);
-    param_supply_voltage_ = node_->get_parameter("supply_voltage").get_parameter_value().get<std::float_t>();
+    ksupply_voltage_ = node_->get_parameter("supply_voltage").get_parameter_value().get<std::float_t>();
     node_->declare_parameter("supply_voltage_low", rclcpp::PARAMETER_DOUBLE);
-    param_supply_voltage_low_ =
+    ksupply_voltage_low_ =
         node_->get_parameter("supply_voltage_low").get_parameter_value().get<std::float_t>();
     node_->declare_parameter("supply_voltage_critical_low", rclcpp::PARAMETER_DOUBLE);
-    param_supply_voltage_critical_low_ =
+    ksupply_voltage_critical_low_ =
         node_->get_parameter("supply_voltage_critical_low").get_parameter_value().get<std::float_t>();
 
     node_->declare_parameter("servo_voltage", rclcpp::PARAMETER_DOUBLE);
-    param_servo_voltage_ = node_->get_parameter("servo_voltage").get_parameter_value().get<std::float_t>();
+    kservo_voltage_ = node_->get_parameter("servo_voltage").get_parameter_value().get<std::float_t>();
     node_->declare_parameter("servo_voltage_low", rclcpp::PARAMETER_DOUBLE);
-    param_servo_voltage_low_ =
-        node_->get_parameter("servo_voltage_low").get_parameter_value().get<std::float_t>();
+    kservo_voltage_low_ = node_->get_parameter("servo_voltage_low").get_parameter_value().get<std::float_t>();
     node_->declare_parameter("servo_voltage_critical_low", rclcpp::PARAMETER_DOUBLE);
-    param_servo_voltage_critical_low_ =
+    kservo_voltage_critical_low_ =
         node_->get_parameter("servo_voltage_critical_low").get_parameter_value().get<std::float_t>();
 
     node->declare_parameter("servo_temperature_high", rclcpp::PARAMETER_DOUBLE);
-    param_servo_temperature_high_ =
+    kservo_temperature_high_ =
         node->get_parameter("servo_temperature_high").get_parameter_value().get<std::float_t>();
 
     node->declare_parameter("servo_temperature_critical_high", rclcpp::PARAMETER_DOUBLE);
-    param_servo_temperature_critical_high_ =
+    kservo_temperature_critical_high_ =
         node->get_parameter("servo_temperature_critical_high").get_parameter_value().get<std::float_t>();
 
-    supplyVoltageFiltered_ = param_supply_voltage_;
-    servoVoltageFiltered_ = param_servo_voltage_;
+    supplyVoltageFiltered_ = ksupply_voltage_;
+    servoVoltageFiltered_ = kservo_voltage_;
 
     for (int i = 0; i < 10; i++) {
-        filterForSupplyVoltage_.push_back(param_supply_voltage_);
-        filterForServoVoltage_.push_back(param_servo_voltage_);
+        filterForSupplyVoltage_.push_back(ksupply_voltage_);
+        filterForServoVoltage_.push_back(kservo_voltage_);
     }
 }
 
@@ -58,7 +57,7 @@ EError CErrorManagement::getErrorServo(const ServoStatus& msg) {
 
 // private methods:
 EError CErrorManagement::getStatusServoTemperature(const ServoStatus& msg) {
-    if (msg.max_temperature > param_servo_temperature_critical_high_) {
+    if (msg.max_temperature > kservo_temperature_critical_high_) {
         RCLCPP_ERROR_STREAM(node_->get_logger(), "Servo temperature of "
                                                      << msg.servo_max_temperature << " is critical: "
                                                      << to_string_with_precision(msg.max_temperature, 0)
@@ -66,7 +65,7 @@ EError CErrorManagement::getStatusServoTemperature(const ServoStatus& msg) {
 
         return EError::TemperatureCriticalHigh;
     }
-    if (msg.max_temperature > param_servo_temperature_high_) {
+    if (msg.max_temperature > kservo_temperature_high_) {
         RCLCPP_WARN_STREAM(node_->get_logger(),
                            "Servo temperature of "
                                << msg.servo_max_temperature
@@ -106,14 +105,12 @@ float CErrorManagement::calculateAverageValue(std::deque<float>& filteredValues,
 
 EError CErrorManagement::filterSupplyVoltage(float voltage) {
     auto supplyVoltageFiltered_ = calculateAverageValue(filterForSupplyVoltage_, voltage);
-    return getStatusVoltage(supplyVoltageFiltered_, param_supply_voltage_low_,
-                            param_supply_voltage_critical_low_);
+    return getStatusVoltage(supplyVoltageFiltered_, ksupply_voltage_low_, ksupply_voltage_critical_low_);
 }
 
 EError CErrorManagement::filterServoVoltage(const ServoStatus& msg) {
     auto servoVoltageFiltered_ = calculateAverageValue(filterForServoVoltage_, msg.max_voltage);
-    return getStatusVoltage(servoVoltageFiltered_, param_servo_voltage_low_,
-                            param_servo_voltage_critical_low_);
+    return getStatusVoltage(servoVoltageFiltered_, kservo_voltage_low_, kservo_voltage_critical_low_);
 }
 
 float CErrorManagement::getFilteredSupplyVoltage() {

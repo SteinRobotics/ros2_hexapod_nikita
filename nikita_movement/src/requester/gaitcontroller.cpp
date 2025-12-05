@@ -74,6 +74,8 @@ void CGaitController::setGait(nikita_interfaces::msg::MovementRequest request) {
         active_gait_->requestStop();
         return;
     }
+
+    // Otherwise, switch immediately
     switchGait(request);
 }
 
@@ -82,12 +84,6 @@ void CGaitController::switchGait(nikita_interfaces::msg::MovementRequest request
     pending_request_ = createMsg("NO_REQUEST", MovementRequest::NO_REQUEST);
     active_request_ = request;
 
-    if (!gaits_.contains(request.type)) {
-        RCLCPP_ERROR_STREAM(
-            node_->get_logger(),
-            "CGaitController::setGait: requested gait not available for request " << request.name);
-        return;
-    }
     active_gait_ = gaits_[request.type];
     active_gait_->start();
 }

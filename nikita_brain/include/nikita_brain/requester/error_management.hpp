@@ -59,16 +59,16 @@ class CErrorManagement {
 
     std::shared_ptr<rclcpp::Node> node_;
 
-    float param_supply_voltage_ = 0.0;
-    float param_supply_voltage_low_ = 0.0;
-    float param_supply_voltage_critical_low_ = 0.0;
+    float ksupply_voltage_ = 0.0;
+    float ksupply_voltage_low_ = 0.0;
+    float ksupply_voltage_critical_low_ = 0.0;
 
-    float param_servo_voltage_ = 0.0;
-    float param_servo_voltage_low_ = 0.0;
-    float param_servo_voltage_critical_low_ = 0.0;
+    float kservo_voltage_ = 0.0;
+    float kservo_voltage_low_ = 0.0;
+    float kservo_voltage_critical_low_ = 0.0;
 
-    float param_servo_temperature_high_ = 0.0;
-    float param_servo_temperature_critical_high_ = 0.0;
+    float kservo_temperature_high_ = 0.0;
+    float kservo_temperature_critical_high_ = 0.0;
 
     float supplyVoltageFiltered_ = 0.0;
     std::deque<float> filterForSupplyVoltage_;

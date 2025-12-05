@@ -16,19 +16,25 @@ CCoordinator::CCoordinator(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     textInterpreter_ = std::make_shared<CTextInterpreter>(node_);
     errorManagement_ = std::make_shared<CErrorManagement>(node_);
 
-    param_velocity_factor_linear_ = node->declare_parameter<std::float_t>("velocity_factor_linear");
-    param_velocity_factor_rotation_ = node->declare_parameter<std::float_t>("velocity_factor_rotation");
-    param_body_factor_height_ = node->declare_parameter<std::float_t>("body_factor_height");
-    param_joystick_deadzone_ = node->declare_parameter<std::float_t>("joystick_deadzone");
+    kVelocityFactorLinear_ =
+        node->declare_parameter<double>("velocity_factor_linear", rclcpp::PARAMETER_DOUBLE);
+    kVelocityFactorRotation_ =
+        node->declare_parameter<double>("velocity_factor_rotation", rclcpp::PARAMETER_DOUBLE);
+    kBodyFactorHeight_ = node->declare_parameter<double>("body_factor_height", rclcpp::PARAMETER_DOUBLE);
+    kJoystickDeadzone_ = node->declare_parameter<double>("joystick_deadzone", rclcpp::PARAMETER_DOUBLE);
+    kMinBodyHeight_ =
+        node->declare_parameter<double>("min_body_height", rclcpp::PARAMETER_DOUBLE);  // negative value
+    kMaxBodyHeight_ =
+        node->declare_parameter<double>("max_body_height", rclcpp::PARAMETER_DOUBLE);  // positive value
 
     if (node->declare_parameter<bool>("autostart_listening")) {
         submitSingleRequest<RequestListening>(Prio::Background, true);
     }
 
-    param_activate_movement_waiting_ = node->declare_parameter<bool>("activate_movement_waiting");
+    kActivateMovementWaiting_ = node->declare_parameter<bool>("activate_movement_waiting");
     timerMovementRequest_ = std::make_shared<CCallbackTimer>();
     timerErrorRequest_ = std::make_shared<CSimpleTimer>();
-    timerNoRequest_ = std::make_shared<CSimpleTimer>(param_activate_movement_waiting_);
+    timerNoRequest_ = std::make_shared<CSimpleTimer>(kActivateMovementWaiting_);
     // timerLeaveMove_ = std::make_shared<CCallbackTimer>();
 }
 
@@ -89,29 +95,26 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     // LEFT_STICK -> linear movement
     // float32 left_stick_vertical   # TOP  = -1.0, DOWN = 1.0,  hangs on 0.004 -> means 0.0
     auto velocity = geometry_msgs::msg::Twist();
-    if (msg.left_stick_vertical > param_joystick_deadzone_ ||
-        msg.left_stick_vertical < -param_joystick_deadzone_) {
-        velocity.linear.x = msg.left_stick_vertical * param_velocity_factor_linear_;
+    if (msg.left_stick_vertical > kJoystickDeadzone_ || msg.left_stick_vertical < -kJoystickDeadzone_) {
+        velocity.linear.x = msg.left_stick_vertical * kVelocityFactorLinear_;
         newMovementType = MovementRequest::MOVE_TRIPOD;
     }
     // float32 left_stick_horizontal # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
-    if (msg.left_stick_horizontal > param_joystick_deadzone_ ||
-        msg.left_stick_horizontal < -param_joystick_deadzone_) {
-        velocity.linear.y = msg.left_stick_horizontal * param_velocity_factor_linear_;
+    if (msg.left_stick_horizontal > kJoystickDeadzone_ || msg.left_stick_horizontal < -kJoystickDeadzone_) {
+        velocity.linear.y = msg.left_stick_horizontal * kVelocityFactorLinear_;
         newMovementType = MovementRequest::MOVE_TRIPOD;
     }
     // RIGHT_STICK -> rotation
     // float32 right_stick_horizontal  # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
-    if (msg.right_stick_horizontal > param_joystick_deadzone_ ||
-        msg.right_stick_horizontal < -param_joystick_deadzone_) {
-        velocity.angular.z = msg.right_stick_horizontal * param_velocity_factor_rotation_;
+    if (msg.right_stick_horizontal > kJoystickDeadzone_ || msg.right_stick_horizontal < -kJoystickDeadzone_) {
+        velocity.angular.z = msg.right_stick_horizontal * kVelocityFactorRotation_;
         newMovementType = MovementRequest::MOVE_TRIPOD;
     }
 
     // float32 right_stick_vertical    # TOP  = -1.0, DOWN = 1.0, hangs on 0.004 -> means 0.0
-    if (msg.right_stick_vertical > param_joystick_deadzone_ ||
-        msg.right_stick_vertical < -param_joystick_deadzone_) {
-        body.position.z = msg.right_stick_vertical * param_body_factor_height_;
+    if (msg.right_stick_vertical > kJoystickDeadzone_ || msg.right_stick_vertical < -kJoystickDeadzone_) {
+        body.position.z = msg.right_stick_vertical * kBodyFactorHeight_;
+        body.position.z = std::clamp(body.position.z, kMinBodyHeight_, kMaxBodyHeight_);
         newMovementType = MovementRequest::MOVE_TRIPOD;
     } else {
         body.position.z = 0.0;
@@ -422,7 +425,7 @@ void CCoordinator::requestTellServoTemperature(Prio prio) {
 //  update
 // ---------------------------------------------------------------------------
 void CCoordinator::update() {
-    if (param_activate_movement_waiting_ && actualMovementType_ == MovementRequest::NO_REQUEST) {
+    if (kActivateMovementWaiting_ && actualMovementType_ == MovementRequest::NO_REQUEST) {
         if (!timerNoRequest_->isRunning()) {
             timerNoRequest_->start();
         }
