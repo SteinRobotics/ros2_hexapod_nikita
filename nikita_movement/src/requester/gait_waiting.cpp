@@ -3,6 +3,10 @@
 #include "requester/kinematics.hpp"
 
 namespace nikita_movement {
+CWaitingGait::CWaitingGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
+    : node_(std::move(node)), kinematics_(std::move(kinematics)) {
+    kLegLiftHeight_ = node_->declare_parameter<double>("LEG_LIFT_HEIGHT_WAITING", rclcpp::PARAMETER_DOUBLE);
+}
 
 void CWaitingGait::start() {
     // Directly enter Running; no distinct Starting phase needed.

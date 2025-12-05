@@ -11,7 +11,7 @@ using namespace nikita_movement;
 
 namespace {
 constexpr int kMaxIterations = 400;
-constexpr double kLegLiftHeight = 0.02;
+constexpr double kLegLiftHeight = 0.025;
 constexpr double kTolerance = 1e-3;
 }  // namespace
 
@@ -36,6 +36,8 @@ class LegWaveGaitTest : public ::testing::Test {
                               std::vector<double>{0.068, 0.088, 0.068, -0.068, -0.088, -0.068}),
             rclcpp::Parameter("OFFSET_COXA_ANGLE_DEG",
                               std::vector<double>{45.0, 90.0, 135.0, -45.0, -90.0, -135.0}),
+            rclcpp::Parameter("LEG_LIFT_HEIGHT_LEGS_WAVE", kLegLiftHeight),
+
         });
 
         node_ = std::make_shared<rclcpp::Node>("test_gait_legwave_node", options);
@@ -57,7 +59,7 @@ class LegWaveGaitTest : public ::testing::Test {
 };
 
 TEST_F(LegWaveGaitTest, LiftOccursDuringRun) {
-    CGaitLegWave gait(node_, kinematics_, kLegLiftHeight);
+    CGaitLegWave gait(node_, kinematics_);
     const auto standing = kinematics_->getLegsStandingPositions();
 
     gait.start();
@@ -85,7 +87,7 @@ TEST_F(LegWaveGaitTest, LiftOccursDuringRun) {
 }
 
 TEST_F(LegWaveGaitTest, StopRequestReturnsToNeutral) {
-    CGaitLegWave gait(node_, kinematics_, kLegLiftHeight);
+    CGaitLegWave gait(node_, kinematics_);
     const auto standing = kinematics_->getLegsStandingPositions();
 
     gait.start();

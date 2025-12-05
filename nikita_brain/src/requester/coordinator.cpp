@@ -70,9 +70,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     } else if (msg.button_r2) {
         // TODO add function
     } else if (msg.button_start) {
-        newMovementType = MovementRequest::TRANSPORT;
-        duration_s = 3.0;
-        comment = "ich mache mich bereit für den Transport";
+        // TODO add function
     }
 
     // DPAD
@@ -169,9 +167,6 @@ void CCoordinator::speechRecognized(std::string text) {
         } else if (textInterpreter_->lettersIdentified("rechts", identifiedWords)) {
             submitRequestMove(MovementRequest::LOOK_RIGHT, 3.0, "ich schaue nach rechts", Prio::High);
         }
-    } else if (command == "commandTransport") {
-        submitRequestMove(MovementRequest::TRANSPORT, 5.0, "ich bereite mich auf den Transport vor",
-                          Prio::High);
     } else if (command == "commandMove") {
         // requestMoveBody(detectedWords);
         // requestStopMoveBody();
@@ -386,7 +381,7 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
     actualMovementType_ = movementType;
 
     // update the isStanding_ state, it should only be updated in this function!
-    if (movementType == MovementRequest::LAYDOWN || movementType == MovementRequest::TRANSPORT) {
+    if (movementType == MovementRequest::LAYDOWN) {
         isStanding_ = false;
     } else if (movementType == MovementRequest::STAND_UP) {
         isStanding_ = true;

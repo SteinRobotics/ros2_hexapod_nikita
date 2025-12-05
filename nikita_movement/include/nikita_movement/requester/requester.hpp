@@ -51,7 +51,6 @@ class CRequester {
     void requestBite(const nikita_interfaces::msg::MovementRequest& msg);
     void requestStomp(const nikita_interfaces::msg::MovementRequest& msg);
     void requestClap(const nikita_interfaces::msg::MovementRequest& msg);
-    void requestTransport(const nikita_interfaces::msg::MovementRequest& msg);
     // the following requests are used for calibration and testing and are not used for normal operation
     void requestTestBody(const nikita_interfaces::msg::MovementRequest& msg);
     void requestTestLegs(const nikita_interfaces::msg::MovementRequest& msg);

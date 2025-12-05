@@ -64,7 +64,6 @@ void CRequester::initialize_request_handlers() {
         {MovementRequest::BITE, bind(&CRequester::requestBite)},
         {MovementRequest::STOMP, bind(&CRequester::requestStomp)},
         {MovementRequest::CLAP, bind(&CRequester::requestGait)},
-        {MovementRequest::TRANSPORT, bind(&CRequester::requestTransport)},
         {MovementRequest::TESTBODY, bind(&CRequester::requestTestBody)},
         {MovementRequest::TESTLEGS, bind(&CRequester::requestTestLegs)},
         {MovementRequest::NEUTRAL, bind(&CRequester::requestNeutral)},
@@ -84,11 +83,6 @@ void CRequester::requestGait(const MovementRequest& msg) {
     gaitController_->setGait(msg);
 }
 
-void CRequester::requestClap(const MovementRequest& msg) {
-    activeRequest_ = MovementRequest::CLAP;
-    [[maybe_unused]] auto tmp = msg;  // Suppress unused variable warning
-}
-
 void CRequester::requestDance(const MovementRequest& msg) {
     activeRequest_ = MovementRequest::DANCE;
     [[maybe_unused]] auto tmp = msg;  // Suppress unused variable warning
@@ -102,15 +96,6 @@ void CRequester::requestBite(const MovementRequest& msg) {
 void CRequester::requestStomp(const MovementRequest& msg) {
     activeRequest_ = MovementRequest::STOMP;
     [[maybe_unused]] auto tmp = msg;  // Suppress unused variable warning
-}
-
-void CRequester::requestTransport(const MovementRequest& msg) {
-    activeRequest_ = MovementRequest::TRANSPORT;
-
-    for (auto& [leg_index, leg] : kinematics_->getLegs()) {
-        kinematics_->setLegAngles(leg_index, CLegAngles(0.0, 30.0, -20.0));
-    }
-    sendServoRequest(msg.duration_s);
 }
 
 void CRequester::requestNeutral(const MovementRequest& msg) {

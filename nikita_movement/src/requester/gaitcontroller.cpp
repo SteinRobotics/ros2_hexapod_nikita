@@ -31,18 +31,12 @@ nikita_interfaces::msg::MovementRequest CGaitController::createMsg(std::string n
 
 CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
     : node_(node), kinematics_(kinematics) {
-    kFactorVelocityToGaitCycleTime =
-        node->declare_parameter<double>("FACTOR_VELOCITY_TO_GAIT_CYCLE_TIME", rclcpp::PARAMETER_DOUBLE);
-    kGaitStepLength = node->declare_parameter<double>("GAIT_STEP_LENGTH", rclcpp::PARAMETER_DOUBLE);
-    kLegLiftHeight = node->declare_parameter<double>("LEG_LIFT_HEIGHT", rclcpp::PARAMETER_DOUBLE);
-
     // Create all gait instances
-    gaits_[MovementRequest::MOVE_TRIPOD] = std::make_shared<CTripodGait>(
-        node_, kinematics_, kLegLiftHeight, kGaitStepLength, kFactorVelocityToGaitCycleTime);
+    gaits_[MovementRequest::MOVE_TRIPOD] = std::make_shared<CTripodGait>(node_, kinematics_);
     gaits_[MovementRequest::MOVE_RIPPLE] = std::make_shared<CRippleGait>(node_, kinematics_);
     gaits_[MovementRequest::BODY_ROLL] = std::make_shared<CBodyRollGait>(node_, kinematics_);
-    gaits_[MovementRequest::LEGS_WAVE] = std::make_shared<CGaitLegWave>(node_, kinematics_, kLegLiftHeight);
-    gaits_[MovementRequest::WAITING] = std::make_shared<CWaitingGait>(node_, kinematics_, kLegLiftHeight);
+    gaits_[MovementRequest::LEGS_WAVE] = std::make_shared<CGaitLegWave>(node_, kinematics_);
+    gaits_[MovementRequest::WAITING] = std::make_shared<CWaitingGait>(node_, kinematics_);
     gaits_[MovementRequest::WATCH] = std::make_shared<CWatchGait>(node_, kinematics_);
     gaits_[MovementRequest::STAND_UP] = std::make_shared<CStandUpGait>(node_, kinematics_);
     gaits_[MovementRequest::LAYDOWN] = std::make_shared<CLayDownGait>(node_, kinematics_);

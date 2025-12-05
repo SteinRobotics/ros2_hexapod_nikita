@@ -54,10 +54,6 @@ class CGaitController {
 
     std::map<MovementRequestType, std::shared_ptr<nikita_movement::IGait>> gaits_;
 
-    double kFactorVelocityToGaitCycleTime = double(0);
-    double kLegLiftHeight = double(0);
-    double kGaitStepLength = double(0);
-
     std::shared_ptr<nikita_movement::IGait> active_gait_ = nullptr;
 
     nikita_interfaces::msg::MovementRequest active_request_;

@@ -27,10 +27,6 @@
         "pronoun": [ "mir" ],
         "noun": [ "five" ]
     },
-    "commandTransport": {
-        "doing": [ "geh", "mach" ],
-        "noun": [ "transport" ]
-    },
     "commandTestBody": {
         "doing": [ "test", "teste" ],
         "bodyPart": [ "body", "rumpf" ]

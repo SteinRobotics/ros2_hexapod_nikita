@@ -16,9 +16,7 @@ namespace nikita_movement {
 // Initially copied from CLegRollGait and renamed. Behavior can be specialized later.
 class CWaitingGait : public IGait {
    public:
-    CWaitingGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
-                 double legLiftHeight)
-        : node_(std::move(node)), kinematics_(std::move(kinematics)), kLegLiftHeight(legLiftHeight) {};
+    CWaitingGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
     ~CWaitingGait() override = default;
 
     void start() override;
@@ -34,7 +32,7 @@ class CWaitingGait : public IGait {
     std::shared_ptr<CKinematics> kinematics_;
     EGaitState state_ = EGaitState::Stopped;
 
-    double kLegLiftHeight = double(0);
+    double kLegLiftHeight_ = double(0);
 
     double phase_ = double(0);
 };

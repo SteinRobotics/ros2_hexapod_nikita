@@ -41,11 +41,7 @@ ros2 topic pub --once /speech_recognition_online std_msgs/msg/String "{data: 'st
 
 ros2 topic pub --once /speech_recognition_online std_msgs/msg/String "{data: 'leg dich hin'}"
 
-ros2 topic pub --once /speech_recognition_online std_msgs/msg/String "{data: 'mach dich transport bereit'}"
-
 ros2 topic pub --once /speech_recognition_online std_msgs/msg/String data:\ "teste beine"
-
-ros2 topic pub --once /request_talking std_msgs/msg/String "{data: 'mach dich transport bereit'}"
 
 ros2 topic pub --once /request_music std_msgs/msg/String "{data: 'musicfox_hot_dogs_for_breakfast.mp3'}"
 

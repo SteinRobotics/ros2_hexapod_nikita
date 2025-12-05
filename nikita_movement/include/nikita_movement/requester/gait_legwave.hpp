@@ -14,9 +14,7 @@ namespace nikita_movement {
 
 class CGaitLegWave : public IGait {
    public:
-    CGaitLegWave(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
-                 double legLiftHeight)
-        : node_(std::move(node)), kinematics_(std::move(kinematics)), kLegLiftHeight(legLiftHeight) {};
+    CGaitLegWave(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
     ~CGaitLegWave() override = default;
 
     void start() override;
@@ -32,7 +30,7 @@ class CGaitLegWave : public IGait {
     std::shared_ptr<CKinematics> kinematics_;
     EGaitState state_ = EGaitState::Stopped;
 
-    double kLegLiftHeight = double(0);
+    double kLegLiftHeight_ = double(0);
 
     double phase_ = double(0);
     ELegIndex active_leg_index_ = ELegIndex::RightFront;

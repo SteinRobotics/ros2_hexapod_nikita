@@ -17,8 +17,7 @@ namespace nikita_movement {
 
 class CTripodGait : public IGait {
    public:
-    CTripodGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
-                double leg_lift_height, double gait_step_length, double factor_velocity_to_gait_cycle_time);
+    CTripodGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
     ~CTripodGait() override = default;
 
     void start() override;
@@ -32,10 +31,10 @@ class CTripodGait : public IGait {
    private:
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
-    double leg_lift_height_ = double(0);
-    double gait_step_length_ = double(0);
-    double factor_velocity_to_gait_cycle_time_ = double(0);
-    double head_max_yaw_amplitude_ = double(0);
+    double kLegLiftHeight_ = double(0);
+    double kGaitStepLength_ = double(0);
+    double kFactorVelocityToGaitCycleTime_ = double(0);
+    double kHeadMaxYawAmplitude_ = double(0);
     EGaitState state_ = EGaitState::Stopped;
 
     bool use_group1_ = true;

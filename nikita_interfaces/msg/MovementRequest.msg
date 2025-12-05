@@ -16,7 +16,6 @@ uint8 BODY_ROLL = 12
 uint8 BITE = 13
 uint8 STOMP = 14
 uint8 CLAP = 15
-uint8 TRANSPORT = 16 # minimal ground space, used for transport
 uint8 TESTBODY = 17
 uint8 TESTLEGS = 18
 # the following types are not used for normal operation 
