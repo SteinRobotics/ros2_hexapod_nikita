@@ -7,20 +7,22 @@ namespace nikita_movement {
 constexpr double DEFAULT_PHASE_INCREMENT = 0.05;
 constexpr double EPSILON_PHASE = 1e-9;
 
-CGaitHeadLook::CGaitHeadLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
+CGaitLook::CGaitLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
     : node_(node), kinematics_(kinematics) {
+    RCLCPP_INFO(node_->get_logger(), "Initializing CGaitLook");
     kBodyMaxYaw_ = node_->declare_parameter<double>("GAIT_LOOK_BODY_MAX_YAW", rclcpp::PARAMETER_DOUBLE);
     kHeadMaxYaw_ = node_->declare_parameter<double>("GAIT_LOOK_HEAD_MAX_YAW", rclcpp::PARAMETER_DOUBLE);
 }
 
-void CGaitHeadLook::start(double /*duration_s*/, uint8_t direction) {
+void CGaitLook::start(double /*duration_s*/, uint8_t direction) {
+    RCLCPP_INFO(node_->get_logger(), "Starting CGaitLook");
     state_ = EGaitState::Starting;
     phase_ = 0.0;
     amplitude_deg_ = (direction == 0) ? kHeadMaxYaw_ : -kHeadMaxYaw_;
     speed_ = 1.0;
 }
 
-bool CGaitHeadLook::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
+bool CGaitLook::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
     if (state_ == EGaitState::Stopped) return false;
 
     // advance phase according to speed
@@ -51,13 +53,13 @@ bool CGaitHeadLook::update(const geometry_msgs::msg::Twist& /*velocity*/, const 
     return true;
 }
 
-void CGaitHeadLook::requestStop() {
+void CGaitLook::requestStop() {
     if (state_ == EGaitState::Running || state_ == EGaitState::Starting) {
         state_ = EGaitState::StopPending;
     }
 }
 
-void CGaitHeadLook::cancelStop() {
+void CGaitLook::cancelStop() {
     if (state_ == EGaitState::StopPending || state_ == EGaitState::Stopping) {
         state_ = EGaitState::Running;
     }

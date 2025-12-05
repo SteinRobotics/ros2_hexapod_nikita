@@ -10,16 +10,15 @@ namespace nikita_movement {
 
 enum class EGaitState;
 
-class CGaitHeadLook {
+class CGaitLook : public IGait {
    public:
-    CGaitHeadLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
-                  double amplitude_deg = 15.0, double speed = 1.0);
+    CGaitLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
 
-    void start();
-    bool update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/);
-    void requestStop();
-    void cancelStop();
-    EGaitState state() const {
+    void start(double duration_s, uint8_t direction) override;
+    bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body) override;
+    void requestStop() override;
+    void cancelStop() override;
+    EGaitState state() const override {
         return state_;
     }
 
@@ -27,8 +26,8 @@ class CGaitHeadLook {
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
 
-    double amplitude_deg_;
-    double speed_;
+    double amplitude_deg_ = 0.0;
+    double speed_ = 0.0;
     double phase_ = 0.0;
 
     EGaitState state_ = EGaitState::Stopped;

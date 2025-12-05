@@ -9,17 +9,16 @@
 
 namespace nikita_movement {
 
-// EGaitState is declared in requester/igaits.hpp
-
-class CGaitHeadLook {
+class CGaitLook : public IGait {
    public:
-    CGaitHeadLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
+    CGaitLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
+    ~CGaitLook() override = default;
 
-    void start(double duration_s, uint8_t direction);
-    bool update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/);
-    void requestStop();
-    void cancelStop();
-    EGaitState state() const {
+    void start(double duration_s, uint8_t direction) override;
+    bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body) override;
+    void requestStop() override;
+    void cancelStop() override;
+    EGaitState state() const override {
         return state_;
     }
 

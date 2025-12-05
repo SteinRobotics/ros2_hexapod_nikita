@@ -12,6 +12,7 @@
 #include "requester/gait_highfive.hpp"
 #include "requester/gait_laydown.hpp"
 #include "requester/gait_legwave.hpp"
+#include "requester/gait_look.hpp"
 #include "requester/gait_ripple.hpp"
 #include "requester/gait_standup.hpp"
 #include "requester/gait_tripod.hpp"
@@ -42,6 +43,7 @@ CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared
     gaits_[MovementRequest::LAYDOWN] = std::make_shared<CLayDownGait>(node_, kinematics_);
     gaits_[MovementRequest::HIGH_FIVE] = std::make_shared<CHighFiveGait>(node_, kinematics_);
     gaits_[MovementRequest::CLAP] = std::make_shared<CClapGait>(node_, kinematics_);
+    gaits_[MovementRequest::LOOK] = std::make_shared<CGaitLook>(node_, kinematics_);
 
     // Default active gait
     active_gait_ = gaits_[MovementRequest::STAND_UP];
