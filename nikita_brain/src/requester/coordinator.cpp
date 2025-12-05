@@ -149,8 +149,6 @@ void CCoordinator::speechRecognized(std::string text) {
     auto command = textInterpreter_->searchInterpretation(identifiedWords);
     RCLCPP_INFO_STREAM(node_->get_logger(), "next command is: " << command);
 
-    // TODO change this to a function map
-
     if (command == "notFound") {
         requestNotFound(text);
     } else if (command == "commandStandup") {
@@ -159,6 +157,10 @@ void CCoordinator::speechRecognized(std::string text) {
         submitRequestMove(MovementRequest::LAYDOWN, 3.0, "ich leg mich hin", Prio::High);
     } else if (command == "commandHighFive") {
         submitRequestMove(MovementRequest::HIGH_FIVE, 5.0, "ich gebe dir ein High Five", Prio::High);
+    } else if (command == "commandLegWave") {
+        submitRequestMove(MovementRequest::LEGS_WAVE, 5.0, "bein welle", Prio::High);
+    } else if (command == "commandBodyRoll") {
+        submitRequestMove(MovementRequest::BODY_ROLL, 5.0, "ich rolle den rumpf", Prio::High);
     } else if (command == "commandWatch") {
         submitRequestMove(MovementRequest::WATCH, 5.0, "ich schaue mich um", Prio::High);
     } else if (command == "commandTurnHead") {

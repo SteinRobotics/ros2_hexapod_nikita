@@ -31,6 +31,14 @@
         "pronoun": [ "mir" ],
         "noun": [ "five" ]
     },
+    "commandBodyRoll": {
+        "doing": [ "roll", "rolle" ],
+        "noun": [ "rumpf" ]
+    },
+    "commandLegWave": {
+        "doing": [ "bein", "beine" ],
+        "noun": [ "welle" ]
+    },
     "commandTestBody": {
         "doing": [ "test", "teste" ],
         "bodyPart": [ "body", "rumpf" ]

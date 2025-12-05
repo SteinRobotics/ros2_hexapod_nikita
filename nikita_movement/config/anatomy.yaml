@@ -35,3 +35,6 @@ node_movement:
     #### TRIPOD GAIT PARAMETERS ####
     HEAD_MAX_YAW_TRIPOD: 15.0 # deg
 
+    #### LEG WAVE GAIT PARAMETERS ####
+    GAIT_LEG_WAVE_LEG_LIFT_HEIGHT: 0.03 # m
+

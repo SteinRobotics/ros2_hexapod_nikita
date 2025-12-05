@@ -36,7 +36,7 @@ class CGaitLegWave : public IGait {
     ELegIndex active_leg_index_ = ELegIndex::RightFront;
 
     std::vector<ELegIndex> leg_order_ = {ELegIndex::RightFront, ELegIndex::RightMid, ELegIndex::RightBack,
-                                         ELegIndex::LeftFront,  ELegIndex::LeftMid,  ELegIndex::LeftBack};
+                                         ELegIndex::LeftBack,   ELegIndex::LeftMid,  ELegIndex::LeftFront};
 };
 
 }  // namespace nikita_movement
