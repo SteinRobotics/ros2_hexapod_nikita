@@ -69,6 +69,12 @@ class COrientation {
     COrientation(double roll_deg, double pitch_deg, double yaw_deg)
         : roll_deg(roll_deg), pitch_deg(pitch_deg), yaw_deg(yaw_deg) {};
     virtual ~COrientation() = default;
+    bool operator==(const COrientation& rhs) const {
+        return roll_deg == rhs.roll_deg && pitch_deg == rhs.pitch_deg && yaw_deg == rhs.yaw_deg;
+    }
+    bool operator!=(const COrientation& rhs) const {
+        return !(*this == rhs);
+    }
 
     double roll_deg = double(0);
     double pitch_deg = double(0);
@@ -94,6 +100,10 @@ class CPose {
           orientation(pose.orientation.roll, pose.orientation.pitch, pose.orientation.yaw) {};
 
     virtual ~CPose() = default;
+
+    bool operator==(const CPose& rhs) const {
+        return position == rhs.position && orientation == rhs.orientation;
+    }
 
     CPosition position;
     COrientation orientation;

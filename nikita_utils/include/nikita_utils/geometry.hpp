@@ -30,21 +30,13 @@ inline bool isSinValueNearZero(double angle_rad, double angle_rad_threshold) {
     return false;
 }
 
-inline bool isCosValueNearZero(double angle, double angle_threshold) {
-    auto output_lower = std::cos(angle);
-    auto output_upper = std::cos(angle + angle_threshold);
-
-    int32_t sign_output_lower = (output_lower >= 0.0) ? 1 : -1;
-    int32_t sign_output_upper = (output_upper >= 0.0) ? 1 : -1;
-
-    return sign_output_lower != sign_output_upper;
-}
-
-// M_PI_4 means that sin and cos values are equal at that point
-inline bool areSinCosValuesEqual(double angle_rad, double angle_rad_threshold) {
-    auto angle_modulo = std::fmod(std::abs(angle_rad), M_PI_4);
-    auto diff = angle_modulo - M_PI_4;
-    return std::abs(diff) <= angle_rad_threshold;
+// 3/4 PI means the point where sin is equal cos and sin is decreasing
+inline bool isSinNear34Pi(double angle_rad, double angle_rad_threshold) {
+    if (angle_rad >= (3.0 * M_PI_4) - (angle_rad_threshold / 2.0) &&
+        angle_rad < (3.0 * M_PI_4) + (angle_rad_threshold / 2.0)) {
+        return true;
+    }
+    return false;
 }
 
 }  // namespace utils

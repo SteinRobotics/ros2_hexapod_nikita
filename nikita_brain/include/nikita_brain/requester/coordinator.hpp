@@ -39,12 +39,10 @@ class CCoordinator : public IRequester {
     template <typename RequestT, typename... Args>
     void submitSingleRequest(Prio prio, Args&&... args);
 
-    void submitRequestMove(uint32_t movementType, double duration_s,
-                           std::optional<geometry_msgs::msg::Twist> velocity, std::string comment = "",
-                           Prio prio = Prio::Normal);
-    void submitRequestMove(uint32_t movementType, double duration_s,
-                           std::optional<nikita_interfaces::msg::Pose> body, std::string comment = "",
-                           Prio prio = Prio::Normal);
+    void submitRequestMove(uint32_t movementType, double duration_s, geometry_msgs::msg::Twist velocity,
+                           std::string comment = "", Prio prio = Prio::Normal);
+    void submitRequestMove(uint32_t movementType, double duration_s, nikita_interfaces::msg::Pose body,
+                           std::string comment = "", Prio prio = Prio::Normal);
     void submitRequestMove(uint32_t movementType, double duration_s, std::string comment = "",
                            Prio prio = Prio::Normal);
     void submitRequestMove(uint32_t movementType, double duration_s = 0.0,

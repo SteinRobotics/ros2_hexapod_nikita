@@ -10,8 +10,12 @@
         "preposition": [ "um" ]
     },
     "commandMove": {
-        "doing": [ "fahr", "fahre", "beweg", "drehe" ],
-        "direction": [ "vorn", "hinten", "links", "rechts" ]
+        "doing": [ "fahr", "fahre", "beweg", "bewege", "lauf", "laufe", "dreh", "drehe" ],
+        "direction": [ "vorn", "vorne", "hinten", "links", "rechts" ]
+    },
+    "commandStopMove": {
+        "doing": [ "halt", "halte", "stop", "stopp", "stoppe" ],
+        "noun": [ "bewegung" ]
     },
     "commandStandup": {
         "doing": [ "steh", "stehe" ],

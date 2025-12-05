@@ -1,7 +1,5 @@
 #include "requester/gait_tripod.hpp"
 
-#include "requester/kinematics.hpp"
-
 namespace nikita_movement {
 
 constexpr double kTimeToWaitBeforeStopSec = 3.0;
@@ -14,6 +12,9 @@ CTripodGait::CTripodGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKi
     kLegLiftHeight_ = node_->declare_parameter<double>("LEG_LIFT_HEIGHT", rclcpp::PARAMETER_DOUBLE);
     kHeadMaxYawAmplitude_ = node_->declare_parameter<double>("HEAD_MAX_YAW_TRIPOD", rclcpp::PARAMETER_DOUBLE);
     no_velocity_timer_.stop();
+
+    body_old_ = CPose();
+    target_positions_ = kinematics_->getLegsStandingPositions();
 }
 
 void CTripodGait::start() {
@@ -24,6 +25,14 @@ void CTripodGait::start() {
 bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose& body) {
     if (state_ == EGaitState::Stopped) {
         return false;
+    }
+
+    if (utils::isTwistZero(velocity) && state_ == EGaitState::Running && body != body_old_) {
+        // Body position changed while standing still; update body position without moving legs
+        const auto base_foot_pos = kinematics_->getLegsStandingPositions();
+        kinematics_->moveBody(base_foot_pos, body);
+        body_old_ = body;
+        return true;
     }
 
     if (utils::isTwistZero(velocity) && state_ == EGaitState::Running) {
@@ -64,46 +73,49 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
     // the velocity is taken into account to calculate the gait cycle time with combined_mag
     double delta_phase = kFactorVelocityToGaitCycleTime_ * combined_mag;
     phase_ += delta_phase;
+    phase_ = std::fmod(phase_, 2.0 * M_PI);
 
     // this if condition is only relevant for the first movement of the FirstTripod legs and only for 0 < phase_ < M_PI_4
     // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
     if (state_ == EGaitState::Starting && phase_ > M_PI_4) {
         state_ = EGaitState::Running;
     }
-    if (state_ == EGaitState::StopPending && utils::areSinCosValuesEqual(phase_, delta_phase)) {
-        RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopping state, phase_: %.4f",
+    if (state_ == EGaitState::StopPending && utils::isSinNear34Pi(phase_, delta_phase)) {
+        RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopping state, phase_: %.2f",
                     phase_);
         state_ = EGaitState::Stopping;
     }
     if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, delta_phase)) {
-        RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopped state, phase_: %.4f",
+        RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopped state, phase_: %.2f",
                     phase_);
         phase_ = 0.0;
         state_ = EGaitState::Stopped;
         // run one last update
     }
 
-    std::map<ELegIndex, CPosition> target_positions;
+    RCLCPP_INFO_STREAM(node_->get_logger(), "CTripodGait::update: state_: " << magic_enum::enum_name(state_));
+    RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: phase_: %.2f, delta_phase: %.2f", phase_,
+                delta_phase);
 
     for (auto& [index, leg] : kinematics_->getLegs()) {
         bool is_first_tripod_active =
             std::ranges::find(group_first_tripod_, index) != group_first_tripod_.end();
 
         double phase_offset = is_first_tripod_active ? 0.0 : M_PI;
-        double phase_with_offset = phase_ + phase_offset + M_PI_2;
+        double phase_with_offset = phase_ + phase_offset;
 
-        double step = kGaitStepLength_ * cos(phase_with_offset);
+        double step = kGaitStepLength_ * sin(phase_with_offset);
 
         double lift = 0.0;
         if (state_ == EGaitState::Running || state_ == EGaitState::StopPending) {
-            lift = kLegLiftHeight_ * std::max(0.0, sin(phase_with_offset));
+            lift = kLegLiftHeight_ * std::max(0.0, cos(phase_with_offset));
         } else if (state_ == EGaitState::Starting || state_ == EGaitState::Stopping) {
             // this if condition is only relevant for the first movement of the FirstTripod legs and only for 0 < phase_ < M_PI_4
             // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
 
-            // Starting is using the first half of the sine (0 to M_PI_4) to lift the leg up, target is 1
-            // Stopping is using the second half of the sine wave (M_PI_4 to M_PI_2), to bring the leg down, target is 0
-            lift = kLegLiftHeight_ * std::max(0.0, sin(phase_));
+            // Starting is using the first half of the sin (0 to M_PI_4) to lift the leg up, target is 1
+            // Stopping is using the second half of the sin wave (M_PI_4 to M_PI_2), to bring the leg down, target is 0
+            lift = kLegLiftHeight_ * std::max(0.0, sin(phase_with_offset));
         }
 
         const auto base_foot_pos = kinematics_->getLegsStandingPositions().at(index);
@@ -133,10 +145,10 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
         target.y = base_foot_pos.y + delta_y + rot_y;
         target.z = base_foot_pos.z + lift;
 
-        target_positions[index] = target;
+        target_positions_[index] = target;
     }
 
-    kinematics_->moveBody(target_positions, body);
+    kinematics_->moveBody(target_positions_, body);
 
     kinematics_->getHead().yaw_deg = kHeadMaxYawAmplitude_ * std::sin(phase_);
     return true;

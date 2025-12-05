@@ -53,3 +53,9 @@ TEST(GeometryUtils, SinValueNearZero_nearZero) {
     double threshold = 0.1;
     EXPECT_TRUE(isSinValueNearZero(phase, threshold));
 }
+
+TEST(GeometryUtils, SinValueNearZero_myTest) {
+    double phase = 5.83;
+    double threshold = 0.4;
+    EXPECT_FALSE(isSinValueNearZero(phase, threshold));
+}

@@ -171,8 +171,25 @@ void CCoordinator::speechRecognized(std::string text) {
             submitRequestMove(MovementRequest::LOOK_RIGHT, 3.0, "ich schaue nach rechts", Prio::High);
         }
     } else if (command == "commandMove") {
-        // requestMoveBody(detectedWords);
-        // requestStopMoveBody();
+        constexpr double kVelocityLinear_ = 0.005;
+        geometry_msgs::msg::Twist velocity;
+        if (textInterpreter_->lettersIdentified("vorn", identifiedWords) ||
+            textInterpreter_->lettersIdentified("vorne", identifiedWords)) {
+            velocity.linear.x = kVelocityLinear_;
+        } else if (textInterpreter_->lettersIdentified("hinten", identifiedWords)) {
+            velocity.linear.x = -kVelocityLinear_;
+        }
+        if (textInterpreter_->lettersIdentified("links", identifiedWords)) {
+            velocity.linear.y = kVelocityLinear_;
+        } else if (textInterpreter_->lettersIdentified("rechts", identifiedWords)) {
+            velocity.linear.y = -kVelocityLinear_;
+        }
+        RCLCPP_INFO_STREAM(node_->get_logger(), "submit move tripod request");
+        submitRequestMove(MovementRequest::MOVE_TRIPOD, 0, velocity, "ich laufe los", Prio::High);
+    } else if (command == "commandStopMove") {
+        RCLCPP_INFO_STREAM(node_->get_logger(), "submit stop move tripod request");
+        geometry_msgs::msg::Twist velocity;
+        submitRequestMove(MovementRequest::MOVE_TRIPOD, 0, velocity, "ich halte an", Prio::High);
     } else if (command == "commandTestBody") {
         requestTestBody();
     } else if (command == "commandTestLegs") {
@@ -335,14 +352,12 @@ void CCoordinator::requestWaiting(Prio prio) {
 }
 
 void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
-                                     std::optional<geometry_msgs::msg::Twist> velocity, std::string comment,
-                                     Prio prio) {
+                                     geometry_msgs::msg::Twist velocity, std::string comment, Prio prio) {
     submitRequestMove(movementType, duration_s, std::nullopt, velocity, comment, prio);
 }
 
 void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
-                                     std::optional<nikita_interfaces::msg::Pose> body, std::string comment,
-                                     Prio prio) {
+                                     nikita_interfaces::msg::Pose body, std::string comment, Prio prio) {
     submitRequestMove(movementType, duration_s, body, std::nullopt, comment, prio);
 }
 
@@ -391,7 +406,7 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
     }
 
     // Lock the new move request for the given duration except for MOVE_TRIPOD requests
-    if (MovementRequest::MOVE_TRIPOD == movementType) {
+    if (MovementRequest::MOVE_TRIPOD == movementType || MovementRequest::MOVE_RIPPLE == movementType) {
         return;
     }
     isNewMoveRequestLocked_ = true;
