@@ -48,7 +48,9 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     double duration_s = 0.0;
     std::string comment = "";
     uint32_t newMovementType = MovementRequest::NO_REQUEST;
-    nikita_interfaces::msg::Pose body;
+    auto body = nikita_interfaces::msg::Pose();
+    auto velocity = geometry_msgs::msg::Twist();
+    std::optional<uint8_t> direction = std::nullopt;
 
     // BUTTONS
     if (msg.button_a) {
@@ -66,12 +68,14 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         newMovementType = MovementRequest::LEGS_WAVE;
         comment = "was ist eine Beinewelle";
     } else if (msg.button_l1) {
-        newMovementType = MovementRequest::LOOK_LEFT;
+        newMovementType = MovementRequest::LOOK;
+        direction = MovementRequest::ANTICLOCKWISE;
         duration_s = 3.0;
     } else if (msg.button_l2) {
         // TODO add function
     } else if (msg.button_r1) {
-        newMovementType = MovementRequest::LOOK_RIGHT;
+        newMovementType = MovementRequest::LOOK;
+        direction = MovementRequest::CLOCKWISE;
         duration_s = 3.0;
     } else if (msg.button_r2) {
         // TODO add function
@@ -94,7 +98,6 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
 
     // LEFT_STICK -> linear movement
     // float32 left_stick_vertical   # TOP  = -1.0, DOWN = 1.0,  hangs on 0.004 -> means 0.0
-    auto velocity = geometry_msgs::msg::Twist();
     if (msg.left_stick_vertical > kJoystickDeadzone_ || msg.left_stick_vertical < -kJoystickDeadzone_) {
         velocity.linear.x = msg.left_stick_vertical * kVelocityFactorLinear_;
         newMovementType = MovementRequest::MOVE_TRIPOD;
@@ -138,7 +141,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         actualMovementType_ == MovementRequest::NO_REQUEST) {
         return;
     }
-    submitRequestMove(newMovementType, duration_s, body, velocity, comment, Prio::High);
+    submitRequestMove(newMovementType, duration_s, comment, Prio::High, body, velocity, direction);
 }
 
 void CCoordinator::speechRecognized(std::string text) {
@@ -159,17 +162,14 @@ void CCoordinator::speechRecognized(std::string text) {
     } else if (command == "commandWatch") {
         submitRequestMove(MovementRequest::WATCH, 5.0, "ich schaue mich um", Prio::High);
     } else if (command == "commandTurnHead") {
-        RCLCPP_INFO_STREAM(node_->get_logger(), "identifiedWords: " << identifiedWords.size());
-        for (size_t i = 0; i < identifiedWords.size(); ++i) {
-            RCLCPP_INFO_STREAM(node_->get_logger(),
-                               "identifiedWords[" << i << "]: " << identifiedWords[i].value);
-        }
-
+        uint8_t direction = 0;
         if (textInterpreter_->lettersIdentified("links", identifiedWords)) {
-            submitRequestMove(MovementRequest::LOOK_LEFT, 3.0, "ich schaue nach links", Prio::High);
+            direction = MovementRequest::ANTICLOCKWISE;
         } else if (textInterpreter_->lettersIdentified("rechts", identifiedWords)) {
-            submitRequestMove(MovementRequest::LOOK_RIGHT, 3.0, "ich schaue nach rechts", Prio::High);
+            direction = MovementRequest::CLOCKWISE;
         }
+        submitRequestMove(MovementRequest::LOOK, 3.0, "ich schaue nach rechts", Prio::High, std::nullopt,
+                          std::nullopt, direction);
     } else if (command == "commandMove") {
         constexpr double kVelocityLinear_ = 0.005;
         geometry_msgs::msg::Twist velocity;
@@ -185,11 +185,13 @@ void CCoordinator::speechRecognized(std::string text) {
             velocity.linear.y = -kVelocityLinear_;
         }
         RCLCPP_INFO_STREAM(node_->get_logger(), "submit move tripod request");
-        submitRequestMove(MovementRequest::MOVE_TRIPOD, 0, velocity, "ich laufe los", Prio::High);
+        submitRequestMove(MovementRequest::MOVE_TRIPOD, 0, "ich laufe los", Prio::High, std::nullopt,
+                          velocity);
     } else if (command == "commandStopMove") {
         RCLCPP_INFO_STREAM(node_->get_logger(), "submit stop move tripod request");
         geometry_msgs::msg::Twist velocity;
-        submitRequestMove(MovementRequest::MOVE_TRIPOD, 0, velocity, "ich halte an", Prio::High);
+        submitRequestMove(MovementRequest::MOVE_TRIPOD, 0, "ich halte an", Prio::High, std::nullopt,
+                          velocity);
     } else if (command == "commandTestBody") {
         requestTestBody();
     } else if (command == "commandTestLegs") {
@@ -307,39 +309,39 @@ void CCoordinator::requestTestBody() {
 
     text = "teste x Richtung";
     body.position.x = 0.05;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, text, Prio::High);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
     body.position.x = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, "", Prio::High);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
 
     text = "teste y Richtung";
     body.position.y = 0.05;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, text, Prio::High);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
     body.position.y = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, "", Prio::High);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
 
     text = "teste z Richtung nach oben";
     body.position.z = 0.03;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, text, Prio::High);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
     body.position.z = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, "", Prio::High);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
 
     text = "teste Roll";
     body.orientation.roll = 20.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, text, Prio::High);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
     body.orientation.roll = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, "", Prio::High);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
 
     text = "teste Pitch";
     body.orientation.pitch = 20.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, text, Prio::High);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
     body.orientation.pitch = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, "", Prio::High);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
 
     text = "teste Yaw";
     body.orientation.yaw = 20.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, text, Prio::High);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
     body.orientation.yaw = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, body, "", Prio::High);
+    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
 }
 
 void CCoordinator::requestTestLegs() {
@@ -351,25 +353,10 @@ void CCoordinator::requestWaiting(Prio prio) {
     submitRequestMove(actualMovementType_, 5.0, "ich warte", prio);
 }
 
-void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
-                                     geometry_msgs::msg::Twist velocity, std::string comment, Prio prio) {
-    submitRequestMove(movementType, duration_s, std::nullopt, velocity, comment, prio);
-}
-
-void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
-                                     nikita_interfaces::msg::Pose body, std::string comment, Prio prio) {
-    submitRequestMove(movementType, duration_s, body, std::nullopt, comment, prio);
-}
-
-void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, std::string comment,
-                                     Prio prio) {
-    submitRequestMove(movementType, duration_s, std::nullopt, std::nullopt, comment, prio);
-}
-
-void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
+void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, std::string comment, Prio prio,
                                      std::optional<nikita_interfaces::msg::Pose> body,
-                                     std::optional<geometry_msgs::msg::Twist> velocity, std::string comment,
-                                     Prio prio) {
+                                     std::optional<geometry_msgs::msg::Twist> velocity,
+                                     std::optional<uint8_t> direction) {
     std::vector<std::shared_ptr<RequestBase>> request_v;
     if (!comment.empty()) {
         request_v.push_back(std::make_shared<RequestTalking>(comment));
@@ -385,6 +372,9 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s,
     auto request = MovementRequest();
     request.type = movementType;
     request.duration_s = duration_s;
+    if (direction.has_value()) {
+        request.direction = direction.value();
+    }
     request.name = movementTypeName_.at(request.type);
     request_v.push_back(std::make_shared<CRequestMovementType>(request));
     if (body.has_value()) {

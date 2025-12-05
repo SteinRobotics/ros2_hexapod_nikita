@@ -39,16 +39,11 @@ class CCoordinator : public IRequester {
     template <typename RequestT, typename... Args>
     void submitSingleRequest(Prio prio, Args&&... args);
 
-    void submitRequestMove(uint32_t movementType, double duration_s, geometry_msgs::msg::Twist velocity,
-                           std::string comment = "", Prio prio = Prio::Normal);
-    void submitRequestMove(uint32_t movementType, double duration_s, nikita_interfaces::msg::Pose body,
-                           std::string comment = "", Prio prio = Prio::Normal);
-    void submitRequestMove(uint32_t movementType, double duration_s, std::string comment = "",
-                           Prio prio = Prio::Normal);
-    void submitRequestMove(uint32_t movementType, double duration_s = 0.0,
+    void submitRequestMove(uint32_t movementType, double duration_s = 0.0, std::string comment = "",
+                           Prio prio = Prio::Normal,
                            std::optional<nikita_interfaces::msg::Pose> body = std::nullopt,
                            std::optional<geometry_msgs::msg::Twist> velocity = std::nullopt,
-                           std::string comment = "", Prio prio = Prio::Normal);
+                           std::optional<uint8_t> direction = std::nullopt);
 
     void requestShutdown(Prio prio);
     void requestReactionOnError(std::string text, bool isShutdownRequested, Prio prio = Prio::Normal);
@@ -73,11 +68,7 @@ class CCoordinator : public IRequester {
 
     std::shared_ptr<CSimpleTimer> timerErrorRequest_;
     std::shared_ptr<CSimpleTimer> timerNoRequest_;
-
     std::shared_ptr<CCallbackTimer> timerMovementRequest_;
-    // std::shared_ptr<CCallbackTimer> timerLeaveMove_;
-
-    // void callbackLeaveMove();
 
     std::atomic<bool> isNewMoveRequestLocked_{false};
 
@@ -100,8 +91,7 @@ class CCoordinator : public IRequester {
         {nikita_interfaces::msg::MovementRequest::WAITING, "WAITING"},
         {nikita_interfaces::msg::MovementRequest::MOVE_TRIPOD, "MOVE_TRIPOD"},
         {nikita_interfaces::msg::MovementRequest::WATCH, "WATCH"},
-        {nikita_interfaces::msg::MovementRequest::LOOK_LEFT, "LOOK_LEFT"},
-        {nikita_interfaces::msg::MovementRequest::LOOK_RIGHT, "LOOK_RIGHT"},
+        {nikita_interfaces::msg::MovementRequest::LOOK, "LOOK"},
         {nikita_interfaces::msg::MovementRequest::DANCE, "DANCE"},
         {nikita_interfaces::msg::MovementRequest::HIGH_FIVE, "HIGH_FIVE"},
         {nikita_interfaces::msg::MovementRequest::LEGS_WAVE, "LEGS_WAVE"},

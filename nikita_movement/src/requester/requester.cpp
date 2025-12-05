@@ -29,7 +29,7 @@ CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServ
             });
     }
 
-    initialize_request_handlers();
+    initRequestHandlers();
 
     subMovementTypeRequest_ = node_->create_subscription<MovementRequest>(
         "cmd_movement_type", 10, std::bind(&CRequester::onMovementTypeRequest, this, _1));
@@ -44,7 +44,7 @@ CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServ
 // ------------------------------------------------------------------------------------------------
 // private methods for the CRequester class
 // ------------------------------------------------------------------------------------------------------------
-void CRequester::initialize_request_handlers() {
+void CRequester::initRequestHandlers() {
     auto bind = [this](auto fn) { return [this, fn](const MovementRequest& msg) { (this->*fn)(msg); }; };
 
     request_handlers_ = {
@@ -55,8 +55,7 @@ void CRequester::initialize_request_handlers() {
         {MovementRequest::WAITING, bind(&CRequester::requestGait)},
         {MovementRequest::MOVE_TRIPOD, bind(&CRequester::requestGait)},
         {MovementRequest::WATCH, bind(&CRequester::requestGait)},
-        {MovementRequest::LOOK_LEFT, bind(&CRequester::requestGait)},
-        {MovementRequest::LOOK_RIGHT, bind(&CRequester::requestGait)},
+        {MovementRequest::LOOK, bind(&CRequester::requestGait)},
         {MovementRequest::DANCE, bind(&CRequester::requestDance)},
         {MovementRequest::HIGH_FIVE, bind(&CRequester::requestGait)},
         {MovementRequest::LEGS_WAVE, bind(&CRequester::requestGait)},
