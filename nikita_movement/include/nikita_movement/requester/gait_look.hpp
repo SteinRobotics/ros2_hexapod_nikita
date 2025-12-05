@@ -27,6 +27,9 @@ class CGaitHeadLook {
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
 
+    double kHeadMaxYaw_ = double(0);
+    double kBodyMaxYaw_ = double(0);
+
     double amplitude_deg_;
     double speed_;
     double phase_ = 0.0;

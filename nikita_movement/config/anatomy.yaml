@@ -32,9 +32,12 @@ node_movement:
     GAIT_STEP_LENGTH: 0.03     # [m]
     FACTOR_VELOCITY_TO_GAIT_CYCLE_TIME: 40.0      # [s²/m] ??
 
-    #### TRIPOD GAIT PARAMETERS ####
+    #### GAIT TRIPOD PARAMETERS ####
     HEAD_MAX_YAW_TRIPOD: 15.0 # deg
 
-    #### LEG WAVE GAIT PARAMETERS ####
+    #### GAIT LEG WAVE PARAMETERS ####
     GAIT_LEG_WAVE_LEG_LIFT_HEIGHT: 0.03 # m
 
+    #### GAIT LOOK PARAMETERS ####
+    GAIT_LOOK_BODY_MAX_YAW: 20.0 # degree
+    GAIT_LOOK_HEAD_MAX_YAW: 20.0     # degree

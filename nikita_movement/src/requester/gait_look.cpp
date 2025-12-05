@@ -9,11 +9,15 @@ constexpr double EPSILON_PHASE = 1e-9;
 
 CGaitHeadLook::CGaitHeadLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
     : node_(node), kinematics_(kinematics) {
+    kBodyMaxYaw_ = node_->declare_parameter<double>("GAIT_LOOK_BODY_MAX_YAW", rclcpp::PARAMETER_DOUBLE);
+    kHeadMaxYaw_ = node_->declare_parameter<double>("GAIT_LOOK_HEAD_MAX_YAW", rclcpp::PARAMETER_DOUBLE);
 }
 
-void CGaitHeadLook::start(double /*duration_s*/, uint8_t /*direction*/) {
+void CGaitHeadLook::start(double /*duration_s*/, uint8_t direction) {
     state_ = EGaitState::Starting;
     phase_ = 0.0;
+    amplitude_deg_ = (direction == 0) ? kHeadMaxYaw_ : -kHeadMaxYaw_;
+    speed_ = 1.0;
 }
 
 bool CGaitHeadLook::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
