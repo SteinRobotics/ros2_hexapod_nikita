@@ -57,7 +57,7 @@ TEST_F(BodyRollGaitTest, StateTransitionsCoverAllStates) {
     EXPECT_EQ(gait_->state(), EGaitState::Stopped);
 
     // Start -> Starting
-    gait_->start();
+    gait_->start(0, 0);
     EXPECT_EQ(gait_->state(), EGaitState::Starting);
 
     // update until Running

@@ -62,7 +62,7 @@ TEST_F(WatchGaitTest, SweepsHeadAndBodyAndReturns) {
     const auto initialHead = kinematics_->getHead();
     const auto initialBody = kinematics_->getBody();
 
-    gait.start();
+    gait.start(5.0, 0);
     geometry_msgs::msg::Twist twist;
 
     bool seenLeftHead = false;
@@ -102,12 +102,12 @@ TEST_F(WatchGaitTest, SweepsHeadAndBodyAndReturns) {
     EXPECT_NEAR(finalBody.orientation.yaw_deg, initialBody.orientation.yaw_deg, kTolerance);
 }
 
-TEST_F(WatchGaitTest, StopRequestReturnsToOrigin) {
+TEST_F(WatchGaitTest, RequestStopReturnsToInitialState) {
     CWatchGait gait(node_, kinematics_);
     const auto initialHead = kinematics_->getHead();
     const auto initialBody = kinematics_->getBody();
 
-    gait.start();
+    gait.start(5.0, 0);
     geometry_msgs::msg::Twist twist;
 
     for (int i = 0; i < 3; ++i) {

@@ -66,7 +66,7 @@ TEST_F(VerticalGaitTest, StandUpStopsAtStandingHeight) {
     CStandUpGait gait(node_, kinematics_);
     EXPECT_EQ(gait.state(), EGaitState::Stopped);
 
-    gait.start();
+    gait.start(3.0, 0);
     geometry_msgs::msg::Twist twist;
 
     int iterations = 0;
@@ -95,7 +95,7 @@ TEST_F(VerticalGaitTest, LayDownStopsAtLaydownHeight) {
     CLayDownGait gait(node_, kinematics_);
     EXPECT_EQ(gait.state(), EGaitState::Stopped);
 
-    gait.start();
+    gait.start(3.0, 0);
     geometry_msgs::msg::Twist twist;
 
     int iterations = 0;

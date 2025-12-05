@@ -62,7 +62,7 @@ TEST_F(LegWaveGaitTest, LiftOccursDuringRun) {
     CGaitLegWave gait(node_, kinematics_);
     const auto standing = kinematics_->getLegsStandingPositions();
 
-    gait.start();
+    gait.start(3.0, 0);
     geometry_msgs::msg::Twist twist;
 
     bool seen_lift = false;
@@ -90,7 +90,7 @@ TEST_F(LegWaveGaitTest, StopRequestReturnsToNeutral) {
     CGaitLegWave gait(node_, kinematics_);
     const auto standing = kinematics_->getLegsStandingPositions();
 
-    gait.start();
+    gait.start(3.0, 0);
     geometry_msgs::msg::Twist twist;
 
     for (int i = 0; i < 3; ++i) {

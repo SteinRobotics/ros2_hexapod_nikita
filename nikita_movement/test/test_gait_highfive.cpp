@@ -57,12 +57,12 @@ class HighFiveGaitTest : public ::testing::Test {
     std::shared_ptr<CKinematics> kinematics_;
 };
 
-TEST_F(HighFiveGaitTest, CompletesCycleAndRestoresPose) {
+TEST_F(HighFiveGaitTest, RaisesRightFrontLegAndReturns) {
     CHighFiveGait gait(node_, kinematics_);
     const auto initialAngles = kinematics_->getAngles(ELegIndex::RightFront);
     const auto initialHead = kinematics_->getHead();
 
-    gait.start();
+    gait.start(5.0, 0);
     geometry_msgs::msg::Twist twist;
 
     bool raised = false;
@@ -92,7 +92,7 @@ TEST_F(HighFiveGaitTest, RequestStopReturnsToNeutralQuickly) {
     CHighFiveGait gait(node_, kinematics_);
     const auto initialAngles = kinematics_->getAngles(ELegIndex::RightFront);
 
-    gait.start();
+    gait.start(5.0, 0);
     geometry_msgs::msg::Twist twist;
 
     // Begin the raise phase for a few iterations.

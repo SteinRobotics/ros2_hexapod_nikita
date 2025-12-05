@@ -61,7 +61,7 @@ TEST_F(ClapGaitTest, CompletesCycleAndReturnsToInitialPose) {
     const auto initialBody = kinematics_->getBody();
     const auto initialPositions = kinematics_->getLegsPositions();
 
-    gait.start();
+    gait.start(3.0, 0);
     geometry_msgs::msg::Twist twist;
 
     int iterations = 0;
@@ -83,7 +83,7 @@ TEST_F(ClapGaitTest, BackLegsLiftDuringSequence) {
     CClapGait gait(node_, kinematics_);
     const auto initialPositions = kinematics_->getLegsPositions();
 
-    gait.start();
+    gait.start(3.0, 0);
     geometry_msgs::msg::Twist twist;
 
     bool rightBackLifted = false;
@@ -116,7 +116,7 @@ TEST_F(ClapGaitTest, FrontLegsPerformClapMovement) {
     const auto initialLeftAngles = kinematics_->getAngles(ELegIndex::LeftFront);
     const auto initialRightAngles = kinematics_->getAngles(ELegIndex::RightFront);
 
-    gait.start();
+    gait.start(3.0, 0);
     geometry_msgs::msg::Twist twist;
 
     bool frontLegsMovedForClap = false;
@@ -144,7 +144,7 @@ TEST_F(ClapGaitTest, RequestStopReturnsToInitialState) {
     CClapGait gait(node_, kinematics_);
     const auto initialBody = kinematics_->getBody();
 
-    gait.start();
+    gait.start(3.0, 0);
     geometry_msgs::msg::Twist twist;
 
     // Run for a few iterations

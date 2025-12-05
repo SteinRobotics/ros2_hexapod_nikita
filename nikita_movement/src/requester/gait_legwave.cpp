@@ -27,6 +27,9 @@ bool CGaitLegWave::update(const geometry_msgs::msg::Twist& velocity, const CPose
     phase_ += delta_phase;
 
     if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, delta_phase)) {
+        // Reset the active leg to standing position before stopping
+        const auto base_foot_pos = kinematics_->getLegsStandingPositions();
+        kinematics_->setSingleFeet(active_leg_index_, base_foot_pos.at(active_leg_index_));
         state_ = EGaitState::Stopped;
         return false;
     }
