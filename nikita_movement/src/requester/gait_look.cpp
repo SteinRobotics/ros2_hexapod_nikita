@@ -16,7 +16,7 @@ CGaitLook::CGaitLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinema
 
 void CGaitLook::start(double /*duration_s*/, uint8_t direction) {
     RCLCPP_INFO(node_->get_logger(), "Starting CGaitLook");
-    state_ = EGaitState::Starting;
+    state_ = EGaitState::Running;
     phase_ = 0.0;
     amplitude_deg_ = (direction == 0) ? kHeadMaxYaw_ : -kHeadMaxYaw_;
     speed_ = 1.0;
@@ -25,17 +25,12 @@ void CGaitLook::start(double /*duration_s*/, uint8_t direction) {
 bool CGaitLook::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
     if (state_ == EGaitState::Stopped) return false;
 
-    // advance phase according to speed
     double delta = DEFAULT_PHASE_INCREMENT * speed_;
     phase_ += delta;
-
-    if (state_ == EGaitState::Starting) {
-        // once we've got a non-trivial phase, become Running
-        if (phase_ > EPSILON_PHASE) state_ = EGaitState::Running;
-    }
-
     // set head yaw using sinusoidal oscillation
-    kinematics_->getHead().yaw_deg = amplitude_deg_ * std::sin(phase_);
+    CHead head_request;
+    head_request.yaw_deg = amplitude_deg_ * std::sin(phase_);
+    kinematics_->setHead(head_request);
 
     // If stop pending -> transition to stopping then to stopped when phase wraps near zero
     if (state_ == EGaitState::StopPending) {
@@ -54,7 +49,7 @@ bool CGaitLook::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPos
 }
 
 void CGaitLook::requestStop() {
-    if (state_ == EGaitState::Running || state_ == EGaitState::Starting) {
+    if (state_ == EGaitState::Running) {
         state_ = EGaitState::StopPending;
     }
 }
