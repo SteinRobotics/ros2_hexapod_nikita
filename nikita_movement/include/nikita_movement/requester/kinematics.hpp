@@ -26,6 +26,7 @@ class CKinematics {
     void setLegAngles(const ELegIndex index, const CLegAngles& angles);
     void moveBody(const std::map<ELegIndex, CPosition>& footTargets,
                   const CPose body = CPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+    void moveBody(const CPose body);
 
     // New version of moveBody which uses the segment-wise IK solver (solveIKSegmentwise)
     // to compute joint states per leg from world/body-frame foot targets.

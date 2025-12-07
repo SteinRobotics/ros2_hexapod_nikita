@@ -122,10 +122,25 @@ void CKinematics::initializeLegsNew(const std::map<ELegIndex, CPosition>& footTa
     logLegsPositions(legs);
 }
 
-void CKinematics::moveBody(const std::map<ELegIndex, CPosition>& footTargets, const CPose body) {
+void CKinematics::moveBody(const std::map<ELegIndex, CPosition>& foot_targets, const CPose body) {
     body_ = body;
 
-    for (auto& [leg_index, foot_target] : footTargets) {
+    for (auto& [leg_index, foot_target] : foot_targets) {
+        auto& leg = legs_.at(leg_index);
+        CPosition coxa_position(bodyCenterOffsets_.at(leg_index).x, bodyCenterOffsets_.at(leg_index).y, 0.0);
+        CPosition leg_base = rotate(coxa_position, body.orientation) + body.position;
+        CPosition foot_rel = foot_target - leg_base;
+        calcLegInverseKinematics(foot_rel, leg, leg_index);
+    }
+    logLegsPositions(legs_);
+}
+
+void CKinematics::moveBody(const CPose body) {
+    body_ = body;
+
+    auto foot_targets = getLegsPositions();
+
+    for (auto& [leg_index, foot_target] : foot_targets) {
         auto& leg = legs_.at(leg_index);
         CPosition coxa_position(bodyCenterOffsets_.at(leg_index).x, bodyCenterOffsets_.at(leg_index).y, 0.0);
         CPosition leg_base = rotate(coxa_position, body.orientation) + body.position;

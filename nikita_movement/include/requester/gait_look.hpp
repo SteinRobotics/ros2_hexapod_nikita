@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "geometry_msgs/msg/twist.hpp"
+#include "nikita_interfaces/msg/movement_type.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "requester/kinematics.hpp"
 
@@ -26,8 +27,9 @@ class CGaitLook : public IGait {
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
 
-    double amplitude_deg_ = 0.0;
-    double speed_ = 0.0;
+    double amplitude_head_deg_ = 0.0;
+    double amplitude_body_deg_ = 0.0;
+    double delta_phase_ = 0.0;
     double phase_ = 0.0;
 
     EGaitState state_ = EGaitState::Stopped;
