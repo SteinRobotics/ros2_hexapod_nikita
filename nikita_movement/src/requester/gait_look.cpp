@@ -2,9 +2,8 @@
 
 #include <cmath>
 
+using namespace nikita_interfaces::msg;
 namespace nikita_movement {
-
-constexpr double EPSILON_PHASE = 1e-9;
 
 CGaitLook::CGaitLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
     : node_(node), kinematics_(kinematics) {
@@ -17,8 +16,9 @@ void CGaitLook::start(double duration_s, uint8_t direction) {
     RCLCPP_INFO(node_->get_logger(), "Starting CGaitLook");
     state_ = EGaitState::Running;
     phase_ = 0.0;
-    amplitude_head_deg_ = (direction == MovementType::CLOCKWISE) ? kHeadMaxYaw_ : -kHeadMaxYaw_;
-    amplitude_body_deg_ = (direction == MovementType::CLOCKWISE) ? kBodyMaxYaw_ : -kBodyMaxYaw_;
+
+    amplitude_head_deg_ = (direction == MovementRequest::CLOCKWISE) ? kHeadMaxYaw_ : -kHeadMaxYaw_;
+    amplitude_body_deg_ = (direction == MovementRequest::CLOCKWISE) ? kBodyMaxYaw_ : -kBodyMaxYaw_;
 
     // 100ms task update time, duration in seconds, 1 full cycle = 2pi
     delta_phase_ = (2.0 * M_PI) / (duration_s / 0.1);
@@ -38,7 +38,7 @@ bool CGaitLook::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPos
     kinematics_->setHead(head_request);
 
     CPose body_request;
-    body_request.yaw_deg = amplitude_body_deg_ * std::sin(phase_);
+    body_request.orientation.yaw_deg = amplitude_body_deg_ * std::sin(phase_);
     kinematics_->moveBody(body_request);
 
     return true;

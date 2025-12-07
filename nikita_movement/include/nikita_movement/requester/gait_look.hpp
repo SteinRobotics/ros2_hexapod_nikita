@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "geometry_msgs/msg/twist.hpp"
+#include "nikita_interfaces/msg/movement_request.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "requester/igaits.hpp"
 #include "requester/kinematics.hpp"
@@ -29,8 +30,9 @@ class CGaitLook : public IGait {
     double kHeadMaxYaw_ = double(0);
     double kBodyMaxYaw_ = double(0);
 
-    double amplitude_deg_;
-    double speed_;
+    double amplitude_head_deg_ = 0.0;
+    double amplitude_body_deg_ = 0.0;
+    double delta_phase_ = 0.0;
     double phase_ = 0.0;
 
     EGaitState state_ = EGaitState::Stopped;
