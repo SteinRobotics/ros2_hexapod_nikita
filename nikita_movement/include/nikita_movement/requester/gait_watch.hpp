@@ -1,21 +1,19 @@
 #pragma once
 
-#include <geometry_msgs/msg/twist.hpp>
 #include <memory>
-#include <rclcpp/rclcpp.hpp>
 
-#include "nikita_utils/geometry.hpp"
+#include "geometry_msgs/msg/twist.hpp"
+#include "nikita_interfaces/msg/movement_request.hpp"
+#include "rclcpp/rclcpp.hpp"
 #include "requester/igaits.hpp"
-#include "requester/types.hpp"
-
-class CKinematics;
+#include "requester/kinematics.hpp"
 
 namespace nikita_movement {
 
-class CWatchGait : public IGait {
+class CGaitWatch : public IGait {
    public:
-    CWatchGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
-    ~CWatchGait() override = default;
+    CGaitWatch(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
+    ~CGaitWatch() override = default;
 
     void start(double duration_s, uint8_t direction) override;
     bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body) override;
@@ -26,37 +24,18 @@ class CWatchGait : public IGait {
     }
 
    private:
-    enum class EPhase { Idle, ToLeft, ToRight, ReturnToOrigin, Finished };
-
-    struct PoseTarget {
-        double headYaw;
-        double headPitch;
-        double bodyRoll;
-        double bodyPitch;
-        double bodyYaw;
-    };
-
-    void applyInterpolatedPose(const PoseTarget& from, const PoseTarget& to, double alpha);
-    void transitionToPhase(EPhase next_phase, const PoseTarget& from, const PoseTarget& to);
-    PoseTarget composeTarget(double headYawDelta, double headPitchDelta, double bodyYawDelta) const;
-    PoseTarget captureCurrentTarget() const;
-
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
 
+    double kHeadMaxYaw_ = double(0);
+    double kBodyMaxYaw_ = double(0);
+
+    double amplitude_head_deg_ = 0.0;
+    double amplitude_body_deg_ = 0.0;
+    double delta_phase_ = 0.0;
+    double phase_ = 0.0;
+
     EGaitState state_ = EGaitState::Stopped;
-    EPhase phase_ = EPhase::Idle;
-    double phase_progress_ = 0.0;
-
-    CHead initial_head_{};
-    CPose initial_body_pose_{};
-    std::map<ELegIndex, CPosition> base_foot_positions_{};
-
-    PoseTarget start_target_{};
-    PoseTarget end_target_{};
-    PoseTarget initial_target_{};
-    PoseTarget left_target_{};
-    PoseTarget right_target_{};
 };
 
 }  // namespace nikita_movement

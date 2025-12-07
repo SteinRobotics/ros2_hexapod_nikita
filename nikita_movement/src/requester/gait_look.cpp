@@ -7,7 +7,6 @@ namespace nikita_movement {
 
 CGaitLook::CGaitLook(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
     : node_(node), kinematics_(kinematics) {
-    RCLCPP_INFO(node_->get_logger(), "Initializing CGaitLook");
     kHeadMaxYaw_ = node_->declare_parameter<double>("GAIT_LOOK_HEAD_MAX_YAW", rclcpp::PARAMETER_DOUBLE);
     kBodyMaxYaw_ = node_->declare_parameter<double>("GAIT_LOOK_BODY_MAX_YAW", rclcpp::PARAMETER_DOUBLE);
 }
@@ -21,7 +20,7 @@ void CGaitLook::start(double duration_s, uint8_t direction) {
     amplitude_body_deg_ = (direction == MovementRequest::CLOCKWISE) ? kBodyMaxYaw_ : -kBodyMaxYaw_;
 
     // 100ms task update time, duration in seconds, 1 full cycle = 2pi
-    delta_phase_ = (2.0 * M_PI) / (duration_s / 0.1);
+    delta_phase_ = (M_PI) / (duration_s / 0.1);
 }
 
 bool CGaitLook::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
@@ -29,9 +28,11 @@ bool CGaitLook::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPos
 
     // set head yaw using sinusoidal oscillation
     phase_ += delta_phase_;
-    if (phase_ > 2.0 * M_PI) {
+    if (phase_ > M_PI) {
         state_ = EGaitState::Stopped;
-        return false;
+        kinematics_->setHead(CHead(0.0, 0.0));
+        kinematics_->moveBody(CPose());
+        return true;
     }
     CHead head_request;
     head_request.yaw_deg = amplitude_head_deg_ * std::sin(phase_);

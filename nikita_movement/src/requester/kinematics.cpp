@@ -37,8 +37,6 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node,
     sq_femur_length_ = pow(FEMUR_LENGTH, 2);
     sq_tibia_length_ = pow(TIBIA_LENGTH, 2);
 
-    RCLCPP_INFO_STREAM(node_->get_logger(), "Kinematics before bodyCenterOffsets_:");
-
     // body center offsets
     for (uint32_t i = 0; i < LEG_NAMES.size(); i++) {
         auto& leg_name = LEG_NAMES.at(i);
@@ -138,7 +136,7 @@ void CKinematics::moveBody(const std::map<ELegIndex, CPosition>& foot_targets, c
 void CKinematics::moveBody(const CPose body) {
     body_ = body;
 
-    auto foot_targets = getLegsPositions();
+    auto foot_targets = getLegsStandingPositions();
 
     for (auto& [leg_index, foot_target] : foot_targets) {
         auto& leg = legs_.at(leg_index);

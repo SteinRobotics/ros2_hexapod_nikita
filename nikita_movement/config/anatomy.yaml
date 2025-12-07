@@ -40,4 +40,8 @@ node_movement:
 
     #### GAIT LOOK PARAMETERS ####
     GAIT_LOOK_BODY_MAX_YAW: 20.0 # degree
-    GAIT_LOOK_HEAD_MAX_YAW: 20.0     # degree
+    GAIT_LOOK_HEAD_MAX_YAW: 25.0     # degree
+
+    #### GAIT WATCH PARAMETERS ####
+    GAIT_WATCH_BODY_MAX_YAW: 10.0     # degree
+    GAIT_WATCH_HEAD_MAX_YAW: 30.0     # degree

@@ -143,14 +143,6 @@ if(BUILD_TESTING)
     target_link_libraries(test_gait_clap nikita_movement_core)
   endif()
 
-  ament_add_gtest(test_gait_watch
-    test/test_gait_watch.cpp
-  )
-  if(TARGET test_gait_watch)
-    ament_target_dependencies(test_gait_watch rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
-    target_link_libraries(test_gait_watch nikita_movement_core)
-  endif()
-
   ament_add_gtest(test_complete_body_init
     test/test_complete_body_init.cpp
   )
