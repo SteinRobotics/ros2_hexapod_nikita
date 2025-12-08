@@ -9,7 +9,8 @@
 using namespace std;
 using namespace utils;
 
-#define LOG_KINEMATICS_ACTIVE true
+#define LOG_KINEMATICS_LEG_ACTIVE true
+#define LOG_KINEMATICS_HEAD_ACTIVE true
 
 CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node,
                          std::shared_ptr<CActionPackagesParser> actionPackagesParser)
@@ -77,7 +78,7 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node,
 }
 
 void CKinematics::logLegsPositions(std::map<ELegIndex, CLeg>& legs) {
-    if (!LOG_KINEMATICS_ACTIVE) return;
+    if (!LOG_KINEMATICS_LEG_ACTIVE) return;
     RCLCPP_INFO_STREAM(node_->get_logger(), "----------------------------------------");
     for (const auto& [index, leg] : legs) {
         logLegPosition(index, leg);
@@ -86,7 +87,7 @@ void CKinematics::logLegsPositions(std::map<ELegIndex, CLeg>& legs) {
 }
 
 void CKinematics::logLegPosition(const ELegIndex index, const CLeg& leg) {
-    if (!LOG_KINEMATICS_ACTIVE) return;
+    if (!LOG_KINEMATICS_LEG_ACTIVE) return;
     RCLCPP_INFO_STREAM(node_->get_logger(),
                        magic_enum::enum_name(index)
                            << ": \tag: " << std::fixed << std::setprecision(3) << std::setw(3)
@@ -97,7 +98,7 @@ void CKinematics::logLegPosition(const ELegIndex index, const CLeg& leg) {
 }
 
 void CKinematics::logHeadPosition() {
-    if (!LOG_KINEMATICS_ACTIVE) return;
+    if (!LOG_KINEMATICS_HEAD_ACTIVE) return;
     RCLCPP_INFO_STREAM(node_->get_logger(),
                        "Head: \tYaw: " << std::fixed << std::setprecision(3) << std::setw(3) << head_.yaw_deg
                                        << "°, Pitch: " << std::setw(3) << head_.pitch_deg << "°");
@@ -290,9 +291,8 @@ void CKinematics::calcLegInverseKinematics(const CPosition& targetFeetPos, CLeg&
     double agCoxaRad = atan2(targetFeetPos.x, targetFeetPos.y);
     double zOffset = COXA_HEIGHT - targetFeetPos.z;
 
-    if (abs(cos(agCoxaRad)) < 0.00001) {
-        RCLCPP_ERROR_STREAM(node_->get_logger(), "targetFeetPos.x = 0");
-    }
+    // Prevent division by zero
+    assert(abs(cos(agCoxaRad)) >= 0.00001 && "targetFeetPos.x = 0");
 
     double lLegTopView = targetFeetPos.y / cos(agCoxaRad);  // L1
 
@@ -300,21 +300,15 @@ void CKinematics::calcLegInverseKinematics(const CPosition& targetFeetPos, CLeg&
     double L = sqrt(sqL);
 
     double tmpFemur = (sq_tibia_length_ - sq_femur_length_ - sqL) / (-2 * FEMUR_LENGTH * L);
-    if (abs(tmpFemur) > 1.0) {
-        RCLCPP_ERROR_STREAM(node_->get_logger(), "ERROR tmpFemur = " << tmpFemur);
-        RCLCPP_ERROR_STREAM(node_->get_logger(),
-                            "targetFeetPos.x: " << targetFeetPos.x << " targetFeetPos.y: " << targetFeetPos.y
-                                                << " targetFeetPos.z: " << targetFeetPos.z);
-    }
+
+    // ensure tmpFemur is in valid range for acos
+    assert(abs(tmpFemur) <= 1.0 && "tmpFemur out of acos range");
     double agFemurRad = acos(zOffset / L) + acos(tmpFemur) - (M_PI / 2);
 
     double tmpTibia = (sqL - sq_tibia_length_ - sq_femur_length_) / (-2 * FEMUR_LENGTH * TIBIA_LENGTH);
-    if (abs(tmpTibia) > 1.0) {
-        RCLCPP_ERROR_STREAM(node_->get_logger(), "ERROR tmpTibia = " << tmpTibia);
-        RCLCPP_ERROR_STREAM(node_->get_logger(),
-                            "targetFeetPos.x: " << targetFeetPos.x << " targetFeetPos.y: " << targetFeetPos.y
-                                                << " targetFeetPos.z: " << targetFeetPos.z);
-    }
+
+    // ensure tmpTibia is in valid range for acos
+    assert(abs(tmpTibia) <= 1.0 && "tmpTibia out of acos range");
     double agTibiaRad = acos(tmpTibia) - (M_PI / 2);
 
     leg.angles_deg_.coxa_deg = float(rad2deg(agCoxaRad - (M_PI / 2)));  // TODO why -90?
