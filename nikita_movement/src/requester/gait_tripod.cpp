@@ -80,7 +80,7 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
     if (state_ == EGaitState::Starting && phase_ > M_PI_4) {
         state_ = EGaitState::Running;
     }
-    if (state_ == EGaitState::StopPending && utils::isSinNear34Pi(phase_, delta_phase)) {
+    if (state_ == EGaitState::StopPending && utils::isValueNear((7.0 / 8.0) * M_PI, phase_, delta_phase)) {
         RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopping state, phase_: %.2f",
                     phase_);
         state_ = EGaitState::Stopping;
