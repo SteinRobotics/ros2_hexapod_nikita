@@ -6,6 +6,7 @@
 #include "test_helpers.hpp"
 
 using namespace std;
+using namespace nikita_movement;
 
 class KinematicsTest : public ::testing::Test {
    protected:

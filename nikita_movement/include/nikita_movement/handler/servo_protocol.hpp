@@ -13,6 +13,8 @@
 
 #include "rclcpp/rclcpp.hpp"
 
+namespace nikita_movement {
+
 constexpr uint8_t SERVO_FRAME_HEADER = 0x55;
 constexpr uint8_t SERVO_Broadcast_ID = 0xFE;
 
@@ -157,3 +159,5 @@ class CServoProtocol {
     bool isConnected_ = false;
     int device_ = -1;
 };
+
+}  // namespace nikita_movement

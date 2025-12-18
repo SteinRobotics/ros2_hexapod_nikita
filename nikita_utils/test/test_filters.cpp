@@ -62,6 +62,32 @@ TEST(ChangeRateLimitTest, WithinRatePassesThrough) {
     EXPECT_DOUBLE_EQ(limited, target);
 }
 
+TEST(KalmanFilterTest, ConvergesToMeasurement) {
+    utils::CKalmanFilter<double> filter(0.05, 0.5, 1.0, 0.0);
+    constexpr double measurement = 4.5;
+    double estimate = 0.0;
+    for (int i = 0; i < 10; ++i) {
+        estimate = filter.step(measurement);
+    }
+    EXPECT_NEAR(estimate, measurement, 0.1);
+    EXPECT_LT(filter.getUncertainty(), 0.5);
+}
+
+TEST(KalmanFilterTest, AppliesControlInputOnPredict) {
+    utils::CKalmanFilter<double> filter(0.01, 0.5, 0.1, 1.0);
+    double predicted = filter.predict(2.0, 0.5);  // expect +1.0
+    EXPECT_DOUBLE_EQ(predicted, 2.0);
+    // No measurement update, so state should hold prediction
+    EXPECT_DOUBLE_EQ(filter.getState(), 2.0);
+}
+
+TEST(KalmanFilterTest, ResetChangesStateAndUncertainty) {
+    utils::CKalmanFilter<double> filter(0.1, 0.5, 1.0, 0.0);
+    filter.reset(3.0, 0.2);
+    EXPECT_DOUBLE_EQ(filter.getState(), 3.0);
+    EXPECT_DOUBLE_EQ(filter.getUncertainty(), 0.2);
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

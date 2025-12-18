@@ -9,6 +9,8 @@
 using namespace std::chrono_literals;
 using namespace nikita_interfaces::msg;
 
+namespace nikita_movement {
+
 CServoHandler::CServoHandler(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     servoController_ = std::make_shared<CServoController>(node_);
 }
@@ -18,3 +20,5 @@ void CServoHandler::run(CRequest request) {
     auto targetAngles = leg_servo_conversion::buildServoTargets(request.head(), request.legAngles());
     servoController_->requestAngles(targetAngles, request.duration());
 }
+
+}  // namespace nikita_movement

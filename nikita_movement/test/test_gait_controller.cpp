@@ -11,6 +11,7 @@
 #include "requester/actionpackagesparser.hpp"
 #include "requester/gaitcontroller.hpp"
 #include "requester/kinematics.hpp"
+#include "test_helpers.hpp"
 
 using namespace nikita_movement;
 using MovementRequestMsg = nikita_interfaces::msg::MovementRequest;
@@ -27,17 +28,8 @@ class GaitControllerTest : public ::testing::Test {
         }
 
         rclcpp::NodeOptions options;
-        options.parameter_overrides(
-            {rclcpp::Parameter("LEG_NAMES", std::vector<std::string>{"RightFront", "RightMid", "RightBack",
-                                                                     "LeftFront", "LeftMid", "LeftBack"}),
-             rclcpp::Parameter("COXA_LENGTH", 0.050), rclcpp::Parameter("FEMUR_LENGTH", 0.063),
-             rclcpp::Parameter("TIBIA_LENGTH", 0.099), rclcpp::Parameter("COXA_HEIGHT", 0.045),
-             rclcpp::Parameter("CENTER_TO_COXA_X",
-                               std::vector<double>{0.109, 0.0, -0.109, 0.109, 0.0, -0.109}),
-             rclcpp::Parameter("CENTER_TO_COXA_Y",
-                               std::vector<double>{0.068, 0.088, 0.068, -0.068, -0.088, -0.068}),
-             rclcpp::Parameter("OFFSET_COXA_ANGLE_DEG",
-                               std::vector<double>{45.0, 90.0, 135.0, -45.0, -90.0, -135.0})});
+        auto overrides = test_helpers::defaultRobotParameters();
+        options.parameter_overrides(overrides);
 
         node_ = std::make_shared<rclcpp::Node>("test_gait_controller_node", options);
         action_packages_parser_ = std::make_shared<CActionPackagesParser>(node_);

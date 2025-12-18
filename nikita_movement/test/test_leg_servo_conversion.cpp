@@ -6,10 +6,12 @@
 #include "nikita_interfaces/msg/servo_angles.hpp"
 #include "nikita_interfaces/msg/servo_index.hpp"
 
+using namespace nikita_movement;
 using leg_servo_conversion::appendHeadServoTargets;
 using leg_servo_conversion::appendLegServoTargets;
 using leg_servo_conversion::buildServoTargets;
 using leg_servo_conversion::servoAnglesMsgToLegAngles;
+
 using nikita_interfaces::msg::ServoIndex;
 
 TEST(LegServoConversionTest, LegAnglesMapToServoTargets) {

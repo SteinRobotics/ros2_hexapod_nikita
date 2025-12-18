@@ -17,6 +17,8 @@
 #include "requester/actionpackagesparser.hpp"
 #include "requester/types.hpp"
 
+namespace nikita_movement {
+
 class CKinematics {
    public:
     CKinematics(std::shared_ptr<rclcpp::Node> node,
@@ -123,3 +125,5 @@ CPosition computeFootPositionSegmentwise(const CPosition& hip_base, const CLegSe
 CPosition computeFootPositionSegmentwise(const CPose& hip_pose, const CLegSegmentwise& leg);
 bool solveIKSegmentwise(const CPose& hip_pose, const CPosition& foot_pos, CLegSegmentwise& leg,
                         double tolerance = 1e-6);
+
+}  // namespace nikita_movement

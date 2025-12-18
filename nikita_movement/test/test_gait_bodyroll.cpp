@@ -4,6 +4,7 @@
 #include "requester/actionpackagesparser.hpp"
 #include "requester/gait_bodyroll.hpp"
 #include "requester/kinematics.hpp"
+#include "test_helpers.hpp"
 
 using namespace nikita_movement;
 
@@ -15,28 +16,15 @@ class BodyRollGaitTest : public ::testing::Test {
         }
 
         rclcpp::NodeOptions options;
-        options.parameter_overrides({
-            rclcpp::Parameter("LEG_NAMES", std::vector<std::string>{"RightFront", "RightMid", "RightBack",
-                                                                    "LeftFront", "LeftMid", "LeftBack"}),
-            rclcpp::Parameter("COXA_LENGTH", 0.050),
-            rclcpp::Parameter("FEMUR_LENGTH", 0.063),
-            rclcpp::Parameter("TIBIA_LENGTH", 0.099),
-            rclcpp::Parameter("COXA_HEIGHT", 0.045),
-            rclcpp::Parameter("CENTER_TO_COXA_X",
-                              std::vector<double>{0.109, 0.0, -0.109, 0.109, 0.0, -0.109}),
-            rclcpp::Parameter("CENTER_TO_COXA_Y",
-                              std::vector<double>{0.068, 0.088, 0.068, -0.068, -0.088, -0.068}),
-            rclcpp::Parameter("OFFSET_COXA_ANGLE_DEG",
-                              std::vector<double>{45.0, 90.0, 135.0, -45.0, -90.0, -135.0}),
-            rclcpp::Parameter("BODY_MAX_ROLL", 20.0),
-            rclcpp::Parameter("BODY_MAX_PITCH", 10.0),
-        });
+        auto overrides = test_helpers::defaultRobotParameters();
+        options.parameter_overrides(overrides);
 
         node_ = std::make_shared<rclcpp::Node>("test_gait_bodyroll_node", options);
 
         actionPackagesParser_ = std::make_shared<CActionPackagesParser>(node_);
         kinematics_ = std::make_shared<CKinematics>(node_, actionPackagesParser_);
-        gait_ = std::make_unique<CBodyRollGait>(node_, kinematics_);
+        params_ = test_helpers::makeDeclaredParameters(node_);
+        gait_ = std::make_unique<CBodyRollGait>(node_, kinematics_, params_.bodyRoll);
     }
 
     void TearDown() override {
@@ -50,6 +38,7 @@ class BodyRollGaitTest : public ::testing::Test {
     std::shared_ptr<CActionPackagesParser> actionPackagesParser_;
     std::shared_ptr<CKinematics> kinematics_;
     std::unique_ptr<CBodyRollGait> gait_;
+    Parameters params_;
 };
 
 TEST_F(BodyRollGaitTest, StateTransitionsCoverAllStates) {

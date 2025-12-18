@@ -8,6 +8,7 @@
 
 using namespace std;
 using namespace utils;
+using namespace nikita_movement;
 
 class NewKinematicsTest : public ::testing::Test {
    protected:

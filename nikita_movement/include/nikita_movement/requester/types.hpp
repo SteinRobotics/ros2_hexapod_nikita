@@ -13,6 +13,8 @@
 
 #include "nikita_interfaces/msg/pose.hpp"
 
+namespace nikita_movement {
+
 enum class ELegIndex {
     RightFront,
     RightMid,
@@ -197,3 +199,5 @@ struct CBody {
     std::map<ELegIndex, CLegSegmentwise> legs;
     std::map<ELegIndex, CBodyCenterOffset> bodyCenterOffsets;
 };
+
+}  // namespace nikita_movement

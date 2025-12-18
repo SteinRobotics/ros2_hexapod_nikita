@@ -5,16 +5,17 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include "nikita_utils/linear_interpolation.hpp"
+#include "requester/gaits_parameter.hpp"
 #include "requester/igaits.hpp"
+#include "requester/kinematics.hpp"
 #include "requester/types.hpp"
-
-class CKinematics;
 
 namespace nikita_movement {
 
 class CStandUpGait : public IGait {
    public:
-    CStandUpGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
+    CStandUpGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                 Parameters::StandUp& params);
     ~CStandUpGait() override = default;
 
     void start(double duration_s, uint8_t direction) override;
@@ -28,6 +29,8 @@ class CStandUpGait : public IGait {
    private:
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
+    Parameters::StandUp params_;
+
     EGaitState state_ = EGaitState::Stopped;
     std::map<ELegIndex, CPosition> origin_positions_;
 

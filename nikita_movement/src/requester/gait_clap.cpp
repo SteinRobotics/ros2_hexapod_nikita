@@ -17,8 +17,9 @@ constexpr int kClapRepetitions = 3;          // Number of clap cycles
 
 namespace nikita_movement {
 
-CClapGait::CClapGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
-    : node_(std::move(node)), kinematics_(std::move(kinematics)) {
+CClapGait::CClapGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                     Parameters::Clap& params)
+    : node_(node), kinematics_(kinematics), params_(params) {
 }
 
 void CClapGait::start(double /*duration_s*/, uint8_t /*direction*/) {

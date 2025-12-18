@@ -6,6 +6,7 @@
 #include "requester/actionpackagesparser.hpp"
 #include "requester/gait_legwave.hpp"
 #include "requester/kinematics.hpp"
+#include "test_helpers.hpp"
 
 using namespace nikita_movement;
 
@@ -23,26 +24,13 @@ class LegWaveGaitTest : public ::testing::Test {
         }
 
         rclcpp::NodeOptions options;
-        options.parameter_overrides({
-            rclcpp::Parameter("LEG_NAMES", std::vector<std::string>{"RightFront", "RightMid", "RightBack",
-                                                                    "LeftFront", "LeftMid", "LeftBack"}),
-            rclcpp::Parameter("COXA_LENGTH", 0.050),
-            rclcpp::Parameter("FEMUR_LENGTH", 0.063),
-            rclcpp::Parameter("TIBIA_LENGTH", 0.099),
-            rclcpp::Parameter("COXA_HEIGHT", 0.045),
-            rclcpp::Parameter("CENTER_TO_COXA_X",
-                              std::vector<double>{0.109, 0.0, -0.109, 0.109, 0.0, -0.109}),
-            rclcpp::Parameter("CENTER_TO_COXA_Y",
-                              std::vector<double>{0.068, 0.088, 0.068, -0.068, -0.088, -0.068}),
-            rclcpp::Parameter("OFFSET_COXA_ANGLE_DEG",
-                              std::vector<double>{45.0, 90.0, 135.0, -45.0, -90.0, -135.0}),
-            rclcpp::Parameter("LEG_LIFT_HEIGHT_LEGS_WAVE", kLegLiftHeight),
-
-        });
+        auto overrides = test_helpers::defaultRobotParameters();
+        options.parameter_overrides(overrides);
 
         node_ = std::make_shared<rclcpp::Node>("test_gait_legwave_node", options);
         actionPackagesParser_ = std::make_shared<CActionPackagesParser>(node_);
         kinematics_ = std::make_shared<CKinematics>(node_, actionPackagesParser_);
+        params_ = test_helpers::makeDeclaredParameters(node_);
     }
 
     void TearDown() override {
@@ -56,10 +44,11 @@ class LegWaveGaitTest : public ::testing::Test {
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CActionPackagesParser> actionPackagesParser_;
     std::shared_ptr<CKinematics> kinematics_;
+    Parameters params_;
 };
 
 TEST_F(LegWaveGaitTest, LiftOccursDuringRun) {
-    CGaitLegWave gait(node_, kinematics_);
+    CGaitLegWave gait(node_, kinematics_, params_.legWave);
     const auto standing = kinematics_->getLegsStandingPositions();
 
     gait.start(3.0, 0);
@@ -87,7 +76,7 @@ TEST_F(LegWaveGaitTest, LiftOccursDuringRun) {
 }
 
 TEST_F(LegWaveGaitTest, StopRequestReturnsToNeutral) {
-    CGaitLegWave gait(node_, kinematics_);
+    CGaitLegWave gait(node_, kinematics_, params_.legWave);
     const auto standing = kinematics_->getLegsStandingPositions();
 
     gait.start(3.0, 0);

@@ -30,6 +30,8 @@ using nikita_interfaces::msg::ServoDirectRequest;
 using nikita_interfaces::msg::ServoStatus;
 using std::placeholders::_1;
 
+namespace nikita_movement {
+
 CServoController::CServoController(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     cycleCounter_ = 0;
 
@@ -329,3 +331,5 @@ void CServoController::setInitialAnglesCallback(InitialAnglesCallback callback) 
     initialAnglesCallback_ = std::move(callback);
     initServos();
 }
+
+}  // namespace nikita_movement

@@ -20,6 +20,8 @@
 #include "servo_protocol.hpp"
 #include "std_msgs/msg/header.hpp"
 
+namespace nikita_movement {
+
 class CServo {
    public:
     CServo(const std::string name, uint8_t serial_id, bool orientation_clockwise, double offset_degree,
@@ -141,3 +143,5 @@ class CServoController {
     std::shared_ptr<CServoProtocol> protocol_;
     InitialAnglesCallback initialAnglesCallback_ = nullptr;
 };
+
+}  // namespace nikita_movement

@@ -5,16 +5,17 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include "nikita_utils/geometry.hpp"
+#include "requester/gaits_parameter.hpp"
 #include "requester/igaits.hpp"
+#include "requester/kinematics.hpp"
 #include "requester/types.hpp"
-
-class CKinematics;
 
 namespace nikita_movement {
 
 class CGaitLegWave : public IGait {
    public:
-    CGaitLegWave(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
+    CGaitLegWave(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                 Parameters::LegWave& params);
     ~CGaitLegWave() override = default;
 
     void start(double duration_s, uint8_t direction) override;
@@ -28,9 +29,8 @@ class CGaitLegWave : public IGait {
    private:
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
+    Parameters::LegWave params_;
     EGaitState state_ = EGaitState::Stopped;
-
-    double kLegLiftHeight_ = double(0);
 
     double phase_ = double(0);
     ELegIndex active_leg_index_ = ELegIndex::RightFront;

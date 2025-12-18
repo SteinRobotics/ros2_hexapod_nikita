@@ -4,10 +4,14 @@
 
 #include "requester/kinematics.hpp"
 
+#include <algorithm>
+
 #include "sensor_msgs/msg/joint_state.hpp"
 
 using namespace std;
 using namespace utils;
+
+namespace nikita_movement {
 
 #define LOG_KINEMATICS_LEG_ACTIVE true
 #define LOG_KINEMATICS_HEAD_ACTIVE true
@@ -300,15 +304,25 @@ void CKinematics::calcLegInverseKinematics(const CPosition& targetFeetPos, CLeg&
     double L = sqrt(sqL);
 
     double tmpFemur = (sq_tibia_length_ - sq_femur_length_ - sqL) / (-2 * FEMUR_LENGTH * L);
-
-    // ensure tmpFemur is in valid range for acos
-    assert(abs(tmpFemur) <= 1.0 && "tmpFemur out of acos range");
+    if (abs(tmpFemur) > 1.0) {
+        RCLCPP_ERROR_STREAM(node_->get_logger(),
+                            "calcLegInverseKinematics: clamping femur input "
+                                << tmpFemur << " for leg " << magic_enum::enum_name(legIndex)
+                                << " (target x: " << targetFeetPos.x << ", y: " << targetFeetPos.y
+                                << ", z: " << targetFeetPos.z << ")");
+        tmpFemur = std::clamp(tmpFemur, -1.0, 1.0);
+    }
     double agFemurRad = acos(zOffset / L) + acos(tmpFemur) - (M_PI / 2);
 
     double tmpTibia = (sqL - sq_tibia_length_ - sq_femur_length_) / (-2 * FEMUR_LENGTH * TIBIA_LENGTH);
-
-    // ensure tmpTibia is in valid range for acos
-    assert(abs(tmpTibia) <= 1.0 && "tmpTibia out of acos range");
+    if (abs(tmpTibia) > 1.0) {
+        RCLCPP_ERROR_STREAM(node_->get_logger(),
+                            "calcLegInverseKinematics: clamping tibia input "
+                                << tmpTibia << " for leg " << magic_enum::enum_name(legIndex)
+                                << " (target x: " << targetFeetPos.x << ", y: " << targetFeetPos.y
+                                << ", z: " << targetFeetPos.z << ")");
+        tmpTibia = std::clamp(tmpTibia, -1.0, 1.0);
+    }
     double agTibiaRad = acos(tmpTibia) - (M_PI / 2);
 
     leg.angles_deg_.coxa_deg = float(rad2deg(agCoxaRad - (M_PI / 2)));  // TODO why -90?
@@ -562,3 +576,5 @@ bool solveIKSegmentwise(const CPose& hip_pose, const CPosition& foot_pos, CLegSe
 
     return within_limits;
 }
+
+}  // namespace nikita_movement

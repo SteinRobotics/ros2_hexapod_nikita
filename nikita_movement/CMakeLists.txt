@@ -33,6 +33,7 @@ set(SOURCES
   src/requester/gait_ripple.cpp
   src/requester/gait_bodyroll.cpp
   src/requester/gait_legwave.cpp
+  src/requester/gait_testlegs.cpp
   src/requester/gait_look.cpp
   src/requester/gait_waiting.cpp
   src/requester/gait_watch.cpp
@@ -176,6 +177,14 @@ if(BUILD_TESTING)
   if(TARGET test_gait_legwave)
     ament_target_dependencies(test_gait_legwave rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
     target_link_libraries(test_gait_legwave nikita_movement_core)
+  endif()
+
+  ament_add_gtest(test_gait_testlegs
+    test/test_gait_testlegs.cpp
+  )
+  if(TARGET test_gait_testlegs)
+    ament_target_dependencies(test_gait_testlegs rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
+    target_link_libraries(test_gait_testlegs nikita_movement_core)
   endif()
 
   ament_add_gtest(test_gait_controller

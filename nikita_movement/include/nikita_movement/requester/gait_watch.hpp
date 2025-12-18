@@ -5,6 +5,7 @@
 #include "geometry_msgs/msg/twist.hpp"
 #include "nikita_interfaces/msg/movement_request.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "requester/gaits_parameter.hpp"
 #include "requester/igaits.hpp"
 #include "requester/kinematics.hpp"
 
@@ -12,7 +13,8 @@ namespace nikita_movement {
 
 class CGaitWatch : public IGait {
    public:
-    CGaitWatch(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
+    CGaitWatch(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+               Parameters::Watch& params);
     ~CGaitWatch() override = default;
 
     void start(double duration_s, uint8_t direction) override;
@@ -26,6 +28,7 @@ class CGaitWatch : public IGait {
    private:
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
+    Parameters::Watch params_;
 
     double kHeadMaxYaw_ = double(0);
     double kBodyMaxYaw_ = double(0);

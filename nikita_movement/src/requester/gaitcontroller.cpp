@@ -4,23 +4,9 @@
 
 #include "requester/gaitcontroller.hpp"
 
-#include <magic_enum.hpp>
-
-// Concrete gait implementations
-#include "requester/gait_bodyroll.hpp"
-#include "requester/gait_clap.hpp"
-#include "requester/gait_highfive.hpp"
-#include "requester/gait_laydown.hpp"
-#include "requester/gait_legwave.hpp"
-#include "requester/gait_look.hpp"
-#include "requester/gait_ripple.hpp"
-#include "requester/gait_standup.hpp"
-#include "requester/gait_tripod.hpp"
-#include "requester/gait_waiting.hpp"
-#include "requester/gait_watch.hpp"
-
 using nikita_interfaces::msg::MovementRequest;
-using namespace nikita_movement;
+
+namespace nikita_movement {
 
 nikita_interfaces::msg::MovementRequest CGaitController::createMsg(std::string name,
                                                                    MovementRequestType type) {
@@ -32,18 +18,24 @@ nikita_interfaces::msg::MovementRequest CGaitController::createMsg(std::string n
 
 CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
     : node_(node), kinematics_(kinematics) {
+    // read parameters
+    params_ = Parameters::declare(node_);
+
     // Create all gait instances
-    gaits_[MovementRequest::MOVE_TRIPOD] = std::make_shared<CTripodGait>(node_, kinematics_);
-    gaits_[MovementRequest::MOVE_RIPPLE] = std::make_shared<CRippleGait>(node_, kinematics_);
-    gaits_[MovementRequest::BODY_ROLL] = std::make_shared<CBodyRollGait>(node_, kinematics_);
-    gaits_[MovementRequest::LEGS_WAVE] = std::make_shared<CGaitLegWave>(node_, kinematics_);
-    gaits_[MovementRequest::WAITING] = std::make_shared<CWaitingGait>(node_, kinematics_);
-    gaits_[MovementRequest::WATCH] = std::make_shared<CGaitWatch>(node_, kinematics_);
-    gaits_[MovementRequest::STAND_UP] = std::make_shared<CStandUpGait>(node_, kinematics_);
-    gaits_[MovementRequest::LAYDOWN] = std::make_shared<CLayDownGait>(node_, kinematics_);
-    gaits_[MovementRequest::HIGH_FIVE] = std::make_shared<CHighFiveGait>(node_, kinematics_);
-    gaits_[MovementRequest::CLAP] = std::make_shared<CClapGait>(node_, kinematics_);
-    gaits_[MovementRequest::LOOK] = std::make_shared<CGaitLook>(node_, kinematics_);
+    gaits_[MovementRequest::MOVE_TRIPOD] = std::make_shared<CTripodGait>(node_, kinematics_, params_.tripod);
+    gaits_[MovementRequest::MOVE_RIPPLE] = std::make_shared<CRippleGait>(node_, kinematics_, params_.ripple);
+    gaits_[MovementRequest::BODY_ROLL] =
+        std::make_shared<CBodyRollGait>(node_, kinematics_, params_.bodyRoll);
+    gaits_[MovementRequest::LEGS_WAVE] = std::make_shared<CGaitLegWave>(node_, kinematics_, params_.legWave);
+    gaits_[MovementRequest::WAITING] = std::make_shared<CWaitingGait>(node_, kinematics_, params_.waiting);
+    gaits_[MovementRequest::WATCH] = std::make_shared<CGaitWatch>(node_, kinematics_, params_.watch);
+    gaits_[MovementRequest::STAND_UP] = std::make_shared<CStandUpGait>(node_, kinematics_, params_.standUp);
+    gaits_[MovementRequest::LAYDOWN] = std::make_shared<CLayDownGait>(node_, kinematics_, params_.layDown);
+    gaits_[MovementRequest::HIGH_FIVE] =
+        std::make_shared<CHighFiveGait>(node_, kinematics_, params_.highFive);
+    gaits_[MovementRequest::CLAP] = std::make_shared<CClapGait>(node_, kinematics_, params_.clap);
+    gaits_[MovementRequest::LOOK] = std::make_shared<CGaitLook>(node_, kinematics_, params_.look);
+    gaits_[MovementRequest::TESTLEGS] = std::make_shared<CTestLegsGait>(node_, kinematics_, params_.testLegs);
 
     // Default active gait
     active_gait_ = gaits_[MovementRequest::STAND_UP];
@@ -101,3 +93,5 @@ bool CGaitController::updateSelectedGait(const geometry_msgs::msg::Twist& veloci
 void CGaitController::requestStopSelectedGait() {
     active_gait_->requestStop();
 }
+
+}  // namespace nikita_movement

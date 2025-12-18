@@ -5,16 +5,17 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include "nikita_utils/geometry.hpp"
+#include "requester/gaits_parameter.hpp"
 #include "requester/igaits.hpp"
+#include "requester/kinematics.hpp"
 #include "requester/types.hpp"
-
-class CKinematics;
 
 namespace nikita_movement {
 
 class CBodyRollGait : public IGait {
    public:
-    CBodyRollGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
+    CBodyRollGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                  Parameters::BodyRoll& params);
     ~CBodyRollGait() override = default;
 
     void start(double duration_s, uint8_t direction) override;
@@ -29,6 +30,7 @@ class CBodyRollGait : public IGait {
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
     EGaitState state_ = EGaitState::Stopped;
+    Parameters::BodyRoll params_;
 
     double phase_ = double(0);
 };

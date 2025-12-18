@@ -6,10 +6,9 @@
 
 namespace nikita_movement {
 
-CGaitLegWave::CGaitLegWave(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
-    : node_(node), kinematics_(kinematics) {
-    kLegLiftHeight_ =
-        node_->declare_parameter<double>("GAIT_LEG_WAVE_LEG_LIFT_HEIGHT", rclcpp::PARAMETER_DOUBLE);
+CGaitLegWave::CGaitLegWave(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                           Parameters::LegWave& params)
+    : node_(node), kinematics_(kinematics), params_(params) {
 }
 
 void CGaitLegWave::start(double /*duration_s*/, uint8_t /*direction*/) {
@@ -53,7 +52,7 @@ bool CGaitLegWave::update(const geometry_msgs::msg::Twist& velocity, const CPose
     }
 
     auto target_position = base_foot_pos.at(active_leg_index_);
-    target_position.z = base_foot_pos.at(active_leg_index_).z + kLegLiftHeight_ * std::sin(phase_);
+    target_position.z = base_foot_pos.at(active_leg_index_).z + params_.leg_lift_height * std::sin(phase_);
     RCLCPP_DEBUG_STREAM(node_->get_logger(),
                         "LegWave: Moving leg " << magic_enum::enum_name(active_leg_index_) << " to position ("
                                                << target_position.x << ", " << target_position.y << ", "

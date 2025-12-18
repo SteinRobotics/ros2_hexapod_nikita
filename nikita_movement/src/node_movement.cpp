@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
 
     auto node = rclcpp::Node::make_shared("node_movement");
-    auto requester = std::make_shared<CRequester>(node);
+    auto requester = std::make_shared<nikita_movement::CRequester>(node);
 
     rclcpp::Rate loop_rate(REFRESH_RATE_HZ);
     auto timeslice_ms = std::chrono::duration_cast<std::chrono::milliseconds>(

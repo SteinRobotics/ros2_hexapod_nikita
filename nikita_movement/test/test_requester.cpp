@@ -7,6 +7,7 @@
 #include "test_helpers.hpp"
 
 using namespace std::chrono_literals;
+using namespace nikita_movement;
 
 class RequesterTest : public ::testing::Test {
    protected:
@@ -15,32 +16,20 @@ class RequesterTest : public ::testing::Test {
             rclcpp::init(0, nullptr);
         }
         rclcpp::NodeOptions options;
-        options.parameter_overrides({
-            rclcpp::Parameter("LEG_NAMES", std::vector<std::string>{"RightFront", "RightMid", "RightBack",
-                                                                    "LeftFront", "LeftMid", "LeftBack"}),
-            rclcpp::Parameter("COXA_LENGTH", 0.050),
-            rclcpp::Parameter("FEMUR_LENGTH", 0.063),
-            rclcpp::Parameter("TIBIA_LENGTH", 0.099),
-            rclcpp::Parameter("COXA_HEIGHT", 0.045),
-            rclcpp::Parameter("CENTER_TO_COXA_X",
-                              std::vector<double>{0.109, 0.0, -0.109, 0.109, 0.0, -0.109}),
-            rclcpp::Parameter("CENTER_TO_COXA_Y",
-                              std::vector<double>{0.068, 0.088, 0.068, -0.068, -0.088, -0.068}),
-            rclcpp::Parameter("OFFSET_COXA_ANGLE_DEG",
-                              std::vector<double>{45.0, 90.0, 135.0, -45.0, -90.0, -135.0}),
-            rclcpp::Parameter("STANDING_FOOT_POS_X",
-                              std::vector<double>{0.092, 0.0, -0.092, 0.092, 0.0, -0.092}),
-            rclcpp::Parameter("STANDING_FOOT_POS_Y",
-                              std::vector<double>{0.092, 0.130, 0.092, -0.092, -0.130, -0.092}),
-            rclcpp::Parameter("STANDING_FOOT_POS_Z",
-                              std::vector<double>{-0.050, -0.050, -0.050, -0.050, -0.050, -0.050}),
-            rclcpp::Parameter("LAYDOWN_FOOT_POS_X",
-                              std::vector<double>{0.071, 0.0, -0.071, 0.071, 0.0, -0.071}),
-            rclcpp::Parameter("LAYDOWN_FOOT_POS_Y",
-                              std::vector<double>{0.071, 0.100, 0.071, -0.071, -0.100, -0.071}),
-            rclcpp::Parameter("LAYDOWN_FOOT_POS_Z",
-                              std::vector<double>{0.010, 0.010, 0.010, 0.010, 0.010, 0.010}),
-        });
+        auto overrides = test_helpers::defaultRobotParameters();
+        overrides.emplace_back("STANDING_FOOT_POS_X",
+                               std::vector<double>{0.092, 0.0, -0.092, 0.092, 0.0, -0.092});
+        overrides.emplace_back("STANDING_FOOT_POS_Y",
+                               std::vector<double>{0.092, 0.130, 0.092, -0.092, -0.130, -0.092});
+        overrides.emplace_back("STANDING_FOOT_POS_Z",
+                               std::vector<double>{-0.050, -0.050, -0.050, -0.050, -0.050, -0.050});
+        overrides.emplace_back("LAYDOWN_FOOT_POS_X",
+                               std::vector<double>{0.071, 0.0, -0.071, 0.071, 0.0, -0.071});
+        overrides.emplace_back("LAYDOWN_FOOT_POS_Y",
+                               std::vector<double>{0.071, 0.100, 0.071, -0.071, -0.100, -0.071});
+        overrides.emplace_back("LAYDOWN_FOOT_POS_Z",
+                               std::vector<double>{0.010, 0.010, 0.010, 0.010, 0.010, 0.010});
+        options.parameter_overrides(overrides);
         node_ = std::make_shared<rclcpp::Node>("test_requester_node", options);
         servoHandlerMock_ = std::make_shared<CServoHandlerMock>(node_);
         requester_ = std::make_unique<CRequester>(node_, servoHandlerMock_);

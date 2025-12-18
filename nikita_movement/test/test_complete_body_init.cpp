@@ -5,6 +5,7 @@
 #include "requester/types.hpp"
 
 using namespace std;
+using namespace nikita_movement;
 
 class CompleteBodyInitTest : public ::testing::Test {
    protected:

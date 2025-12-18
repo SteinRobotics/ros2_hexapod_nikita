@@ -7,6 +7,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <magic_enum.hpp>
 #include <map>
 #include <memory>
 #include <string>
@@ -20,14 +21,19 @@
 #include "requester/gait_highfive.hpp"
 #include "requester/gait_laydown.hpp"
 #include "requester/gait_legwave.hpp"
+#include "requester/gait_look.hpp"
 #include "requester/gait_ripple.hpp"
 #include "requester/gait_standup.hpp"
+#include "requester/gait_testlegs.hpp"
 #include "requester/gait_tripod.hpp"
 #include "requester/gait_waiting.hpp"
 #include "requester/gait_watch.hpp"
+#include "requester/gaits_parameter.hpp"
 #include "requester/igaits.hpp"
 #include "requester/kinematics.hpp"
 #include "requester/types.hpp"
+
+namespace nikita_movement {
 
 class CGaitController {
    public:
@@ -51,6 +57,7 @@ class CGaitController {
 
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
+    Parameters params_;
 
     std::map<MovementRequestType, std::shared_ptr<nikita_movement::IGait>> gaits_;
 
@@ -59,3 +66,5 @@ class CGaitController {
     nikita_interfaces::msg::MovementRequest active_request_;
     nikita_interfaces::msg::MovementRequest pending_request_;
 };
+
+}  // namespace nikita_movement

@@ -72,6 +72,15 @@ if(BUILD_TESTING)
     target_link_libraries(test_text_interpreter nikita_brain_lib)
   endif()
 
+  ament_add_gtest(test_error_management
+    test/test_error_management.cpp
+  )
+  if(TARGET test_error_management)
+    ament_target_dependencies(test_error_management rclcpp nikita_interfaces nikita_utils)
+    target_include_directories(test_error_management PRIVATE include)
+    target_link_libraries(test_error_management nikita_brain_lib)
+  endif()
+
 
 endif()
 

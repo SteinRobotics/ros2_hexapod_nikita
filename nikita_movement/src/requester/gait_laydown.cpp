@@ -11,8 +11,9 @@ constexpr double kPhaseLimit = M_PI_2;
 
 namespace nikita_movement {
 
-CLayDownGait::CLayDownGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
-    : node_(std::move(node)), kinematics_(std::move(kinematics)) {
+CLayDownGait::CLayDownGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                           Parameters::LayDown& params)
+    : node_(node), kinematics_(kinematics), params_(params) {
 }
 
 void CLayDownGait::start(double /*duration_s*/, uint8_t /*direction*/) {

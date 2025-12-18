@@ -7,6 +7,8 @@
 using namespace nikita_interfaces::msg;
 using std::placeholders::_1;
 
+namespace nikita_movement {
+
 CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServoHandler> servoHandler)
     : node_(node) {
     actionPackagesParser_ = std::make_shared<CActionPackagesParser>(node);
@@ -64,7 +66,7 @@ void CRequester::initRequestHandlers() {
         {MovementRequest::STOMP, bind(&CRequester::requestStomp)},
         {MovementRequest::CLAP, bind(&CRequester::requestGait)},
         {MovementRequest::TESTBODY, bind(&CRequester::requestTestBody)},
-        {MovementRequest::TESTLEGS, bind(&CRequester::requestTestLegs)},
+        {MovementRequest::TESTLEGS, bind(&CRequester::requestGait)},
         {MovementRequest::NEUTRAL, bind(&CRequester::requestNeutral)},
         {MovementRequest::CALIBRATE, bind(&CRequester::requestCalibrate)},
         // Add more handlers as needed
@@ -128,28 +130,6 @@ void CRequester::requestTestBody(const MovementRequest& msg) {
     sendServoRequest(msg.duration_s);
 }
 
-void CRequester::requestTestLegs(const MovementRequest& msg) {
-    activeRequest_ = MovementRequest::TESTLEGS;
-
-    for (const auto& [leg_index, leg] : kinematics_->getLegs()) {
-        RCLCPP_INFO_STREAM(node_->get_logger(),
-                           "CRequester:: requestTestLegs: " << magic_enum::enum_name(leg_index));
-
-        CLegAngles leg_angles = leg.angles_deg_;
-        CLegAngles orig_leg_angles = leg_angles;
-        leg_angles.femur_deg += 10.0;
-        leg_angles.tibia_deg += 10.0;
-        leg_angles.coxa_deg += 10.0;
-        kinematics_->setLegAngles(leg_index, leg_angles);
-        sendServoRequest(msg.duration_s / 3.0);
-
-        sendServoRequest(msg.duration_s / 3.0);
-
-        kinematics_->setLegAngles(leg_index, orig_leg_angles);
-        sendServoRequest(msg.duration_s / 3.0);
-    }
-}
-
 // ------------------------------------------------------------------------------------------------------------
 // public methods for the CRequester class
 // ------------------------------------------------------------------------------------------------------------
@@ -185,3 +165,5 @@ void CRequester::update(std::chrono::milliseconds timeslice) {
         sendServoRequest(duration);
     }
 }
+
+}  // namespace nikita_movement

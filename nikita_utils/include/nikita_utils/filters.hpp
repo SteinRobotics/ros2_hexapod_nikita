@@ -5,6 +5,8 @@
 #pragma once
 
 #include <algorithm>
+#include <limits>
+#include <type_traits>
 
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
@@ -13,6 +15,77 @@
 #include "rclcpp/rclcpp.hpp"
 
 namespace utils {
+
+// Scalar Kalman filter
+template <typename T = double>
+class CKalmanFilter {
+    static_assert(std::is_floating_point_v<T>, "CKalmanFilter expects a floating-point type");
+
+   public:
+    CKalmanFilter(T process_noise = T{1}, T measurement_noise = T{1}, T estimation_error = T{1},
+                  T initial_state = T{})
+        : process_noise_(clampNonNegative(process_noise)),
+          measurement_noise_(clampNonNegative(measurement_noise)),
+          estimation_error_(std::max(estimation_error, T{})),
+          state_(initial_state) {
+    }
+
+    void reset(T initial_state, T estimation_error) {
+        state_ = initial_state;
+        estimation_error_ = std::max(estimation_error, T{});
+    }
+
+    void setProcessNoise(T process_noise) {
+        process_noise_ = clampNonNegative(process_noise);
+    }
+
+    void setMeasurementNoise(T measurement_noise) {
+        measurement_noise_ = clampNonNegative(measurement_noise);
+    }
+
+    [[nodiscard]] T getState() const {
+        return state_;
+    }
+    [[nodiscard]] T getUncertainty() const {
+        return estimation_error_;
+    }
+
+    T predict(T control_input = T{}, T control_gain = T{1}) {
+        state_ = state_ + control_gain * control_input;
+        estimation_error_ += process_noise_;
+        return state_;
+    }
+
+    T update(T measurement) {
+        const T innovation = measurement - state_;
+        const T innovation_cov = estimation_error_ + measurement_noise_;
+        const T epsilon = std::numeric_limits<T>::epsilon();
+
+        if (innovation_cov <= epsilon) {
+            return state_;
+        }
+
+        const T kalman_gain = estimation_error_ / innovation_cov;
+        state_ = state_ + kalman_gain * innovation;
+        estimation_error_ = (T{1} - kalman_gain) * estimation_error_;
+        return state_;
+    }
+
+    T step(T measurement, T control_input = T{}, T control_gain = T{1}) {
+        predict(control_input, control_gain);
+        return update(measurement);
+    }
+
+   private:
+    static T clampNonNegative(T value) {
+        return value < T{} ? T{} : value;
+    }
+
+    T process_noise_;
+    T measurement_noise_;
+    T estimation_error_;
+    T state_;
+};
 
 // limitation filter
 template <typename T>

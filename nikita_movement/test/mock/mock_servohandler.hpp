@@ -10,11 +10,13 @@
 
 #include "handler/servohandler.hpp"
 
+namespace nikita_movement {
+
 class CServoHandlerMock : public CServoHandler {
    public:
-    CServoHandlerMock(std::shared_ptr<rclcpp::Node> node) : CServoHandler(node) {
+    explicit CServoHandlerMock(std::shared_ptr<rclcpp::Node> node) : CServoHandler(node) {
     }
-    virtual ~CServoHandlerMock() = default;
+    ~CServoHandlerMock() override = default;
 
     void run(CRequest request) override {
         requests_.push_back(std::make_shared<CRequest>(request));
@@ -31,3 +33,5 @@ class CServoHandlerMock : public CServoHandler {
    private:
     std::list<std::shared_ptr<CRequest>> requests_;
 };
+
+}  // namespace nikita_movement

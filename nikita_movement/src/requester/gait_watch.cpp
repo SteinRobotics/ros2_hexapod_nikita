@@ -5,10 +5,9 @@
 using namespace nikita_interfaces::msg;
 namespace nikita_movement {
 
-CGaitWatch::CGaitWatch(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
-    : node_(node), kinematics_(kinematics) {
-    kHeadMaxYaw_ = node_->declare_parameter<double>("GAIT_WATCH_HEAD_MAX_YAW", rclcpp::PARAMETER_DOUBLE);
-    kBodyMaxYaw_ = node_->declare_parameter<double>("GAIT_WATCH_BODY_MAX_YAW", rclcpp::PARAMETER_DOUBLE);
+CGaitWatch::CGaitWatch(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                       Parameters::Watch& params)
+    : node_(node), kinematics_(kinematics), params_(params) {
 }
 
 void CGaitWatch::start(double duration_s, uint8_t direction) {
@@ -16,8 +15,10 @@ void CGaitWatch::start(double duration_s, uint8_t direction) {
     state_ = EGaitState::Running;
     phase_ = 0.0;
 
-    amplitude_head_deg_ = (direction == MovementRequest::CLOCKWISE) ? kHeadMaxYaw_ : -kHeadMaxYaw_;
-    amplitude_body_deg_ = (direction == MovementRequest::CLOCKWISE) ? kBodyMaxYaw_ : -kBodyMaxYaw_;
+    amplitude_head_deg_ =
+        (direction == MovementRequest::CLOCKWISE) ? params_.head_max_yaw_deg : -params_.head_max_yaw_deg;
+    amplitude_body_deg_ =
+        (direction == MovementRequest::CLOCKWISE) ? params_.body_max_yaw_deg : -params_.body_max_yaw_deg;
 
     // 100ms task update time, duration in seconds, 1 full cycle = 2pi
     delta_phase_ = (2.0 * M_PI) / (duration_s / 0.1);

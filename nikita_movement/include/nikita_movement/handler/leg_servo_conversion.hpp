@@ -16,6 +16,8 @@
 #include "nikita_interfaces/msg/servo_index.hpp"
 #include "requester/types.hpp"
 
+namespace nikita_movement {
+
 namespace leg_servo_conversion {
 
 using nikita_interfaces::msg::ServoAngles;
@@ -136,3 +138,5 @@ inline std::map<ELegIndex, CLegAngles> servoAnglesMsgToLegAngles(const ServoAngl
 }
 
 }  // namespace leg_servo_conversion
+
+}  // namespace nikita_movement

@@ -6,6 +6,7 @@
 #include "requester/actionpackagesparser.hpp"
 #include "requester/gait_highfive.hpp"
 #include "requester/kinematics.hpp"
+#include "test_helpers.hpp"
 
 using namespace nikita_movement;
 
@@ -24,24 +25,13 @@ class HighFiveGaitTest : public ::testing::Test {
         }
 
         rclcpp::NodeOptions options;
-        options.parameter_overrides({
-            rclcpp::Parameter("LEG_NAMES", std::vector<std::string>{"RightFront", "RightMid", "RightBack",
-                                                                    "LeftFront", "LeftMid", "LeftBack"}),
-            rclcpp::Parameter("COXA_LENGTH", 0.050),
-            rclcpp::Parameter("FEMUR_LENGTH", 0.063),
-            rclcpp::Parameter("TIBIA_LENGTH", 0.099),
-            rclcpp::Parameter("COXA_HEIGHT", 0.045),
-            rclcpp::Parameter("CENTER_TO_COXA_X",
-                              std::vector<double>{0.109, 0.0, -0.109, 0.109, 0.0, -0.109}),
-            rclcpp::Parameter("CENTER_TO_COXA_Y",
-                              std::vector<double>{0.068, 0.088, 0.068, -0.068, -0.088, -0.068}),
-            rclcpp::Parameter("OFFSET_COXA_ANGLE_DEG",
-                              std::vector<double>{45.0, 90.0, 135.0, -45.0, -90.0, -135.0}),
-        });
+        auto overrides = test_helpers::defaultRobotParameters();
+        options.parameter_overrides(overrides);
 
         node_ = std::make_shared<rclcpp::Node>("test_gait_highfive_node", options);
         actionPackagesParser_ = std::make_shared<CActionPackagesParser>(node_);
         kinematics_ = std::make_shared<CKinematics>(node_, actionPackagesParser_);
+        params_ = test_helpers::makeDeclaredParameters(node_);
     }
 
     void TearDown() override {
@@ -55,10 +45,11 @@ class HighFiveGaitTest : public ::testing::Test {
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CActionPackagesParser> actionPackagesParser_;
     std::shared_ptr<CKinematics> kinematics_;
+    Parameters params_;
 };
 
 TEST_F(HighFiveGaitTest, RaisesRightFrontLegAndReturns) {
-    CHighFiveGait gait(node_, kinematics_);
+    CHighFiveGait gait(node_, kinematics_, params_.highFive);
     const auto initialAngles = kinematics_->getAngles(ELegIndex::RightFront);
     const auto initialHead = kinematics_->getHead();
 
@@ -89,7 +80,7 @@ TEST_F(HighFiveGaitTest, RaisesRightFrontLegAndReturns) {
 }
 
 TEST_F(HighFiveGaitTest, RequestStopReturnsToNeutralQuickly) {
-    CHighFiveGait gait(node_, kinematics_);
+    CHighFiveGait gait(node_, kinematics_, params_.highFive);
     const auto initialAngles = kinematics_->getAngles(ELegIndex::RightFront);
 
     gait.start(5.0, 0);

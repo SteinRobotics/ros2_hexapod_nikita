@@ -6,6 +6,8 @@
 
 #include <yaml-cpp/yaml.h>
 
+namespace nikita_movement {
+
 CActionPackagesParser::CActionPackagesParser(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     readYaml();
 }
@@ -412,3 +414,5 @@ std::map<ELegIndex, CPosition> CActionPackagesParser::parseFootPositionsNode(con
     process(posNode);
     return posMap;
 }
+
+}  // namespace nikita_movement

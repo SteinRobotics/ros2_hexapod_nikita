@@ -10,6 +10,7 @@
 #include "sensor_msgs/msg/joint_state.hpp"
 
 using namespace std::chrono_literals;
+using namespace nikita_movement;
 
 class MoveBodyNewPublishTest : public ::testing::Test {
    protected:

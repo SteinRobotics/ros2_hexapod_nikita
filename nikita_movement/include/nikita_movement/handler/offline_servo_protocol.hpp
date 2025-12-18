@@ -11,6 +11,8 @@
 
 #include "handler/servo_protocol.hpp"
 
+namespace nikita_movement {
+
 class COfflineServoProtocol : public CServoProtocol {
    public:
     COfflineServoProtocol(std::shared_ptr<rclcpp::Node> node, const std::string port)
@@ -99,3 +101,5 @@ class COfflineServoProtocol : public CServoProtocol {
     std::unordered_map<uint8_t, bool> ledOn_;
     std::unordered_map<uint8_t, uint8_t> idMap_;
 };
+
+}  // namespace nikita_movement

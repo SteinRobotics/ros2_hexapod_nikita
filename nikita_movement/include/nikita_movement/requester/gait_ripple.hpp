@@ -4,16 +4,17 @@
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 
+#include "requester/gaits_parameter.hpp"
 #include "requester/igaits.hpp"
+#include "requester/kinematics.hpp"
 #include "requester/types.hpp"
-
-class CKinematics;
 
 namespace nikita_movement {
 
 class CRippleGait : public IGait {
    public:
-    CRippleGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
+    CRippleGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                Parameters::Ripple& params);
     ~CRippleGait() override = default;
 
     void start(double duration_s, uint8_t direction) override;
@@ -27,6 +28,8 @@ class CRippleGait : public IGait {
    private:
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
+    Parameters::Ripple params_;
+
     EGaitState state_ = EGaitState::Stopped;
 };
 

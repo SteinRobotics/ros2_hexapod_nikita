@@ -9,17 +9,17 @@
 #include "nikita_utils/geometry.hpp"
 #include "nikita_utils/msg_twist.hpp"
 #include "nikita_utils/simpletimer.hpp"
+#include "requester/gaits_parameter.hpp"
 #include "requester/igaits.hpp"
 #include "requester/kinematics.hpp"
 #include "requester/types.hpp"
-
-class CKinematics;
 
 namespace nikita_movement {
 
 class CTripodGait : public IGait {
    public:
-    CTripodGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics);
+    CTripodGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                Parameters::Tripod& params);
     ~CTripodGait() override = default;
 
     void start(double duration_s, uint8_t direction) override;
@@ -33,13 +33,8 @@ class CTripodGait : public IGait {
    private:
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
-    double kLegLiftHeight_ = double(0);
-    double kGaitStepLength_ = double(0);
-    double kFactorVelocityToGaitCycleTime_ = double(0);
-    double kHeadMaxYawAmplitude_ = double(0);
+    Parameters::Tripod params_;
     EGaitState state_ = EGaitState::Stopped;
-
-    bool use_group1_ = true;
 
     const std::vector<ELegIndex> group_first_tripod_ = {ELegIndex::RightFront, ELegIndex::LeftMid,
                                                         ELegIndex::RightBack};
@@ -47,8 +42,6 @@ class CTripodGait : public IGait {
                                                          ELegIndex::LeftBack};
 
     double phase_ = double(0);
-    bool is_start_phase_done_ = false;
-    bool is_leave_cycle_requested_ = false;
     ELegIndex active_leg_index_ = ELegIndex::RightFront;
 
     CSimpleTimer no_velocity_timer_;

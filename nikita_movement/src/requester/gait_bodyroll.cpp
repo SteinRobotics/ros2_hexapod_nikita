@@ -4,8 +4,9 @@
 
 namespace nikita_movement {
 
-CBodyRollGait::CBodyRollGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
-    : node_(std::move(node)), kinematics_(std::move(kinematics)) {
+CBodyRollGait::CBodyRollGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                             Parameters::BodyRoll& params)
+    : node_(node), kinematics_(kinematics), params_(params) {
 }
 
 void CBodyRollGait::start(double /*duration_s*/, uint8_t /*direction*/) {
@@ -39,14 +40,14 @@ bool CBodyRollGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const 
     auto body = CPose();
 
     // Roll is always a sine wave
-    body.orientation.roll_deg = kinematics_->BODY_MAX_ROLL * std::sin(phase_);
+    body.orientation.roll_deg = params_.body_max_roll_deg * std::sin(phase_);
 
     // Pitch behavior depends on state
     if (state_ == EGaitState::Running || state_ == EGaitState::StopPending) {
-        body.orientation.pitch_deg = kinematics_->BODY_MAX_PITCH * std::cos(phase_);
+        body.orientation.pitch_deg = params_.body_max_pitch_deg * std::cos(phase_);
     } else {
         // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
-        body.orientation.pitch_deg = kinematics_->BODY_MAX_PITCH * std::sin(phase_);
+        body.orientation.pitch_deg = params_.body_max_pitch_deg * std::sin(phase_);
     }
 
     kinematics_->moveBody(base_foot_pos, body);

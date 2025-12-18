@@ -5,6 +5,7 @@
 #include "test_helpers.hpp"
 
 using namespace std;
+using namespace nikita_movement;
 
 class ActionPackagesParserTest : public ::testing::Test {
    protected:

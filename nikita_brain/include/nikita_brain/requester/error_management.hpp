@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <deque>
-
+#include "magic_enum.hpp"
 #include "nikita_interfaces/msg/servo_status.hpp"
+#include "nikita_utils/filters.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "requester/utility.hpp"
 
@@ -27,53 +27,41 @@ class CErrorManagement {
     virtual ~CErrorManagement() = default;
 
     EError getErrorServo(const nikita_interfaces::msg::ServoStatus& msg);
-    EError filterSupplyVoltage(float voltage);
-
-    float getFilteredSupplyVoltage();
-    float getFilteredServoVoltage();
-
+    EError filterSupplyVoltage(double voltage);
     std::string getErrorName(EError error) {
-        switch (error) {
-            case EError::None:
-                return "none";
-            case EError::VoltageLow:
-                return "voltage low";
-            case EError::VoltageCriticalLow:
-                return "voltage critical low";
-            case EError::VoltageHigh:
-                return "voltage high";
-            case EError::TemperatureHigh:
-                return "temperature high";
-            case EError::TemperatureCriticalHigh:
-                return "temperature critical high";
-            default:
-                return "unknown error";
-        }
+        return std::string(magic_enum::enum_name(error));
     }
+    double getFilteredSupplyVoltage();
+    double getFilteredServoVoltage();
 
    private:
+    struct Parameters {
+        struct VoltageGroup {
+            double nominal{0.0};
+            double low{0.0};
+            double critical_low{0.0};
+        };
+
+        struct TemperatureGroup {
+            double high{0.0};
+            double critical_high{0.0};
+        };
+
+        VoltageGroup supply;
+        VoltageGroup servo;
+        TemperatureGroup servo_temperature;
+
+        static Parameters declare(std::shared_ptr<rclcpp::Node> node);
+    };
+
     EError filterServoVoltage(const nikita_interfaces::msg::ServoStatus& msg);
     EError getStatusServoTemperature(const nikita_interfaces::msg::ServoStatus& msg);
-    EError getStatusVoltage(const float voltage, const float voltageLow, const float voltageCriticalLow);
-    float calculateAverageValue(std::deque<float>& filteredValues, float voltage);
+    EError getStatusVoltage(double voltage, const Parameters::VoltageGroup& thresholds);
 
     std::shared_ptr<rclcpp::Node> node_;
-
-    float ksupply_voltage_ = 0.0;
-    float ksupply_voltage_low_ = 0.0;
-    float ksupply_voltage_critical_low_ = 0.0;
-
-    float kservo_voltage_ = 0.0;
-    float kservo_voltage_low_ = 0.0;
-    float kservo_voltage_critical_low_ = 0.0;
-
-    float kservo_temperature_high_ = 0.0;
-    float kservo_temperature_critical_high_ = 0.0;
-
-    float supplyVoltageFiltered_ = 0.0;
-    std::deque<float> filterForSupplyVoltage_;
-    float servoVoltageFiltered_ = 0.0;
-    std::deque<float> filterForServoVoltage_;
+    Parameters parameters_;
+    double supply_voltage_filtered_ = 0.0;
+    double servo_voltage_filtered_ = 0.0;
 };
 
 }  // namespace brain

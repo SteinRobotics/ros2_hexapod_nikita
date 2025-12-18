@@ -14,6 +14,8 @@
 #include "requester/kinematics.hpp"
 #include "servo_controller.hpp"
 
+namespace nikita_movement {
+
 class CRequest {
    public:
     CRequest() = default;
@@ -53,3 +55,5 @@ class CServoHandler {
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CServoController> servoController_;
 };
+
+}  // namespace nikita_movement

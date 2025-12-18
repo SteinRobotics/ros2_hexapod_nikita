@@ -18,6 +18,8 @@
 // Include POD type definitions (ELegIndex, CHead, CPose, CLegAngles, CPosition)
 #include "requester/types.hpp"
 
+namespace nikita_movement {
+
 class CActionPackage {
    public:
     std::optional<CHead> head;
@@ -59,3 +61,4 @@ class CActionPackagesParser {
     std::unordered_map<std::string, CHead> defaultHeads_;
     std::unordered_map<std::string, CPose> defaultBodies_;
 };
+}  // namespace nikita_movement

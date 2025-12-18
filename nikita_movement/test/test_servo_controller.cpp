@@ -6,6 +6,7 @@
 #include "handler/servo_controller.hpp"
 
 using namespace nikita_interfaces::msg;
+using namespace nikita_movement;
 
 class ServoControllerTest : public ::testing::Test {
    protected:

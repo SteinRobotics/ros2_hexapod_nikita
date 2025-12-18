@@ -4,8 +4,9 @@
 
 namespace nikita_movement {
 
-CRippleGait::CRippleGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
-    : node_(std::move(node)), kinematics_(std::move(kinematics)) {
+CRippleGait::CRippleGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                         Parameters::Ripple& params)
+    : node_(node), kinematics_(kinematics), params_(params) {
 }
 
 void CRippleGait::start(double /*duration_s*/, uint8_t /*direction*/) {

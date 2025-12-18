@@ -2,9 +2,8 @@
 
 #include <geometry_msgs/msg/twist.hpp>
 
+#include "rclcpp/rclcpp.hpp"
 #include "requester/types.hpp"
-
-class CKinematics;
 
 namespace nikita_movement {
 

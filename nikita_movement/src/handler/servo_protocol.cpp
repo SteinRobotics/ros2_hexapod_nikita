@@ -15,6 +15,8 @@
 
 #define SERIAL_DEBUG false
 
+namespace nikita_movement {
+
 CServoProtocol::CServoProtocol(std::shared_ptr<rclcpp::Node> node, std::string deviceName)
     : node_(node), deviceName_(deviceName) {
 }
@@ -484,3 +486,5 @@ bool CServoProtocol::setLed(uint8_t ID, bool on) {
 
     return writeToServo(buf, sizeof(buf));
 }
+
+}  // namespace nikita_movement

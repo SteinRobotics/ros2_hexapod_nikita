@@ -11,8 +11,9 @@ constexpr double kPhaseLimit = M_PI_2;
 
 namespace nikita_movement {
 
-CStandUpGait::CStandUpGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics)
-    : node_(std::move(node)), kinematics_(std::move(kinematics)) {
+CStandUpGait::CStandUpGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                           Parameters::StandUp& params)
+    : node_(std::move(node)), kinematics_(std::move(kinematics)), params_(params) {
 }
 
 void CStandUpGait::start(double /*duration_s*/, uint8_t /*direction*/) {

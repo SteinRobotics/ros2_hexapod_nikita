@@ -24,6 +24,8 @@
 #include "igaits.hpp"
 #include "kinematics.hpp"
 
+namespace nikita_movement {
+
 class CRequester {
    public:
     CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServoHandler> servoHandler = nullptr);
@@ -50,7 +52,6 @@ class CRequester {
     void requestClap(const nikita_interfaces::msg::MovementRequest& msg);
     // the following requests are used for calibration and testing and are not used for normal operation
     void requestTestBody(const nikita_interfaces::msg::MovementRequest& msg);
-    void requestTestLegs(const nikita_interfaces::msg::MovementRequest& msg);
 
     void requestNeutral(const nikita_interfaces::msg::MovementRequest& msg);
     void requestCalibrate(const nikita_interfaces::msg::MovementRequest& msg);
@@ -74,3 +75,4 @@ class CRequester {
     geometry_msgs::msg::Twist velocity_;
     nikita_interfaces::msg::Pose poseBody_;
 };
+}  // namespace nikita_movement
