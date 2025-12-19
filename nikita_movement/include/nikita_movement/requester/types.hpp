@@ -110,7 +110,7 @@ class CPose {
     CPosition position;
     COrientation orientation;
 
-    // Linear interpolation member: interpolate position and orientation
+    // Linear interpolation member
     inline CPose linearInterpolate(const CPose& target, double alpha) const {
         CPose out;
         out.position = position.linearInterpolate(target.position, alpha);
@@ -162,6 +162,16 @@ class CHead {
 
     double yaw_deg = double(0);
     double pitch_deg = double(0);
+
+    bool operator==(const CHead& rhs) const {
+        return yaw_deg == rhs.yaw_deg && pitch_deg == rhs.pitch_deg;
+    }
+
+    // Linear interpolation member: interpolate yaw and pitch angles (degrees)
+    inline CHead linearInterpolate(const CHead& target, double alpha) const {
+        return CHead(yaw_deg + (target.yaw_deg - yaw_deg) * alpha,
+                     pitch_deg + (target.pitch_deg - pitch_deg) * alpha);
+    }
 };
 
 // --------------------------------------------------------

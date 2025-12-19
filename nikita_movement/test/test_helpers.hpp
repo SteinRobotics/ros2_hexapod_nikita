@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -12,36 +13,68 @@
 namespace nikita_movement::test_helpers {
 
 inline std::vector<rclcpp::Parameter> defaultKinematicsParameters() {
-    return {
-        rclcpp::Parameter("LEG_NAMES", std::vector<std::string>{"RightFront", "RightMid", "RightBack",
-                                                                "LeftFront", "LeftMid", "LeftBack"}),
-        rclcpp::Parameter("COXA_LENGTH", 0.050),
-        rclcpp::Parameter("FEMUR_LENGTH", 0.063),
-        rclcpp::Parameter("TIBIA_LENGTH", 0.099),
-        rclcpp::Parameter("COXA_HEIGHT", 0.045),
-        rclcpp::Parameter("CENTER_TO_COXA_X", std::vector<double>{0.109, 0.0, -0.109, 0.109, 0.0, -0.109}),
-        rclcpp::Parameter("CENTER_TO_COXA_Y",
-                          std::vector<double>{0.068, 0.088, 0.068, -0.068, -0.088, -0.068}),
-        rclcpp::Parameter("OFFSET_COXA_ANGLE_DEG",
-                          std::vector<double>{45.0, 90.0, 135.0, -45.0, -90.0, -135.0})};
+    std::vector<rclcpp::Parameter> params = {
+        rclcpp::Parameter("COXA_LENGTH", 0.050), rclcpp::Parameter("FEMUR_LENGTH", 0.063),
+        rclcpp::Parameter("TIBIA_LENGTH", 0.099), rclcpp::Parameter("COXA_HEIGHT", 0.045)};
+
+    struct LegConfig {
+        const char* name;
+        double offset_x;
+        double offset_y;
+        double offset_psi;
+        double standing_x;
+        double standing_y;
+        double standing_z;
+        double laydown_x;
+        double laydown_y;
+        double laydown_z;
+    };
+
+    constexpr std::array<LegConfig, 6> legs = {
+        {{"RightFront", 0.109, 0.068, 45.0, 0.201, 0.160, -0.050, 0.180, 0.139, 0.010},
+         {"RightMid", 0.000, 0.088, 90.0, 0.000, 0.218, -0.050, 0.000, 0.188, 0.010},
+         {"RightBack", -0.109, 0.068, 135.0, -0.201, 0.160, -0.050, -0.180, 0.139, 0.010},
+         {"LeftFront", 0.109, -0.068, -45.0, 0.201, -0.160, -0.050, 0.180, -0.139, 0.010},
+         {"LeftMid", 0.000, -0.088, -90.0, 0.000, -0.218, -0.050, 0.000, -0.188, 0.010},
+         {"LeftBack", -0.109, -0.068, -135.0, -0.201, -0.160, -0.050, -0.180, -0.139, 0.010}}};
+
+    for (const auto& leg : legs) {
+        const std::string name(leg.name);
+        params.emplace_back("leg_names." + name, name);
+        params.emplace_back("leg_offsets." + name + ".CENTER_TO_COXA_X", leg.offset_x);
+        params.emplace_back("leg_offsets." + name + ".CENTER_TO_COXA_Y", leg.offset_y);
+        params.emplace_back("leg_offsets." + name + ".OFFSET_COXA_ANGLE_DEG", leg.offset_psi);
+
+        params.emplace_back("footPositions_standing." + name + ".x", leg.standing_x);
+        params.emplace_back("footPositions_standing." + name + ".y", leg.standing_y);
+        params.emplace_back("footPositions_standing." + name + ".z", leg.standing_z);
+
+        params.emplace_back("footPositions_laydown." + name + ".x", leg.laydown_x);
+        params.emplace_back("footPositions_laydown." + name + ".y", leg.laydown_y);
+        params.emplace_back("footPositions_laydown." + name + ".z", leg.laydown_z);
+    }
+
+    return params;
 }
 
 inline std::vector<rclcpp::Parameter> defaultGaitParameters() {
-    return {rclcpp::Parameter("LEG_LIFT_HEIGHT", 0.03),
-            rclcpp::Parameter("BODY_MAX_ROLL", 20.0),
-            rclcpp::Parameter("BODY_MAX_PITCH", 10.0),
-            rclcpp::Parameter("HEAD_MAX_YAW_TRIPOD", 15.0),
-            rclcpp::Parameter("FACTOR_VELOCITY_TO_GAIT_CYCLE_TIME", 0.5),
-            rclcpp::Parameter("GAIT_STEP_LENGTH", 0.05),
-            rclcpp::Parameter("GAIT_LEG_WAVE_LEG_LIFT_HEIGHT", 0.025),
-            rclcpp::Parameter("GAIT_LOOK_BODY_MAX_YAW", 10.0),
-            rclcpp::Parameter("GAIT_LOOK_HEAD_MAX_YAW", 12.0),
-            rclcpp::Parameter("GAIT_WATCH_BODY_MAX_YAW", 8.0),
-            rclcpp::Parameter("GAIT_WATCH_HEAD_MAX_YAW", 15.0),
-            rclcpp::Parameter("TESTLEGS_COXA_DELTA_DEG", 5.0),
-            rclcpp::Parameter("TESTLEGS_FEMUR_DELTA_DEG", 5.0),
-            rclcpp::Parameter("TESTLEGS_TIBIA_DELTA_DEG", 5.0),
-            rclcpp::Parameter("TESTLEGS_HOLD_TIME_PER_LEG", 0.5)};
+    return {rclcpp::Parameter("GENERIC_BODY_MAX_ROLL", 12.0),
+            rclcpp::Parameter("GENERIC_BODY_MAX_PITCH", 12.0),
+            rclcpp::Parameter("GENERIC_BODY_MAX_YAW", 20.0),
+            rclcpp::Parameter("GENERIC_HEAD_MAX_YAW", 30.0),
+            rclcpp::Parameter("GENERIC_HEAD_MAX_PITCH", 20.0),
+            rclcpp::Parameter("GENERIC_LEG_LIFT_HEIGHT", 0.025),
+            rclcpp::Parameter("GENERIC_STEP_LENGTH", 0.03),
+            rclcpp::Parameter("GAIT_TRIPOD_HEAD_MAX_YAW", 15.0),
+            rclcpp::Parameter("GAIT_TRIPOD_FACTOR_VELOCITY_TO_CYCLE_TIME", 40.0),
+            rclcpp::Parameter("GAIT_LEG_WAVE_LEG_LIFT_HEIGHT", 0.03),
+            rclcpp::Parameter("GAIT_LOOK_BODY_MAX_YAW", 20.0),
+            rclcpp::Parameter("GAIT_LOOK_HEAD_MAX_YAW", 25.0),
+            rclcpp::Parameter("GAIT_WATCH_BODY_MAX_YAW", 10.0),
+            rclcpp::Parameter("TESTLEGS_COXA_DELTA_DEG", 10.0),
+            rclcpp::Parameter("TESTLEGS_FEMUR_DELTA_DEG", 15.0),
+            rclcpp::Parameter("TESTLEGS_TIBIA_DELTA_DEG", 20.0),
+            rclcpp::Parameter("TESTLEGS_HOLD_TIME_PER_LEG", 1.0)};
 }
 
 inline std::vector<rclcpp::Parameter> defaultRobotParameters() {

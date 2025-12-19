@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include "actionpackagesparser.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "requester/kinematics.hpp"
 #include "test_helpers.hpp"
@@ -15,23 +14,10 @@ class KinematicsTest : public ::testing::Test {
             rclcpp::init(0, nullptr);
         }
         rclcpp::NodeOptions options;
-        options.parameter_overrides({
-            rclcpp::Parameter("LEG_NAMES", std::vector<std::string>{"RightFront", "RightMid", "RightBack",
-                                                                    "LeftFront", "LeftMid", "LeftBack"}),
-            rclcpp::Parameter("COXA_LENGTH", 0.050),
-            rclcpp::Parameter("FEMUR_LENGTH", 0.063),
-            rclcpp::Parameter("TIBIA_LENGTH", 0.099),
-            rclcpp::Parameter("COXA_HEIGHT", 0.045),
-            rclcpp::Parameter("CENTER_TO_COXA_X",
-                              std::vector<double>{0.109, 0.0, -0.109, 0.109, 0.0, -0.109}),
-            rclcpp::Parameter("CENTER_TO_COXA_Y",
-                              std::vector<double>{0.068, 0.088, 0.068, -0.068, -0.088, -0.068}),
-            rclcpp::Parameter("OFFSET_COXA_ANGLE_DEG",
-                              std::vector<double>{45.0, 90.0, 135.0, -45.0, -90.0, -135.0}),
-        });
+        auto overrides = test_helpers::defaultRobotParameters();
+        options.parameter_overrides(overrides);
         node_ = std::make_shared<rclcpp::Node>("test_kinematics_node", options);
-        actionPackagesParser_ = std::make_shared<CActionPackagesParser>(node_);
-        kin_ = std::make_unique<CKinematics>(node_, actionPackagesParser_);
+        kin_ = std::make_unique<CKinematics>(node_);
         cout << "KinematicsTest SetUp complete" << endl;
     }
 
@@ -43,7 +29,6 @@ class KinematicsTest : public ::testing::Test {
     }
 
     std::shared_ptr<rclcpp::Node> node_;
-    std::shared_ptr<CActionPackagesParser> actionPackagesParser_;
     std::unique_ptr<CKinematics> kin_;
 };
 

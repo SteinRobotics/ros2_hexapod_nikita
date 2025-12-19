@@ -39,8 +39,8 @@ CCoordinator::CCoordinator(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
 }
 
 void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
-    // BUTTON SELECT
-    if (msg.button_select) {
+    if (msg.button_home) {
+        RCLCPP_INFO_STREAM(node_->get_logger(), "Shutdown requested by joystick");
         requestShutdown(Prio::High);
         return;
     }
@@ -60,13 +60,15 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     } else if (msg.button_b) {
         newMovementType = MovementRequest::HIGH_FIVE;
         comment = "ich gebe dir ein High Five";
-        duration_s = 5.0;
+        duration_s = 4.0;
     } else if (msg.button_x) {
         newMovementType = MovementRequest::BODY_ROLL;
         comment = "ich rolle den Rumpf";
+        duration_s = 4.0;
     } else if (msg.button_y) {
         newMovementType = MovementRequest::LEGS_WAVE;
         comment = "was ist eine Beinewelle";
+        duration_s = 3.0;
     } else if (msg.button_l1) {
         newMovementType = MovementRequest::LOOK;
         direction = MovementRequest::ANTICLOCKWISE;
@@ -86,13 +88,16 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     // DPAD
     // int8 dpad_vertical     # DOWN = -1, UP = 1
     // int8 dpad_horizontal   # LEFT = -1, RIGHT = 1
-    if (msg.dpad_vertical == 1 && !isStanding_) {
+    if (msg.dpad_vertical == 1) {
         newMovementType = MovementRequest::STAND_UP;
-        duration_s = 3.0;
-        comment = "ich stehe auf";
-    } else if (msg.dpad_vertical == -1 && isStanding_) {
+        duration_s = 1.5;
+        if (!isStanding_)
+            comment = "ich stehe auf";
+        else
+            comment = "nehme neutrale Position ein";
+    } else if (msg.dpad_vertical == -1) {
         newMovementType = MovementRequest::LAYDOWN;
-        duration_s = 3.0;
+        duration_s = 1.5;
         comment = "ich lege mich hin";
     }
 
@@ -152,15 +157,15 @@ void CCoordinator::speechRecognized(std::string text) {
     if (command == "notFound") {
         requestNotFound(text);
     } else if (command == "commandStandup") {
-        submitRequestMove(MovementRequest::STAND_UP, 3.0, "ich stehe auf", Prio::High);
+        submitRequestMove(MovementRequest::STAND_UP, 1.5, "ich stehe auf", Prio::High);
     } else if (command == "commandLaydown") {
-        submitRequestMove(MovementRequest::LAYDOWN, 3.0, "ich leg mich hin", Prio::High);
+        submitRequestMove(MovementRequest::LAYDOWN, 1.5, "ich leg mich hin", Prio::High);
     } else if (command == "commandHighFive") {
         submitRequestMove(MovementRequest::HIGH_FIVE, 5.0, "ich gebe dir ein High Five", Prio::High);
     } else if (command == "commandLegWave") {
-        submitRequestMove(MovementRequest::LEGS_WAVE, 5.0, "bein welle", Prio::High);
+        submitRequestMove(MovementRequest::LEGS_WAVE, 3.0, "bein welle", Prio::High);
     } else if (command == "commandBodyRoll") {
-        submitRequestMove(MovementRequest::BODY_ROLL, 5.0, "ich rolle den rumpf", Prio::High);
+        submitRequestMove(MovementRequest::BODY_ROLL, 4.0, "ich rolle den rumpf", Prio::High);
     } else if (command == "commandWatch") {
         submitRequestMove(MovementRequest::WATCH, 5.0, "ich schaue mich um", Prio::High);
     } else if (command == "commandTurnHead") {
@@ -271,7 +276,7 @@ void CCoordinator::requestShutdown(Prio prio) {
     submitSingleRequest<RequestTalking>(prio, text);
 
     if (isStanding_) {
-        submitRequestMove(MovementRequest::LAYDOWN, 2.0, "", prio);
+        submitRequestMove(MovementRequest::LAYDOWN, 1.5, "", prio);
     }
     submitSingleRequest<RequestSystem>(prio, true, true);
 }
@@ -285,7 +290,7 @@ void CCoordinator::requestReactionOnError(std::string text, bool isShutdownReque
     submitSingleRequest<RequestTalking>(prio, text);
 
     if (isShutdownRequested) {
-        submitRequestMove(MovementRequest::LAYDOWN, 3.0, "", prio);
+        submitRequestMove(MovementRequest::LAYDOWN, 1.5, "", prio);
     }
     submitSingleRequest<RequestSystem>(prio, isShutdownRequested, isShutdownRequested);
 }
@@ -371,7 +376,7 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
         RCLCPP_INFO_STREAM(node_->get_logger(), "standup before move request");
         isStanding_ = true;
         // recursive call to first stand up
-        submitRequestMove(MovementRequest::STAND_UP, 3.0, "ich stehe erst mal auf", prio);
+        submitRequestMove(MovementRequest::STAND_UP, 1.5, "ich stehe erst mal auf", prio);
     }
 
     auto request = MovementRequest();

@@ -1,6 +1,9 @@
 #pragma once
 
+#include <cassert>
+#include <cmath>
 #include <geometry_msgs/msg/twist.hpp>
+#include <map>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 
@@ -31,7 +34,8 @@ class CBodyRollGait : public IGait {
     std::shared_ptr<CKinematics> kinematics_;
     EGaitState state_ = EGaitState::Stopped;
     Parameters::BodyRoll params_;
-
+    std::map<ELegIndex, CPosition> origin_leg_positions_;
+    double phase_increment_ = 0.1;
     double phase_ = double(0);
 };
 

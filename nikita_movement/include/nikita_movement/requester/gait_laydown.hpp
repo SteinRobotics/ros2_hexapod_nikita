@@ -30,9 +30,12 @@ class CLayDownGait : public IGait {
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
     Parameters::LayDown params_;
-
     EGaitState state_ = EGaitState::Stopped;
-    std::map<ELegIndex, CPosition> origin_positions_;
+    std::map<ELegIndex, CPosition> target_leg_positions_;
+    CHead target_head_position_;
+    std::map<ELegIndex, CPosition> origin_leg_positions_;
+    CHead origin_head_position_;
+    double phase_increment_ = 0.1;
     double phase_ = 0.0;
 };
 

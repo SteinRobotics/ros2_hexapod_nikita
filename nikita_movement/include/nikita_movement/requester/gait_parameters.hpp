@@ -16,7 +16,9 @@ struct Parameters {
 
     struct HighFive {};
 
-    struct LayDown {};
+    struct LayDown {
+        double head_max_pitch_deg{0.0};
+    };
 
     struct LegWave {
         double leg_lift_height{0.0};
@@ -59,8 +61,8 @@ struct Parameters {
     HighFive highFive;
     LayDown layDown;
     LegWave legWave;
-    Ripple ripple;
     Look look;
+    Ripple ripple;
     StandUp standUp;
     TestLegs testLegs;
     Tripod tripod;
@@ -74,30 +76,45 @@ inline Parameters Parameters::declare(std::shared_ptr<rclcpp::Node> node) {
     Parameters params;
 
     // Generic Parameters
-    const double leg_lift_height = node->declare_parameter<double>("LEG_LIFT_HEIGHT");
+    const double body_max_roll_deg = node->declare_parameter<double>("GENERIC_BODY_MAX_ROLL");
+    const double body_max_pitch_deg = node->declare_parameter<double>("GENERIC_BODY_MAX_PITCH");
+    [[maybe_unused]] const double body_max_yaw_deg = node->declare_parameter<double>("GENERIC_BODY_MAX_YAW");
+    const double head_max_yaw_deg = node->declare_parameter<double>("GENERIC_HEAD_MAX_YAW");
+    [[maybe_unused]] const double head_max_pitch_deg =
+        node->declare_parameter<double>("GENERIC_HEAD_MAX_PITCH");
+
+    const double leg_lift_height = node->declare_parameter<double>("GENERIC_LEG_LIFT_HEIGHT");
+    const double step_length = node->declare_parameter<double>("GENERIC_STEP_LENGTH");
 
     // Body Roll
-    params.bodyRoll.body_max_roll_deg = node->declare_parameter<double>("BODY_MAX_ROLL");
-    params.bodyRoll.body_max_pitch_deg = node->declare_parameter<double>("BODY_MAX_PITCH");
+    params.bodyRoll.body_max_roll_deg = body_max_roll_deg;
+    params.bodyRoll.body_max_pitch_deg = body_max_pitch_deg;
 
     // Tripod
-    params.tripod.head_amplitude_yaw_deg = node->declare_parameter<double>("HEAD_MAX_YAW_TRIPOD");
+    params.tripod.head_amplitude_yaw_deg = node->declare_parameter<double>("GAIT_TRIPOD_HEAD_MAX_YAW");
     params.tripod.factor_velocity_to_gait_cycle_time =
-        node->declare_parameter<double>("FACTOR_VELOCITY_TO_GAIT_CYCLE_TIME");
-    params.tripod.gait_step_length = node->declare_parameter<double>("GAIT_STEP_LENGTH");
+        node->declare_parameter<double>("GAIT_TRIPOD_FACTOR_VELOCITY_TO_CYCLE_TIME");
+    params.tripod.gait_step_length = step_length;
     params.tripod.leg_lift_height = leg_lift_height;
 
     // Waiting
     params.waiting.leg_lift_height = leg_lift_height;
 
+    // LayDown
+    params.layDown.head_max_pitch_deg = head_max_pitch_deg;
+
     // Leg Wave
     params.legWave.leg_lift_height = node->declare_parameter<double>("GAIT_LEG_WAVE_LEG_LIFT_HEIGHT");
+
+    // Look
     params.look.body_max_yaw_deg = node->declare_parameter<double>("GAIT_LOOK_BODY_MAX_YAW");
     params.look.head_max_yaw_deg = node->declare_parameter<double>("GAIT_LOOK_HEAD_MAX_YAW");
 
+    // StandUp
+
     // Watch
     params.watch.body_max_yaw_deg = node->declare_parameter<double>("GAIT_WATCH_BODY_MAX_YAW");
-    params.watch.head_max_yaw_deg = node->declare_parameter<double>("GAIT_WATCH_HEAD_MAX_YAW");
+    params.watch.head_max_yaw_deg = head_max_yaw_deg;
 
     // Test Legs
     params.testLegs.coxa_delta_deg = node->declare_parameter<double>("TESTLEGS_COXA_DELTA_DEG");

@@ -1,6 +1,7 @@
 #include "requester/gait_bodyroll.hpp"
 
-#include "requester/kinematics.hpp"
+constexpr double kPhaseLimit = TWO_PI;
+constexpr double kUpdateIntervalS = 0.1;  // Update interval in seconds
 
 namespace nikita_movement {
 
@@ -9,33 +10,33 @@ CBodyRollGait::CBodyRollGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr
     : node_(node), kinematics_(kinematics), params_(params) {
 }
 
-void CBodyRollGait::start(double /*duration_s*/, uint8_t /*direction*/) {
+void CBodyRollGait::start(double duration_s, uint8_t /*direction*/) {
+    assert(duration_s > 0.0 && "CBodyRollGait::start duration must be positive.");
     state_ = EGaitState::Starting;
     phase_ = 0.0;
+    phase_increment_ = kPhaseLimit / (duration_s / kUpdateIntervalS);
+    origin_leg_positions_ = kinematics_->getLegsPositions();
 }
 
 bool CBodyRollGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
     if (state_ == EGaitState::Stopped) {
         return false;
     }
-    constexpr double kDeltaPhase = 0.05;
-    phase_ += kDeltaPhase;
-    phase_ = std::fmod(phase_, TWO_PI);
+    phase_ += phase_increment_;
+    phase_ = std::fmod(phase_, kPhaseLimit);
 
     // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
     if (state_ == EGaitState::Starting && phase_ > M_PI_4) {
         state_ = EGaitState::Running;
     }
-    if (state_ == EGaitState::StopPending && utils::areSinCosValuesEqual(phase_, kDeltaPhase)) {
+    if (state_ == EGaitState::StopPending && utils::areSinCosValuesEqual(phase_, phase_increment_)) {
         state_ = EGaitState::Stopping;
     }
 
-    if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, kDeltaPhase)) {
+    if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, phase_increment_)) {
         phase_ = 0.0;
         state_ = EGaitState::Stopped;
     }
-
-    const auto base_foot_pos = kinematics_->getLegsStandingPositions();
 
     auto body = CPose();
 
@@ -50,7 +51,7 @@ bool CBodyRollGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const 
         body.orientation.pitch_deg = params_.body_max_pitch_deg * std::sin(phase_);
     }
 
-    kinematics_->moveBody(base_foot_pos, body);
+    kinematics_->moveBody(origin_leg_positions_, body);
     return true;
 }
 

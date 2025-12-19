@@ -5,6 +5,8 @@
 #include "requester/kinematics.hpp"
 
 #include <algorithm>
+#include <limits>
+#include <stdexcept>
 
 #include "sensor_msgs/msg/joint_state.hpp"
 
@@ -16,38 +18,63 @@ namespace nikita_movement {
 #define LOG_KINEMATICS_LEG_ACTIVE true
 #define LOG_KINEMATICS_HEAD_ACTIVE true
 
-CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node,
-                         std::shared_ptr<CActionPackagesParser> actionPackagesParser)
+CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node)
     : node_(node),
-      actionPackagesParser_(actionPackagesParser),
-      LEG_NAMES(node->declare_parameter<std::vector<std::string>>("LEG_NAMES", std::vector<std::string>())),
       COXA_LENGTH(node->declare_parameter<double>("COXA_LENGTH", rclcpp::PARAMETER_DOUBLE)),
       COXA_HEIGHT(node->declare_parameter<double>("COXA_HEIGHT", rclcpp::PARAMETER_DOUBLE)),
       FEMUR_LENGTH(node->declare_parameter<double>("FEMUR_LENGTH", rclcpp::PARAMETER_DOUBLE)),
       TIBIA_LENGTH(node->declare_parameter<double>("TIBIA_LENGTH", rclcpp::PARAMETER_DOUBLE)),
-      CENTER_TO_COXA_X(
-          node->declare_parameter<std::vector<double>>("CENTER_TO_COXA_X", std::vector<double>())),
-      CENTER_TO_COXA_Y(
-          node->declare_parameter<std::vector<double>>("CENTER_TO_COXA_Y", std::vector<double>())),
-      OFFSET_COXA_ANGLE_DEG(
-          node->declare_parameter<std::vector<double>>("OFFSET_COXA_ANGLE_DEG", std::vector<double>())),
       sq_femur_length_(pow(FEMUR_LENGTH, 2)),
       sq_tibia_length_(pow(TIBIA_LENGTH, 2)) {
-    // body center offsets
-    for (uint32_t i = 0; i < LEG_NAMES.size(); i++) {
-        auto& leg_name = LEG_NAMES.at(i);
-        ELegIndex leg_index = legNameToIndex(leg_name);
-        bodyCenterOffsets_[leg_index].x = CENTER_TO_COXA_X.at(i);
-        bodyCenterOffsets_[leg_index].y = CENTER_TO_COXA_Y.at(i);
-        bodyCenterOffsets_[leg_index].psi_deg = OFFSET_COXA_ANGLE_DEG.at(i);
+    std::map<ELegIndex, std::string> leg_parameter_keys;
+    for (auto leg_index : magic_enum::enum_values<ELegIndex>()) {
+        const std::string canonical_name = std::string(magic_enum::enum_name(leg_index));
+        std::string parameter_suffix =
+            node_->declare_parameter<std::string>("leg_names." + canonical_name, canonical_name);
+        leg_parameter_keys[leg_index] = parameter_suffix;
     }
 
-    auto foot_positions_standing = actionPackagesParser_->getFootPositions("footPositions_standing");
-    initializeLegsNew(foot_positions_standing, body_, legs_);
-    initializeLegsNew(foot_positions_standing, body_, legsStanding_);
+    auto loadBodyCenterOffsetsFromParameters =
+        [&](const std::string& parameter_root, const std::map<ELegIndex, std::string>& leg_parameter_names) {
+            std::map<ELegIndex, CBodyCenterOffset> offsets;
 
-    auto foot_positions_laying = actionPackagesParser_->getFootPositions("footPositions_laydown");
-    initializeLegsNew(foot_positions_laying, body_, legsLayDown_);
+            for (const auto& [leg_index, parameter_suffix] : leg_parameter_names) {
+                const std::string prefix = parameter_root + "." + parameter_suffix;
+                CBodyCenterOffset offset;
+                offset.x = node_->declare_parameter<double>(prefix + ".CENTER_TO_COXA_X", 0.0);
+                offset.y = node_->declare_parameter<double>(prefix + ".CENTER_TO_COXA_Y", 0.0);
+                offset.psi_deg = node_->declare_parameter<double>(prefix + ".OFFSET_COXA_ANGLE_DEG", 0.0);
+                offsets[leg_index] = offset;
+            }
+
+            RCLCPP_INFO_STREAM(node_->get_logger(), "Loaded " << parameter_root
+                                                              << " offsets from parameters ("
+                                                              << offsets.size() << " entries).");
+            return offsets;
+        };
+
+    auto loadFootPositionsFromParameters = [&](const std::string& parameter_root,
+                                               const std::map<ELegIndex, std::string>& leg_parameter_names) {
+        std::map<ELegIndex, CPosition> positions;
+        for (const auto& [leg_index, parameter_suffix] : leg_parameter_names) {
+            const std::string prefix = parameter_root + "." + parameter_suffix;
+            positions[leg_index] = CPosition(node_->declare_parameter<double>(prefix + ".x", 0.0),
+                                             node_->declare_parameter<double>(prefix + ".y", 0.0),
+                                             node_->declare_parameter<double>(prefix + ".z", 0.0));
+        }
+        return positions;
+    };
+
+    bodyCenterOffsets_ = loadBodyCenterOffsetsFromParameters("leg_offsets", leg_parameter_keys);
+
+    const auto foot_positions_standing =
+        loadFootPositionsFromParameters("footPositions_standing", leg_parameter_keys);
+    initializeLegs(foot_positions_standing, body_, legsStanding_);
+    initializeLegs(foot_positions_standing, body_, legs_);
+
+    const auto foot_positions_laydown =
+        loadFootPositionsFromParameters("footPositions_laydown", leg_parameter_keys);
+    initializeLegs(foot_positions_laydown, body_, legsLayDown_);
 
     // initialize complete_body_ with entries for all legs and copy offsets
     complete_body_.pose = CPose();
@@ -99,8 +126,8 @@ void CKinematics::logHeadPosition() {
                                        << "°, Pitch: " << std::setw(3) << head_.pitch_deg << "°");
 }
 
-void CKinematics::initializeLegsNew(const std::map<ELegIndex, CPosition>& footTargets, const CPose body,
-                                    std::map<ELegIndex, CLeg>& legs) {
+void CKinematics::initializeLegs(const std::map<ELegIndex, CPosition>& footTargets, const CPose body,
+                                 std::map<ELegIndex, CLeg>& legs) {
     for (const auto& [leg_index, foot_target] : footTargets) {
         RCLCPP_DEBUG_STREAM(node_->get_logger(), "Initializing leg "
                                                      << magic_enum::enum_name(leg_index)

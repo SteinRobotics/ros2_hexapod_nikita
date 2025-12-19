@@ -14,15 +14,13 @@
 #include "nikita_interfaces/msg/pose.hpp"
 #include "nikita_utils/geometry.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "requester/actionpackagesparser.hpp"
 #include "requester/types.hpp"
 
 namespace nikita_movement {
 
 class CKinematics {
    public:
-    CKinematics(std::shared_ptr<rclcpp::Node> node,
-                std::shared_ptr<CActionPackagesParser> actionPackagesParser);
+    explicit CKinematics(std::shared_ptr<rclcpp::Node> node);
     ~CKinematics() = default;
 
     void setSingleFeet(const ELegIndex index, const CPosition& targetFeetPos);
@@ -59,11 +57,8 @@ class CKinematics {
     const CBody& getCompleteBody() const;
 
    private:
-    void intializeLegs(std::map<ELegIndex, CLeg>& legs, std::vector<double>& posX, std::vector<double>& posY,
-                       std::vector<double>& posZ);
-
-    void initializeLegsNew(const std::map<ELegIndex, CPosition>& footTargets, const CPose body,
-                           std::map<ELegIndex, CLeg>& legs);
+    void initializeLegs(const std::map<ELegIndex, CPosition>& footTargets, const CPose body,
+                        std::map<ELegIndex, CLeg>& legs);
 
     void logLegsPositions(std::map<ELegIndex, CLeg>& legs);
     void logLegPosition(const ELegIndex index, const CLeg& leg);
@@ -76,18 +71,12 @@ class CKinematics {
     void publishJointStates();
 
     std::shared_ptr<rclcpp::Node> node_;
-    std::shared_ptr<CActionPackagesParser> actionPackagesParser_;
 
     // Parameters
-    std::vector<std::string> LEG_NAMES;
     const double COXA_LENGTH;
     const double COXA_HEIGHT;
     const double FEMUR_LENGTH;
     const double TIBIA_LENGTH;
-    std::vector<double> CENTER_TO_COXA_X;
-    std::vector<double> CENTER_TO_COXA_Y;
-    std::vector<double> OFFSET_COXA_ANGLE_DEG;
-
     const double sq_femur_length_;
     const double sq_tibia_length_;
 

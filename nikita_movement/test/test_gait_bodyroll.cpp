@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include "rclcpp/rclcpp.hpp"
-#include "requester/actionpackagesparser.hpp"
 #include "requester/gait_bodyroll.hpp"
 #include "requester/kinematics.hpp"
 #include "test_helpers.hpp"
@@ -21,8 +20,7 @@ class BodyRollGaitTest : public ::testing::Test {
 
         node_ = std::make_shared<rclcpp::Node>("test_gait_bodyroll_node", options);
 
-        actionPackagesParser_ = std::make_shared<CActionPackagesParser>(node_);
-        kinematics_ = std::make_shared<CKinematics>(node_, actionPackagesParser_);
+        kinematics_ = std::make_shared<CKinematics>(node_);
         params_ = test_helpers::makeDeclaredParameters(node_);
         gait_ = std::make_unique<CBodyRollGait>(node_, kinematics_, params_.bodyRoll);
     }
@@ -30,12 +28,10 @@ class BodyRollGaitTest : public ::testing::Test {
     void TearDown() override {
         gait_.reset();
         kinematics_.reset();
-        actionPackagesParser_.reset();
         if (rclcpp::ok()) rclcpp::shutdown();
     }
 
     std::shared_ptr<rclcpp::Node> node_;
-    std::shared_ptr<CActionPackagesParser> actionPackagesParser_;
     std::shared_ptr<CKinematics> kinematics_;
     std::unique_ptr<CBodyRollGait> gait_;
     Parameters params_;
@@ -46,7 +42,7 @@ TEST_F(BodyRollGaitTest, StateTransitionsCoverAllStates) {
     EXPECT_EQ(gait_->state(), EGaitState::Stopped);
 
     // Start -> Starting
-    gait_->start(0, 0);
+    gait_->start(1.0, 0);
     EXPECT_EQ(gait_->state(), EGaitState::Starting);
 
     // update until Running

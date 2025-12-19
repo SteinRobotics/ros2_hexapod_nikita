@@ -19,15 +19,14 @@ Nikita is an open-source, modular hexapod robot platform for makers, tinkerers, 
 ## Project Structure
 - `nikita_brain/`         — High-level behavior, action planning, and coordination
 - `nikita_movement/`      — Gait, kinematics, and movement primitives
-- `nikita_servo/`         — Servo abstraction and low-level control
-- `nikita_servo_controller/` — Advanced servo controller node
-- `nikita_communication/` — Speech recognition, TTS, and chatbot integration
-- `nikita_hmi/`           — Human-machine interface (GUI, feedback)
+- `nikita_communication/` — Speech recognition, TTS, chatbot, and audio I/O
+- `nikita_hmi/`           — Human-machine interface (OLED, IMU, relay control)
 - `nikita_teleop/`        — Teleoperation (joystick, remote)
 - `nikita_lidar/`         — LIDAR sensor integration
 - `nikita_interfaces/`    — Custom ROS2 message and service definitions
 - `nikita_bringup/`       — Launch and bringup scripts
 - `nikita_doc/`           — Documentation, diagrams, and hardware info
+- `nikita_utils/`         — Shared utilities, math helpers, and tests
 
 ## Quick Start (for Makers)
 1. **Install Dependencies**
@@ -51,7 +50,6 @@ Nikita is an open-source, modular hexapod robot platform for makers, tinkerers, 
    ros2 launch nikita_brain brain_launch.py
    ros2 launch nikita_communication communication_launch.py
    ros2 launch nikita_movement movement_launch.py
-   ros2 launch nikita_servo servo_launch.py
    ros2 launch nikita_teleop teleop_launch.py
    ros2 launch nikita_lidar lidar_launch.yaml
    ```
@@ -73,6 +71,43 @@ Nikita is an open-source, modular hexapod robot platform for makers, tinkerers, 
      ```bash
      ros2 topic pub --once /joystick_request nikita_interfaces/msg/JoystickRequest "..."
      ```
+
+
+## Raspberry Pi 5 Pin Layout
+The Raspberry Pi 5 inside Nikita hosts most of the human-machine interface hardware that lives in `nikita_hmi/`. The table follows the standard 40-pin header (odd numbers on the left when the USB ports face you). Pins with descriptions are currently wired up; empty cells are free for experiments.
+
+| Pin   | Signal        | Usage                  | Pin    | Signal        | Usage               |
+| ----- | ------------- | ---------------------- | ------ | ------------- | ------------------- |
+| **1** | 3V3           | supply for I2C modules | 2      | 5V            | —                   |
+| **3** | GPIO2 (SDA1)  | I2C bus                | **4**  | 5V            | Servo Power Relay   |
+| **5** | GPIO3 (SCL1)  | I2C bus                | **6**  | GND           | GND for I2C modules |
+| 7     | GPIO4         | —                      | 8      | GPIO14 (TXD)  | —                   |
+| 9     | GND           | —                      | 10     | GPIO15 (RXD)  | —                   |
+| 11    | GPIO17        | —                      | 12     | GPIO18        | —                   |
+| 13    | GPIO27        | —                      | **14** | GND           | Servo Power Relay   |
+| 15    | GPIO22        | —                      | 16     | GPIO23        |                     |
+| 17    | 3V3           | —                      | 18     | GPIO24        | —                   |
+| 19    | GPIO10 (MOSI) | —                      | 20     | GND           | —                   |
+| 21    | GPIO9 (MISO)  | —                      | 22     | GPIO25        | —                   |
+| 23    | GPIO11 (SCLK) | —                      | 24     | GPIO8 (CE0)   | —                   |
+| 25    | GND           | —                      | 26     | GPIO7 (CE1)   | —                   |
+| 27    | GPIO0 (ID_SD) | —                      | 28     | GPIO1 (ID_SC) | —                   |
+| 29    | GPIO5         | —                      | 30     | GND           | —                   |
+| 31    | GPIO6         | —                      | 32     | GPIO12        | —                   |
+| 33    | GPIO13        | —                      | **34** | GND           | BNO055 I2C switch   |
+| 35    | GPIO19        | —                      | **36** | GPIO16        | Servo Power Relay   |
+| 37    | GPIO26        | —                      | 38     | GPIO20        | —                   |
+| 39    | GND           | —                      | 40     | GPIO21        | —                   |
+
+
+### I2C Device Addresses
+| Device               | Address |
+| -------------------- | ------- |
+| BNO055 IMU           | 0x29    |
+| SSD1306 OLED Display | 0x3C    |
+| INA228 Power Monitor | 0x40    |
+| Garmin Lidar Lite    | 0x62    |
+
 
 
 ## Systemd Service (Optional)

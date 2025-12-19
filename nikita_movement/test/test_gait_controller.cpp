@@ -8,7 +8,6 @@
 
 #include "nikita_interfaces/msg/movement_request.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "requester/actionpackagesparser.hpp"
 #include "requester/gaitcontroller.hpp"
 #include "requester/kinematics.hpp"
 #include "test_helpers.hpp"
@@ -32,15 +31,13 @@ class GaitControllerTest : public ::testing::Test {
         options.parameter_overrides(overrides);
 
         node_ = std::make_shared<rclcpp::Node>("test_gait_controller_node", options);
-        action_packages_parser_ = std::make_shared<CActionPackagesParser>(node_);
-        kinematics_ = std::make_shared<CKinematics>(node_, action_packages_parser_);
+        kinematics_ = std::make_shared<CKinematics>(node_);
         controller_ = std::make_unique<CGaitController>(node_, kinematics_);
     }
 
     void TearDown() override {
         controller_.reset();
         kinematics_.reset();
-        action_packages_parser_.reset();
         node_.reset();
         if (rclcpp::ok()) {
             rclcpp::shutdown();
@@ -65,7 +62,6 @@ class GaitControllerTest : public ::testing::Test {
     }
 
     std::shared_ptr<rclcpp::Node> node_;
-    std::shared_ptr<CActionPackagesParser> action_packages_parser_;
     std::shared_ptr<CKinematics> kinematics_;
     std::unique_ptr<CGaitController> controller_;
 };

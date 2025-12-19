@@ -25,25 +25,26 @@ find_package(magic_enum CONFIG REQUIRED)
 
 ## set sources
 set(SOURCES
-  src/requester/requester.cpp
-  src/requester/kinematics.cpp
-  src/requester/gaitcontroller.cpp
-  src/requester/actionpackagesparser.cpp
-  src/requester/gait_tripod.cpp
-  src/requester/gait_ripple.cpp
-  src/requester/gait_bodyroll.cpp
-  src/requester/gait_legwave.cpp
-  src/requester/gait_testlegs.cpp
-  src/requester/gait_look.cpp
-  src/requester/gait_waiting.cpp
-  src/requester/gait_watch.cpp
-  src/requester/gait_standup.cpp
-  src/requester/gait_laydown.cpp
-  src/requester/gait_highfive.cpp
-  src/requester/gait_clap.cpp
-  src/handler/servohandler.cpp
   src/handler/servo_controller.cpp
   src/handler/servo_protocol.cpp
+  src/handler/servohandler.cpp
+  src/requester/gait_bodyroll.cpp
+  src/requester/gait_calibrate.cpp
+  src/requester/gait_clap.cpp
+  src/requester/gait_highfive.cpp
+  src/requester/gait_laydown.cpp
+  src/requester/gait_legwave.cpp
+  src/requester/gait_look.cpp
+  src/requester/gait_neutral.cpp
+  src/requester/gait_ripple.cpp
+  src/requester/gait_standup.cpp
+  src/requester/gait_testlegs.cpp
+  src/requester/gait_tripod.cpp
+  src/requester/gait_waiting.cpp
+  src/requester/gait_watch.cpp
+  src/requester/gaitcontroller.cpp
+  src/requester/kinematics.cpp
+  src/requester/requester.cpp
 )
 
 add_library(nikita_movement_core
@@ -85,14 +86,6 @@ if(BUILD_TESTING)
     ament_target_dependencies(test_kinematics rclcpp ament_index_cpp nikita_interfaces)
     target_include_directories(test_kinematics PRIVATE include)
     target_link_libraries(test_kinematics nikita_movement_core)
-  endif()
-
-  ament_add_gtest(test_actionpackagesparser
-    test/test_actionpackagesparser.cpp
-  )
-  if(TARGET test_actionpackagesparser)
-    ament_target_dependencies(test_actionpackagesparser rclcpp ament_index_cpp nikita_interfaces)
-    target_link_libraries(test_actionpackagesparser nikita_movement_core)
   endif()
 
   ament_add_gtest(test_requester
@@ -158,14 +151,6 @@ if(BUILD_TESTING)
   if(TARGET test_gait_legwave)
     ament_target_dependencies(test_gait_legwave rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
     target_link_libraries(test_gait_legwave nikita_movement_core)
-  endif()
-
-  ament_add_gtest(test_gait_testlegs
-    test/test_gait_testlegs.cpp
-  )
-  if(TARGET test_gait_testlegs)
-    ament_target_dependencies(test_gait_testlegs rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
-    target_link_libraries(test_gait_testlegs nikita_movement_core)
   endif()
 
   ament_add_gtest(test_gait_controller

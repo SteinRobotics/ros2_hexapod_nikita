@@ -79,13 +79,22 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
         RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopping state, phase_: %.2f",
                     phase_);
         state_ = EGaitState::Stopping;
+        is_first_tripod_tiggered_stopping_ = true;
+    }
+    if (state_ == EGaitState::StopPending && utils::isValueNear((3.0 / 4.0) * M_PI, phase_, delta_phase)) {
+        RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopping state, phase_: %.2f",
+                    phase_);
+        state_ = EGaitState::Stopping;
+        is_first_tripod_tiggered_stopping_ = false;
     }
     if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, delta_phase)) {
         RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopped state, phase_: %.2f",
                     phase_);
         phase_ = 0.0;
         state_ = EGaitState::Stopped;
-        // run one last update
+        kinematics_->moveBody(kinematics_->getLegsStandingPositions(), body);
+        kinematics_->setHead(CHead(0.0, 0.0));
+        return true;
     }
 
     RCLCPP_INFO_STREAM(node_->get_logger(), "CTripodGait::update: state_: " << magic_enum::enum_name(state_));
@@ -102,15 +111,21 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
         double step = params_.gait_step_length * sin(phase_with_offset);
 
         double lift = 0.0;
-        if (state_ == EGaitState::Running || state_ == EGaitState::StopPending) {
-            lift = params_.leg_lift_height * std::max(0.0, cos(phase_with_offset));
-        } else if (state_ == EGaitState::Starting || state_ == EGaitState::Stopping) {
-            // this if condition is only relevant for the first movement of the FirstTripod legs and only for 0 < phase_ < M_PI_4
-            // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
 
-            // Starting is using the first half of the sin (0 to M_PI_4) to lift the leg up, target is 1
-            // Stopping is using the second half of the sin wave (M_PI_4 to M_PI_2), to bring the leg down, target is 0
-            lift = params_.leg_lift_height * std::max(0.0, sin(phase_with_offset));
+        auto lift_following_cos = params_.leg_lift_height * pow(std::max(0.0, cos(phase_with_offset)), 2);
+        auto lift_following_sin = params_.leg_lift_height * pow(std::max(0.0, sin(phase_with_offset)), 2);
+
+        // default lift follows the cosine wave
+        lift = lift_following_cos;
+
+        if (state_ == EGaitState::Starting && is_first_tripod_active) {
+            lift = lift_following_sin;
+        } else if (state_ == EGaitState::Stopping && is_first_tripod_active &&
+                   is_first_tripod_tiggered_stopping_) {
+            lift = lift_following_sin;
+        } else if (state_ == EGaitState::Stopping && !is_first_tripod_active &&
+                   !is_first_tripod_tiggered_stopping_) {
+            lift = lift_following_sin;
         }
 
         const auto base_foot_pos = kinematics_->getLegsStandingPositions().at(index);

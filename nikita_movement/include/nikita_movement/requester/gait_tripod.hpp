@@ -47,6 +47,7 @@ class CTripodGait : public IGait {
     CSimpleTimer no_velocity_timer_;
     std::map<ELegIndex, CPosition> target_positions_;
     CPose body_old_;
+    bool is_first_tripod_tiggered_stopping_ = false;
 
     geometry_msgs::msg::Twist velocity_{geometry_msgs::msg::Twist()};
 };

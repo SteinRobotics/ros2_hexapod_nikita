@@ -22,20 +22,22 @@ CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared
     params_ = Parameters::declare(node_);
 
     // Create all gait instances
-    gaits_[MovementRequest::MOVE_TRIPOD] = std::make_shared<CTripodGait>(node_, kinematics_, params_.tripod);
-    gaits_[MovementRequest::MOVE_RIPPLE] = std::make_shared<CRippleGait>(node_, kinematics_, params_.ripple);
     gaits_[MovementRequest::BODY_ROLL] =
         std::make_shared<CBodyRollGait>(node_, kinematics_, params_.bodyRoll);
-    gaits_[MovementRequest::LEGS_WAVE] = std::make_shared<CGaitLegWave>(node_, kinematics_, params_.legWave);
-    gaits_[MovementRequest::WAITING] = std::make_shared<CWaitingGait>(node_, kinematics_, params_.waiting);
-    gaits_[MovementRequest::WATCH] = std::make_shared<CGaitWatch>(node_, kinematics_, params_.watch);
-    gaits_[MovementRequest::STAND_UP] = std::make_shared<CStandUpGait>(node_, kinematics_, params_.standUp);
-    gaits_[MovementRequest::LAYDOWN] = std::make_shared<CLayDownGait>(node_, kinematics_, params_.layDown);
+    gaits_[MovementRequest::CALIBRATE] = std::make_shared<CCalibrateGait>(node_, kinematics_);
+    gaits_[MovementRequest::CLAP] = std::make_shared<CClapGait>(node_, kinematics_, params_.clap);
     gaits_[MovementRequest::HIGH_FIVE] =
         std::make_shared<CHighFiveGait>(node_, kinematics_, params_.highFive);
-    gaits_[MovementRequest::CLAP] = std::make_shared<CClapGait>(node_, kinematics_, params_.clap);
+    gaits_[MovementRequest::LAYDOWN] = std::make_shared<CLayDownGait>(node_, kinematics_, params_.layDown);
+    gaits_[MovementRequest::LEGS_WAVE] = std::make_shared<CGaitLegWave>(node_, kinematics_, params_.legWave);
     gaits_[MovementRequest::LOOK] = std::make_shared<CGaitLook>(node_, kinematics_, params_.look);
+    gaits_[MovementRequest::MOVE_RIPPLE] = std::make_shared<CRippleGait>(node_, kinematics_, params_.ripple);
+    gaits_[MovementRequest::MOVE_TRIPOD] = std::make_shared<CTripodGait>(node_, kinematics_, params_.tripod);
+    gaits_[MovementRequest::NEUTRAL] = std::make_shared<CNeutralGait>(node_, kinematics_);
+    gaits_[MovementRequest::STAND_UP] = std::make_shared<CStandUpGait>(node_, kinematics_, params_.standUp);
     gaits_[MovementRequest::TESTLEGS] = std::make_shared<CTestLegsGait>(node_, kinematics_, params_.testLegs);
+    gaits_[MovementRequest::WAITING] = std::make_shared<CWaitingGait>(node_, kinematics_, params_.waiting);
+    gaits_[MovementRequest::WATCH] = std::make_shared<CGaitWatch>(node_, kinematics_, params_.watch);
 
     // Default active gait
     active_gait_ = gaits_[MovementRequest::STAND_UP];
@@ -49,6 +51,11 @@ void CGaitController::setGait(nikita_interfaces::msg::MovementRequest request) {
     RCLCPP_INFO(node_->get_logger(), "CGaitController::setGait to request %s", request.name.c_str());
 
     pending_request_ = createMsg("NO_REQUEST", MovementRequest::NO_REQUEST);
+
+    if (request.type == MovementRequest::NO_REQUEST) {
+        RCLCPP_DEBUG(node_->get_logger(), "CGaitController::setGait ignoring NO_REQUEST message");
+        return;
+    }
 
     // If there's an active gait and the same gait is requested again, handle
     // transient states (Stopped -> start, Stopping -> cancelStop) and return.

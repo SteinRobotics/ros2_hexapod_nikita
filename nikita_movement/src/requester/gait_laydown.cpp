@@ -6,20 +6,32 @@
 
 #include "requester/kinematics.hpp"
 
-constexpr double kPhaseIncrement = 0.10;
 constexpr double kPhaseLimit = M_PI_2;
+constexpr double kUpdateIntervalS = 0.1;  // Update interval in seconds
 
 namespace nikita_movement {
 
 CLayDownGait::CLayDownGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
                            Parameters::LayDown& params)
     : node_(node), kinematics_(kinematics), params_(params) {
+    target_leg_positions_ = kinematics_->getLegsLayDownPositions();
+    target_head_position_ = CHead(0.0, -params_.head_max_pitch_deg);
 }
 
-void CLayDownGait::start(double /*duration_s*/, uint8_t /*direction*/) {
-    RCLCPP_INFO(node_->get_logger(), "CLayDownGait::start called, beginning laydown gait.");
+void CLayDownGait::start(double duration_s, uint8_t /*direction*/) {
+    RCLCPP_INFO(node_->get_logger(),
+                "CLayDownGait::start called, beginning laydown gait with duration %.2f seconds.", duration_s);
     phase_ = 0.0;
-    origin_positions_ = kinematics_->getLegsPositions();
+    phase_increment_ = kPhaseLimit / (duration_s / kUpdateIntervalS);
+    origin_leg_positions_ = kinematics_->getLegsPositions();
+    origin_head_position_ = kinematics_->getHead();
+
+    if (origin_leg_positions_ == target_leg_positions_ && origin_head_position_ == target_head_position_) {
+        RCLCPP_INFO(node_->get_logger(),
+                    "CLayDownGait::start called, but robot is already in laydown position. No action taken.");
+        state_ = EGaitState::Stopped;
+        return;
+    }
     state_ = EGaitState::Running;
 }
 
@@ -28,7 +40,7 @@ bool CLayDownGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const C
         return false;
     }
 
-    phase_ += kPhaseIncrement;
+    phase_ += phase_increment_;
     if (phase_ > kPhaseLimit) {
         phase_ = kPhaseLimit;
         RCLCPP_INFO(node_->get_logger(), "CLayDownGait::update completed, laydown finished.");
@@ -36,19 +48,22 @@ bool CLayDownGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const C
     }
 
     // progress in [0,1]
-    const double progress = std::sin(phase_);
-    const auto laydown_targets = kinematics_->getLegsLayDownPositions();
+    const double progress = std::sin(phase_) * std::sin(phase_);
 
     // progress 0 means origin position
     // progress 1 means laydown position
-    std::map<ELegIndex, CPosition> target_positions;
-    for (const auto& [legIndex, laydown_pos] : laydown_targets) {
-        auto origin_pos = origin_positions_.at(legIndex);
-        // use CPosition member interpolation for clarity and fewer scalar calls
-        CPosition blendedPos = origin_pos.linearInterpolate(laydown_pos, progress);
-        target_positions[legIndex] = blendedPos;
+    std::map<ELegIndex, CPosition> intermediate_positions;
+    for (const auto& [legIndex, laydown_pos] : target_leg_positions_) {
+        auto origin_pos = origin_leg_positions_.at(legIndex);
+        CPosition intermediate_position = origin_pos.linearInterpolate(laydown_pos, progress);
+        intermediate_positions[legIndex] = intermediate_position;
     }
-    kinematics_->moveBody(target_positions, body);
+    kinematics_->moveBody(intermediate_positions, body);
+
+    // Move head up
+    CHead intermediate_head = origin_head_position_.linearInterpolate(target_head_position_, progress);
+    kinematics_->setHead(intermediate_head);
+
     return true;
 }
 

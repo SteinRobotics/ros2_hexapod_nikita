@@ -11,6 +11,7 @@ bool button_r1
 bool button_r2
 bool button_select
 bool button_start
+bool button_home
 
 # DPAD
 int8 dpad_vertical     # DOWN = -1, UP = 1

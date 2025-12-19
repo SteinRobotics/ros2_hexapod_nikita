@@ -6,20 +6,32 @@
 
 #include "requester/kinematics.hpp"
 
-constexpr double kPhaseIncrement = 0.10;
 constexpr double kPhaseLimit = M_PI_2;
+constexpr double kUpdateIntervalS = 0.1;  // Update interval in seconds
 
 namespace nikita_movement {
 
 CStandUpGait::CStandUpGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
                            Parameters::StandUp& params)
     : node_(std::move(node)), kinematics_(std::move(kinematics)), params_(params) {
+    target_leg_positions_ = kinematics_->getLegsStandingPositions();
+    target_head_position_ = CHead(0.0, 0.0);
 }
 
-void CStandUpGait::start(double /*duration_s*/, uint8_t /*direction*/) {
+void CStandUpGait::start(double duration_s, uint8_t /*direction*/) {
     RCLCPP_INFO(node_->get_logger(), "CStandUpGait::start called, beginning standup gait.");
     phase_ = 0.0;
-    origin_positions_ = kinematics_->getLegsPositions();
+    phase_increment_ = kPhaseLimit / (duration_s / kUpdateIntervalS);
+    origin_leg_positions_ = kinematics_->getLegsPositions();
+    origin_head_position_ = kinematics_->getHead();
+
+    if (origin_leg_positions_ == target_leg_positions_ && origin_head_position_ == target_head_position_) {
+        RCLCPP_INFO(
+            node_->get_logger(),
+            "CStandUpGait::start called, but robot is already in standing position. No action taken.");
+        state_ = EGaitState::Stopped;
+        return;
+    }
     state_ = EGaitState::Running;
 }
 
@@ -28,7 +40,7 @@ bool CStandUpGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const C
         return false;
     }
 
-    phase_ += kPhaseIncrement;
+    phase_ += phase_increment_;
     if (phase_ > kPhaseLimit) {
         phase_ = kPhaseLimit;
         RCLCPP_INFO(node_->get_logger(), "CStandUpGait::update completed, standup finished.");
@@ -36,19 +48,23 @@ bool CStandUpGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const C
     }
 
     // progress in [0,1]
-    const double progress = std::sin(phase_);
-    const auto standingTargets = kinematics_->getLegsStandingPositions();
+    const double progress = std::sin(phase_) * std::sin(phase_);
 
     // progress 0 means origin position
     // progress 1 means standing position
-    std::map<ELegIndex, CPosition> target_positions;
-    for (const auto& [legIndex, standing_position] : standingTargets) {
-        auto origin_position = origin_positions_.at(legIndex);
+    std::map<ELegIndex, CPosition> intermediate_positions;
+    for (const auto& [legIndex, target_position] : target_leg_positions_) {
+        auto origin_position = origin_leg_positions_.at(legIndex);
         // use CPosition member interpolation instead of per-component scalar interpolation
-        CPosition blendedPos = origin_position.linearInterpolate(standing_position, progress);
-        target_positions[legIndex] = blendedPos;
+        CPosition intermediate_position = origin_position.linearInterpolate(target_position, progress);
+        intermediate_positions[legIndex] = intermediate_position;
     }
-    kinematics_->moveBody(target_positions, body);
+    kinematics_->moveBody(intermediate_positions, body);
+
+    // Move head to neutral position
+    CHead intermediate_head = origin_head_position_.linearInterpolate(target_head_position_, progress);
+    kinematics_->setHead(intermediate_head);
+
     return true;
 }
 

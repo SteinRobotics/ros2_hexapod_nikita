@@ -10,12 +10,12 @@ import socket
 
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
 from std_msgs.msg import Float32
 from std_msgs.msg import Bool
 from geometry_msgs.msg import Vector3
 from nikita_interfaces.msg import MovementRequest
 from nikita_interfaces.msg import ServoStatus
+from nikita_interfaces.msg import JoystickRequest
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -23,13 +23,7 @@ import board
 from digitalio import DigitalInOut
 import adafruit_ssd1306
 import adafruit_bno055
-
-# TODO ideas for display_text:
-# - hottest servo temperature plus servo name
-# - supply voltage of the servo (servo name not relevant)
-# - servo relay status
-# - listening active
-# - battery status
+import adafruit_ina228
 
 
 class NodeHmi(Node):
@@ -37,18 +31,33 @@ class NodeHmi(Node):
 
     def __init__(self):
         super().__init__('node_hmi')
-
-        self.lidar_distance = 99.9
-        self.max_temperature = 20.0
-        self.servo_name_max_temperature = "HEAD_YAW" # 21 characters are possible, e.g. LEG_RIGHT_FRONT_FEMUR
-        self.servo_min_voltage = 12.0
-        self.movement_request = 'unknown'
         self.is_ip_address_identified = False
         self.timeout_identifying_ip_address = 60
-        self.display_text = ["" for x in range(self.NUMBER_OF_LINES)]
+
+        # System display text lines
+        self.text_ip_address = ""  # line number 1
+        self.text_movement_request = ""  # line number 2
+        self.text_supply_voltage_and_current = ""  # line number 3
+        self.text_cpu_temperature = ""  # line number 4
+        
+        # Servo text lines
+        self.text_servo_relay_status = ""  # line number 1
+        self.text_servo_name = ""  # line number 2
+        self.text_servo_max_temperature = ""  # line number 3
+        self.text_servo_min_voltage = ""  # line number 4
+
+        # Sensor text lines
+        self.text_listening_active = ""  # line number 1
+        self.text_bno055 = ""  # line number 2
+        self.text_lidar = ""  # line number 3
+
+        self.active_page_name = 'system'
+        self.page_orders = ['system', 'servos', 'sensors']
+
+        self.display_old_values = ["" for x in range(self.NUMBER_OF_LINES)]  # store the last texts to be able to overwrite them with black before writing new text
 
         # Servo Relay
-        self.relay_pin = DigitalInOut(board.D23) # PIN16, GPIO_23
+        self.relay_pin = DigitalInOut(board.D16) # GPIO_16, physical pin 36  
         self.relay_pin.switch_to_output()
         self.relay_pin.value = False # turn relay off
 
@@ -61,29 +70,27 @@ class NodeHmi(Node):
         self.font = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 12)
 
         self.__bno055 = adafruit_bno055.BNO055_I2C(self.i2c)
-        time.sleep(1)
+        time.sleep(0.5)
+
+        self.__ina228 = adafruit_ina228.INA228(self.i2c)
+        time.sleep(0.5)
 
         # turn relay on
         self.relay_pin.value = True
 
-        # TODO change display_text to a topic of interest, battery, etc.
         self.create_subscription(Float32, 'lidar', self.callback_lidar, 10)
         self.create_subscription(Bool, 'request_servo_relay', self.callback_servo_relay, 10)
         self.create_subscription(Bool, 'request_system_shutdown', self.callback_system_shutdown, 10)
         self.create_subscription(MovementRequest, 'cmd_movement_type', self.callback_movement_request, 10)
         self.create_subscription(ServoStatus, 'servo_status', self.callback_servo_status, 10)
+        self.create_subscription(JoystickRequest, 'joystick_request', self.callback_joystick_request, 10)
         self.pub_gravity = self.create_publisher(Vector3, 'gravity', 10)
+        self.pub_supply_voltage = self.create_publisher(Float32, 'supply_voltage', 10)
 
-        # display IP address
-        text = "IP: " + self.get_ip_address()
         # TODO TEST easier like this self.font_height = 10 + 2
-        (self.font_width, self.font_height) = self.font.getmask(text).size
+        (self.font_width, self.font_height) = self.font.getmask("SYSTEM").size
         self.font_height += 3
-        # First line always shows the IP address
-        self.update_display(text, 0)
-        self.display_gravity()
-        self.display_lidar()
-        self.display_movement_request()
+        self.update_display("SYSTEM", 0)
 
         timer_period = 1.0  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -92,13 +99,13 @@ class NodeHmi(Node):
 
     def update_display(self, text, line_number=0):
         # first overwrite the old text with the same text in black
-        self.draw.text((0, self.font_height * line_number), self.display_text[line_number], font=self.font, fill=0)
+        self.draw.text((0, self.font_height * line_number), self.display_old_values[line_number], font=self.font, fill=0)
         # then write the new text in white
         self.draw.text((0, self.font_height * line_number), text, font=self.font, fill=255)
         self.display.image(self.image)
         self.display.show()
-        # update the text in the self.display_text array
-        self.display_text[line_number] = text
+        # update the text 
+        self.display_old_values[line_number] = text
 
     def get_ip_address(self):
         ip_address = "0.0.0.0"
@@ -115,38 +122,53 @@ class NodeHmi(Node):
         self.get_logger().info('IP address: %s' % ip_address)
         return ip_address
 
-    def display_gravity(self):
-        (x,y,z) = self.__bno055.gravity
-        text = f"g: {z:.2f}m/s^2"
-        # self.update_display(text, 1)   # not enough space for this information
-        return (x,y,z)
+    def get_page_data(self, page_name):
+        if page_name == 'system':
+            return [
+                "SYSTEM",
+                self.text_ip_address,
+                self.text_movement_request,
+                self.text_supply_voltage_and_current,
+                self.text_cpu_temperature,
+                ""
+            ]
+        elif page_name == 'servos':
+            return [
+                "SERVOS",
+                self.text_servo_relay_status,
+                self.text_servo_name,
+                self.text_servo_max_temperature,
+                self.text_servo_min_voltage,
+                ""
+            ]
+        elif page_name == 'sensors':
+            return [
+                "SENSORS",
+                self.text_listening_active,
+                self.text_bno055,
+                self.text_lidar,
+                "",
+                ""
+            ]
+        return [""] * self.NUMBER_OF_LINES
 
-    def display_movement_request(self):
-        text = self.movement_request
-        self.update_display(text, 1)
+    def update_active_page(self):
+        page_data = self.get_page_data(self.active_page_name)
+        for line_number, text in enumerate(page_data):
+            self.update_display(text, line_number)
 
-    def display_lidar(self):
-        text = f"d: {self.lidar_distance::>5.2f}m"   # right justified, 5 characters wide, 2 decimal places
-        self.update_display(text, 2)
-
-    def display_servo_status(self):
-        text = f"{self.servo_name_max_temperature}"
-        self.update_display(text, 3)
-        text = f"{self.servo_min_voltage:.1f}V | {self.max_temperature:.1f}°C"
-        self.update_display(text, 4)
-
-    def timer_callback(self):
+    def update_ip_address(self):
+        if self.is_ip_address_identified:
+            return
+        
         if not self.is_ip_address_identified and self.timeout_identifying_ip_address > 0:
             self.timeout_identifying_ip_address -= 1
             ip_address = self.get_ip_address()
+            self.text_ip_address  = "IP: " + ip_address
 
-            if self.is_ip_address_identified:
-                text = "IP: " + ip_address
-                self.update_display(text, 0)
-
-        (x,y,z) = self.display_gravity()
-        self.display_lidar()
-
+    def update_bno055(self):
+        (x,y,z) = self.__bno055.gravity
+        self.text_bno055 = f"g: {z:.2f}m/s^2"
         # publish gravity
         msg = Vector3()
         msg.x = x
@@ -154,25 +176,46 @@ class NodeHmi(Node):
         msg.z = z
         self.pub_gravity.publish(msg)
 
+    def update_ina228(self):
+        voltage = self.__ina228.bus_voltage
+        current = abs(self.__ina228.current)
+        self.text_supply_voltage_and_current = f"supply V: {voltage:.1f}V I: {current:.1f}A"
+        # publish supply voltage
+        msg = Float32()
+        msg.data = voltage
+        self.pub_supply_voltage.publish(msg)
+
+    def timer_callback(self):
+        self.update_ip_address()
+        self.update_ina228()
+        self.update_bno055()
+        self.update_active_page()
+
     def callback_lidar(self, msg):
-        self.lidar_distance = msg.data
+        self.text_lidar = f"d: {msg.data:>5.2f}m"   # right justified, 5 characters wide, 2 decimal places
 
     def callback_movement_request(self, msg):
-        self.movement_request = msg.name.lower()
-        self.display_movement_request()
+        self.text_movement_request = msg.name.lower()
 
     def callback_servo_status(self, msg):
-        self.max_temperature = msg.max_temperature
-        self.servo_name_max_temperature = msg.servo_max_temperature.lower()
-        self.servo_min_voltage = msg.min_voltage
-        self.display_servo_status()
+        self.text_servo_name = f"{msg.servo_max_temperature.lower()}"
+        self.text_servo_min_voltage = f"U: {msg.min_voltage:.1f}V" 
+        self.text_servo_max_temperature = f"T: {msg.max_temperature:.1f}°C"
 
     def callback_servo_relay(self, msg):
         self.get_logger().info('callback_servo_relay: %s' % msg.data)
+        self.text_servo_relay_status = "RELAY ON" if msg.data else "RELAY OFF"
         if msg.data:
             self.relay_pin.value = True
         else:
             self.relay_pin.value = False
+
+    def callback_joystick_request(self, msg):
+        if msg.button_select:
+            self.display.fill(0)
+            idx = self.page_orders.index(self.active_page_name)
+            self.active_page_name = self.page_orders[(idx + 1) % len(self.page_orders)]
+            self.update_active_page()
     
     def callback_system_shutdown(self, msg):
         self.get_logger().info('callback_system_shutdown: %s' % msg.data)
@@ -190,8 +233,9 @@ class NodeHmi(Node):
     def shutdown_callback(self):
         self.get_logger().info("shutdown_callback")
         self.relay_pin.value = False
-        self.movement_request = "!!SHUTDOWN!!"
-        self.display_movement_request()
+        self.text_movement_request = "!!SHUTDOWN!!"
+        self.active_page_name = 'system'
+        self.update_active_page()
 
 
 def main(args=None):

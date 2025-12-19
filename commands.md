@@ -35,7 +35,7 @@ ros2 topic echo --once /servos_status
 ```
 ros2 topic pub --once /request_listening std_msgs/msg/Bool data:\ true
 
-ros2 topic pub --once /speech_recognition_online std_msgs/msg/String data:\ "fahre im viereck"
+ros2 topic pub --once /speech_recognition_online std_msgs/msg/String data:\ "lauf nach vorne"
 
 ros2 topic pub --once /speech_recognition_online std_msgs/msg/String "{data: 'steh auf'}"
 

@@ -3,7 +3,6 @@
 #include <geometry_msgs/msg/twist.hpp>
 
 #include "rclcpp/rclcpp.hpp"
-#include "requester/actionpackagesparser.hpp"
 #include "requester/gait_laydown.hpp"
 #include "requester/gait_standup.hpp"
 #include "requester/kinematics.hpp"
@@ -28,19 +27,16 @@ class GaitStandUpTest : public ::testing::Test {
         options.parameter_overrides(overrides);
 
         node_ = std::make_shared<rclcpp::Node>("test_gait_vertical_node", options);
-        actionPackagesParser_ = std::make_shared<CActionPackagesParser>(node_);
-        kinematics_ = std::make_shared<CKinematics>(node_, actionPackagesParser_);
+        kinematics_ = std::make_shared<CKinematics>(node_);
         params_ = test_helpers::makeDeclaredParameters(node_);
     }
 
     void TearDown() override {
         kinematics_.reset();
-        actionPackagesParser_.reset();
         if (rclcpp::ok()) rclcpp::shutdown();
     }
 
     std::shared_ptr<rclcpp::Node> node_;
-    std::shared_ptr<CActionPackagesParser> actionPackagesParser_;
     std::shared_ptr<CKinematics> kinematics_;
     Parameters params_;
 };
