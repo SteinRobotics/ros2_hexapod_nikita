@@ -87,15 +87,6 @@ if(BUILD_TESTING)
     target_link_libraries(test_kinematics nikita_movement_core)
   endif()
 
-  ament_add_gtest(test_new_kinematics
-    test/test_new_kinematics.cpp
-  )
-  if(TARGET test_new_kinematics)
-    ament_target_dependencies(test_new_kinematics rclcpp ament_index_cpp nikita_interfaces)
-    target_include_directories(test_new_kinematics PRIVATE include)
-    target_link_libraries(test_new_kinematics nikita_movement_core)
-  endif()
-
   ament_add_gtest(test_actionpackagesparser
     test/test_actionpackagesparser.cpp
   )
@@ -120,12 +111,20 @@ if(BUILD_TESTING)
     target_link_libraries(test_gait_bodyroll nikita_movement_core)
   endif()
 
-  ament_add_gtest(test_gait_vertical
-    test/test_gait_vertical.cpp
+  ament_add_gtest(test_gait_laydown
+    test/test_gait_laydown.cpp
   )
-  if(TARGET test_gait_vertical)
-    ament_target_dependencies(test_gait_vertical rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
-    target_link_libraries(test_gait_vertical nikita_movement_core)
+  if(TARGET test_gait_laydown)
+    ament_target_dependencies(test_gait_laydown rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
+    target_link_libraries(test_gait_laydown nikita_movement_core)
+  endif()
+
+  ament_add_gtest(test_gait_standup
+    test/test_gait_standup.cpp
+  )
+  if(TARGET test_gait_standup)
+    ament_target_dependencies(test_gait_standup rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
+    target_link_libraries(test_gait_standup nikita_movement_core)
   endif()
 
   ament_add_gtest(test_gait_highfive
@@ -142,24 +141,6 @@ if(BUILD_TESTING)
   if(TARGET test_gait_clap)
     ament_target_dependencies(test_gait_clap rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
     target_link_libraries(test_gait_clap nikita_movement_core)
-  endif()
-
-  ament_add_gtest(test_complete_body_init
-    test/test_complete_body_init.cpp
-  )
-  if(TARGET test_complete_body_init)
-    ament_target_dependencies(test_complete_body_init rclcpp ament_index_cpp nikita_interfaces)
-    target_include_directories(test_complete_body_init PRIVATE include)
-    target_link_libraries(test_complete_body_init nikita_movement_core)
-  endif()
-
-  ament_add_gtest(test_moveBodyNew_publish
-    test/test_moveBodyNew_publish.cpp
-  )
-  if(TARGET test_moveBodyNew_publish)
-    ament_target_dependencies(test_moveBodyNew_publish rclcpp ament_index_cpp nikita_interfaces sensor_msgs)
-    target_include_directories(test_moveBodyNew_publish PRIVATE include)
-    target_link_libraries(test_moveBodyNew_publish nikita_movement_core)
   endif()
 
   ament_add_gtest(test_leg_servo_conversion

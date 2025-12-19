@@ -18,30 +18,21 @@ namespace nikita_movement {
 
 CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node,
                          std::shared_ptr<CActionPackagesParser> actionPackagesParser)
-    : node_(node), actionPackagesParser_(actionPackagesParser) {
-    LEG_NAMES = node->declare_parameter<std::vector<std::string>>("LEG_NAMES", std::vector<std::string>());
-
-    COXA_LENGTH = node->declare_parameter<double>("COXA_LENGTH", rclcpp::PARAMETER_DOUBLE);
-    COXA_HEIGHT = node->declare_parameter<double>("COXA_HEIGHT", rclcpp::PARAMETER_DOUBLE);
-    FEMUR_LENGTH = node->declare_parameter<double>("FEMUR_LENGTH", rclcpp::PARAMETER_DOUBLE);
-    TIBIA_LENGTH = node->declare_parameter<double>("TIBIA_LENGTH", rclcpp::PARAMETER_DOUBLE);
-
-    CENTER_TO_COXA_X =
-        node->declare_parameter<std::vector<double>>("CENTER_TO_COXA_X", std::vector<double>());
-    CENTER_TO_COXA_Y =
-        node->declare_parameter<std::vector<double>>("CENTER_TO_COXA_Y", std::vector<double>());
-    OFFSET_COXA_ANGLE_DEG =
-        node->declare_parameter<std::vector<double>>("OFFSET_COXA_ANGLE_DEG", std::vector<double>());
-
-    BODY_MAX_ROLL = node->declare_parameter<double>("BODY_MAX_ROLL", rclcpp::PARAMETER_DOUBLE);
-    BODY_MAX_PITCH = node->declare_parameter<double>("BODY_MAX_PITCH", rclcpp::PARAMETER_DOUBLE);
-    BODY_MAX_YAW = node->declare_parameter<double>("BODY_MAX_YAW", rclcpp::PARAMETER_DOUBLE);
-    HEAD_MAX_YAW = node->declare_parameter<double>("HEAD_MAX_YAW", rclcpp::PARAMETER_DOUBLE);
-    HEAD_MAX_PITCH = node->declare_parameter<double>("HEAD_MAX_PITCH", rclcpp::PARAMETER_DOUBLE);
-
-    sq_femur_length_ = pow(FEMUR_LENGTH, 2);
-    sq_tibia_length_ = pow(TIBIA_LENGTH, 2);
-
+    : node_(node),
+      actionPackagesParser_(actionPackagesParser),
+      LEG_NAMES(node->declare_parameter<std::vector<std::string>>("LEG_NAMES", std::vector<std::string>())),
+      COXA_LENGTH(node->declare_parameter<double>("COXA_LENGTH", rclcpp::PARAMETER_DOUBLE)),
+      COXA_HEIGHT(node->declare_parameter<double>("COXA_HEIGHT", rclcpp::PARAMETER_DOUBLE)),
+      FEMUR_LENGTH(node->declare_parameter<double>("FEMUR_LENGTH", rclcpp::PARAMETER_DOUBLE)),
+      TIBIA_LENGTH(node->declare_parameter<double>("TIBIA_LENGTH", rclcpp::PARAMETER_DOUBLE)),
+      CENTER_TO_COXA_X(
+          node->declare_parameter<std::vector<double>>("CENTER_TO_COXA_X", std::vector<double>())),
+      CENTER_TO_COXA_Y(
+          node->declare_parameter<std::vector<double>>("CENTER_TO_COXA_Y", std::vector<double>())),
+      OFFSET_COXA_ANGLE_DEG(
+          node->declare_parameter<std::vector<double>>("OFFSET_COXA_ANGLE_DEG", std::vector<double>())),
+      sq_femur_length_(pow(FEMUR_LENGTH, 2)),
+      sq_tibia_length_(pow(TIBIA_LENGTH, 2)) {
     // body center offsets
     for (uint32_t i = 0; i < LEG_NAMES.size(); i++) {
         auto& leg_name = LEG_NAMES.at(i);

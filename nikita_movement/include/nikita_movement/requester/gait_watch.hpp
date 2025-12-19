@@ -5,7 +5,7 @@
 #include "geometry_msgs/msg/twist.hpp"
 #include "nikita_interfaces/msg/movement_request.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "requester/gaits_parameter.hpp"
+#include "requester/gait_parameters.hpp"
 #include "requester/igaits.hpp"
 #include "requester/kinematics.hpp"
 

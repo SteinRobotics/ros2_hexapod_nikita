@@ -13,11 +13,10 @@ using namespace nikita_movement;
 
 namespace {
 constexpr double kPositionTolerance = 0.06;
-constexpr double kTravelRequirement = 0.05;
 constexpr int kMaxIterations = 500;
 }  // namespace
 
-class VerticalGaitTest : public ::testing::Test {
+class GaitLayDownTest : public ::testing::Test {
    protected:
     void SetUp() override {
         if (!rclcpp::ok()) {
@@ -46,36 +45,7 @@ class VerticalGaitTest : public ::testing::Test {
     Parameters params_;
 };
 
-TEST_F(VerticalGaitTest, StandUpStopsAtStandingHeight) {
-    const auto laydownTargets = kinematics_->getLegsLayDownPositions();
-    const auto standingTargets = kinematics_->getLegsStandingPositions();
-
-    // Ensure we start from laydown pose.
-    kinematics_->moveBody(laydownTargets, CPose());
-    const auto initialPositions = kinematics_->getLegsPositions();
-
-    CStandUpGait gait(node_, kinematics_, params_.standUp);
-    EXPECT_EQ(gait.state(), EGaitState::Stopped);
-
-    gait.start(3.0, 0);
-    geometry_msgs::msg::Twist twist;
-
-    int iterations = 0;
-    while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose());
-    }
-
-    EXPECT_EQ(gait.state(), EGaitState::Stopped);
-    EXPECT_LT(iterations, kMaxIterations);
-
-    const auto finalPositions = kinematics_->getLegsPositions();
-    for (const auto& [legIndex, target] : standingTargets) {
-        const auto& actual = finalPositions.at(legIndex);
-        EXPECT_NEAR(actual.z, target.z, kPositionTolerance);
-    }
-}
-
-TEST_F(VerticalGaitTest, LayDownStopsAtLaydownHeight) {
+TEST_F(GaitLayDownTest, LayDownStopsAtLaydownHeight) {
     const auto laydownTargets = kinematics_->getLegsLayDownPositions();
     const auto standingTargets = kinematics_->getLegsStandingPositions();
 

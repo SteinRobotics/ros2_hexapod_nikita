@@ -58,26 +58,6 @@ class CKinematics {
     // Expose the complete body (segment-wise) for testing/inspection
     const CBody& getCompleteBody() const;
 
-    // Parameters
-    std::vector<std::string> LEG_NAMES;
-
-    double COXA_LENGTH = double(0);
-    double COXA_HEIGHT = double(0);
-    double FEMUR_LENGTH = double(0);
-    double TIBIA_LENGTH = double(0);
-
-    std::vector<double> CENTER_TO_COXA_X;
-    std::vector<double> CENTER_TO_COXA_Y;
-    std::vector<double> OFFSET_COXA_ANGLE_DEG;
-
-    double BODY_MAX_ROLL = double(0);
-    double BODY_MAX_PITCH = double(0);
-    double BODY_MAX_YAW = double(0);
-    double HEAD_MAX_YAW = double(0);
-    double HEAD_MAX_PITCH = double(0);
-
-    // NOTE: segment-wise kinematics helpers are declared as free functions below
-
    private:
     void intializeLegs(std::map<ELegIndex, CLeg>& legs, std::vector<double>& posX, std::vector<double>& posY,
                        std::vector<double>& posZ);
@@ -98,6 +78,19 @@ class CKinematics {
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CActionPackagesParser> actionPackagesParser_;
 
+    // Parameters
+    std::vector<std::string> LEG_NAMES;
+    const double COXA_LENGTH;
+    const double COXA_HEIGHT;
+    const double FEMUR_LENGTH;
+    const double TIBIA_LENGTH;
+    std::vector<double> CENTER_TO_COXA_X;
+    std::vector<double> CENTER_TO_COXA_Y;
+    std::vector<double> OFFSET_COXA_ANGLE_DEG;
+
+    const double sq_femur_length_;
+    const double sq_tibia_length_;
+
     std::map<ELegIndex, CLeg> legs_;          // current values
     std::map<ELegIndex, CLeg> legsStanding_;  // change to shared pointer and make const
     std::map<ELegIndex, CLeg> legsLayDown_;   // change to shared pointer and make const
@@ -107,9 +100,6 @@ class CKinematics {
     CHead head_ = {};
 
     CBody complete_body_ = {};  // rename later to body_
-
-    double sq_femur_length_ = 0.0;
-    double sq_tibia_length_ = 0.0;
     // Publisher for joint states (coxa/femur/tibia for each leg)
     // Use the non-templated PublisherBase pointer here to avoid requiring
     // the sensor_msgs header in this public header file. The concrete

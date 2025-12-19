@@ -9,7 +9,7 @@
 #include "nikita_utils/geometry.hpp"
 #include "nikita_utils/msg_twist.hpp"
 #include "nikita_utils/simpletimer.hpp"
-#include "requester/gaits_parameter.hpp"
+#include "requester/gait_parameters.hpp"
 #include "requester/igaits.hpp"
 #include "requester/kinematics.hpp"
 #include "requester/types.hpp"
