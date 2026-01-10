@@ -117,11 +117,11 @@ void CActionPlanner::execute(std::vector<std::shared_ptr<RequestBase>>& requests
             handler_communication_->run(requestMusic);
         } else if (auto requestListening = std::dynamic_pointer_cast<RequestListening>(request)) {
             handler_communication_->run(requestListening);
-        } else if (auto requestMovementType = std::dynamic_pointer_cast<CRequestMovementType>(request)) {
+        } else if (auto requestMovementType = std::dynamic_pointer_cast<RequestMovementType>(request)) {
             handler_movement_->run(requestMovementType);
-        } else if (auto requestMoveBody = std::dynamic_pointer_cast<CRequestMoveBody>(request)) {
+        } else if (auto requestMoveBody = std::dynamic_pointer_cast<RequestBodyPose>(request)) {
             handler_movement_->run(requestMoveBody);
-        } else if (auto requestMoveVelocity = std::dynamic_pointer_cast<CRequestMoveVelocity>(request)) {
+        } else if (auto requestMoveVelocity = std::dynamic_pointer_cast<RequestVelocity>(request)) {
             handler_movement_->run(requestMoveVelocity);
         } else {
             RCLCPP_ERROR_STREAM(node_->get_logger(),

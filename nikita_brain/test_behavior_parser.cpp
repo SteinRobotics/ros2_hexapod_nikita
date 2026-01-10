@@ -35,13 +35,13 @@ int main(int argc, char** argv) {
         auto watchBehavior = parser.getBehavior("WATCH");
         if (watchBehavior) {
             RCLCPP_INFO(node->get_logger(), "Found WATCH behavior with %zu action groups",
-                        watchBehavior->actionGroups.size());
+                        watchBehavior->get().actionGroups.size());
         }
 
         auto lookBehavior = parser.getBehavior("LOOK");
         if (lookBehavior) {
             RCLCPP_INFO(node->get_logger(), "Found LOOK behavior with %zu action groups",
-                        lookBehavior->actionGroups.size());
+                        lookBehavior->get().actionGroups.size());
         }
     } else {
         RCLCPP_ERROR(node->get_logger(), "Failed to parse behaviors");

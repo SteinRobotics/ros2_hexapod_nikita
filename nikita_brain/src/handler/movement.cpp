@@ -16,19 +16,19 @@ CMovement::CMovement(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     pub_cmd_vel_ = node_->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
 }
 
-void CMovement::run(std::shared_ptr<CRequestMovementType> request) {
+void CMovement::run(std::shared_ptr<RequestMovementType> request) {
     setDone(false);
-    pub_movement_type_->publish(request->movementRequest());
-    callback_timer_->waitSecondsNonBlocking(request->movementRequest().duration_s,
+    pub_movement_type_->publish(request->movementRequest);
+    callback_timer_->waitSecondsNonBlocking(request->movementRequest.duration_s,
                                             std::bind(&CMovement::timerCallback, this));
 }
 
-void CMovement::run(std::shared_ptr<CRequestMoveBody> request) {
-    pub_body_pose_->publish(request->pose());
+void CMovement::run(std::shared_ptr<RequestBodyPose> request) {
+    pub_body_pose_->publish(request->pose);
 }
 
-void CMovement::run(std::shared_ptr<CRequestMoveVelocity> request) {
-    pub_cmd_vel_->publish(request->velocity());
+void CMovement::run(std::shared_ptr<RequestVelocity> request) {
+    pub_cmd_vel_->publish(request->velocity);
 }
 
 void CMovement::timerCallback() {

@@ -17,6 +17,7 @@
 
 #include "action/action_planner.hpp"
 #include "irequester.hpp"
+#include "parser/behavior_parser.hpp"
 #include "requester/error_management.hpp"
 #include "requester/text_interpreter.hpp"
 #include "requester/utility.hpp"
@@ -36,8 +37,9 @@ class CCoordinator : public IRequester {
     void servoStatusReceived(const nikita_interfaces::msg::ServoStatus& msg);
 
    private:
-    template <typename RequestT, typename... Args>
-    void submitSingleRequest(Prio prio, Args&&... args);
+    void loadBehaviors();
+    void executeBehavior(const Behavior& behavior, Prio prio = Prio::High);
+    void submitRequest(std::shared_ptr<RequestBase> request, Prio prio);
 
     void submitRequestMove(uint32_t movementType, double duration_s = 0.0, std::string comment = "",
                            Prio prio = Prio::Normal,
@@ -66,6 +68,11 @@ class CCoordinator : public IRequester {
     std::shared_ptr<CActionPlanner> actionPlanner_;
     std::shared_ptr<CErrorManagement> errorManagement_;
     std::shared_ptr<CTextInterpreter> textInterpreter_;
+    std::shared_ptr<CBehaviorParser> behaviorParser_;
+
+    // Maps to quickly find behaviors by trigger
+    std::map<std::string, const Behavior*> voiceTriggerMap_;
+    std::map<std::string, const Behavior*> joystickTriggerMap_;
 
     std::shared_ptr<CSimpleTimer> timerErrorRequest_;
     std::shared_ptr<CSimpleTimer> timerNoRequest_;

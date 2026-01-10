@@ -24,9 +24,9 @@ class CMovement : public IHandler {
     void update() override;
     void cancel() override;
 
-    void run(std::shared_ptr<CRequestMovementType> request);
-    void run(std::shared_ptr<CRequestMoveBody> request);
-    void run(std::shared_ptr<CRequestMoveVelocity> request);
+    void run(std::shared_ptr<RequestMovementType> request);
+    void run(std::shared_ptr<RequestBodyPose> request);
+    void run(std::shared_ptr<RequestVelocity> request);
 
    private:
     void timerCallback();

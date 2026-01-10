@@ -13,21 +13,21 @@ CSystem::CSystem(std::shared_ptr<rclcpp::Node> node) : node_(node) {
 
 void CSystem::run(std::shared_ptr<RequestSystem> request) {
     RCLCPP_INFO_STREAM(node_->get_logger(), "CSystem::run(RequestSystem request)");
-    if (request->systemShutdown()) {
+    if (request->systemShutdown) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "systemShutdown");
     }
-    if (request->turnOffServoRelay()) {
+    if (request->turnOffServoRelay) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "turnOffServoRelay");
     }
     // System shutdown
     std_msgs::msg::Bool msgSystemShutdown;
-    msgSystemShutdown.data = request->systemShutdown();
+    msgSystemShutdown.data = request->systemShutdown;
     pubSystemShutdown_->publish(msgSystemShutdown);
     setDone(false);
 
     // Servo relay
     std_msgs::msg::Bool msgServoRelay;
-    msgServoRelay.data = request->turnOffServoRelay();
+    msgServoRelay.data = request->turnOffServoRelay;
     pubServoRelay_->publish(msgServoRelay);
 
     setDone(false);

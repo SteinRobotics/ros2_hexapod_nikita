@@ -24,135 +24,45 @@ enum class Prio {
     Background = 3,
 };
 
-class RequestBase {
-   public:
-    RequestBase(float minDuration) : minDuration_(minDuration) {};
+struct RequestBase {
+    double minDuration = 0.0;
     virtual ~RequestBase() = default;
-
-    double minDuration() {
-        return minDuration_;
-    };
-
-   protected:
-    double minDuration_ = double(0);
 };
 
-class RequestSystem : public RequestBase {
-   public:
-    RequestSystem(bool turnOffServoRelay, bool systemShutdown, double minDuration = 0.0)
-        : RequestBase(minDuration), turnOffServoRelay_(turnOffServoRelay), systemShutdown_(systemShutdown) {
-    }
-    bool turnOffServoRelay() {
-        return turnOffServoRelay_;
-    };
-    bool systemShutdown() {
-        return systemShutdown_;
-    };
-
-   private:
-    bool turnOffServoRelay_ = false;
-    bool systemShutdown_ = false;
+struct RequestSystem : RequestBase {
+    bool turnOffServoRelay = false;
+    bool systemShutdown = false;
 };
 
-class RequestTalking : public RequestBase {
-   public:
-    RequestTalking(std::string text, std::string language = "de", double minDuration = 0.0)
-        : RequestBase(minDuration), text_(text), language_(language) {
-    }
-    std::string text() {
-        return text_;
-    };
-    std::string language() {
-        return language_;
-    };
-
-   private:
-    std::string text_ = "";
-    std::string language_ = "de";
+struct RequestTalking : RequestBase {
+    std::string text;
+    std::string language = "de";
 };
 
-class RequestChat : public RequestBase {
-   public:
-    RequestChat(std::string text, std::string language = "de", double minDuration = 0.0)
-        : RequestBase(minDuration), text_(text), language_(language) {
-    }
-    std::string text() {
-        return text_;
-    };
-    std::string language() {
-        return language_;
-    };
-
-   private:
-    std::string text_ = "";
-    std::string language_ = "de";
+struct RequestChat : RequestBase {
+    std::string text;
+    std::string language = "de";
 };
 
-class RequestMusic : public RequestBase {
-   public:
-    RequestMusic(std::string song, float volume = 0.8, double minDuration = 0.0)
-        : RequestBase(minDuration), song_(song), volume_(volume) {
-    }
-    std::string song() {
-        return song_;
-    };
-    float volume() {
-        return volume_;
-    };
-
-   private:
-    std::string song_ = "";
-    float volume_ = 0.8;
+struct RequestMusic : RequestBase {
+    std::string song;
+    float volume = 0.8f;
 };
 
-class RequestListening : public RequestBase {
-   public:
-    RequestListening(bool active, double minDuration = 0.0) : RequestBase(minDuration), active_(active) {
-    }
-    bool active() {
-        return active_;
-    };
-
-   private:
-    bool active_ = false;
+struct RequestListening : RequestBase {
+    bool active = false;
 };
 
-class CRequestMovementType : public RequestBase {
-   public:
-    CRequestMovementType(nikita_interfaces::msg::MovementRequest movementRequest, double minDuration = 0.0)
-        : RequestBase(minDuration), movementRequest_(movementRequest) {
-    }
-    nikita_interfaces::msg::MovementRequest movementRequest() {
-        return movementRequest_;
-    };
-
-   private:
-    nikita_interfaces::msg::MovementRequest movementRequest_ = nikita_interfaces::msg::MovementRequest();
+struct RequestMovementType : RequestBase {
+    nikita_interfaces::msg::MovementRequest movementRequest;
 };
 
-class CRequestMoveBody : public RequestBase {
-   public:
-    CRequestMoveBody(nikita_interfaces::msg::Pose pose, double minDuration = 0.0)
-        : RequestBase(minDuration), pose_(pose) {
-    }
-    nikita_interfaces::msg::Pose pose() {
-        return pose_;
-    };
-
-   private:
-    nikita_interfaces::msg::Pose pose_ = nikita_interfaces::msg::Pose();
+struct RequestBodyPose : RequestBase {
+    nikita_interfaces::msg::Pose pose;
 };
-class CRequestMoveVelocity : public RequestBase {
-   public:
-    CRequestMoveVelocity(geometry_msgs::msg::Twist velocity, double minDuration = 0.0)
-        : RequestBase(minDuration), velocity_(velocity) {
-    }
-    geometry_msgs::msg::Twist velocity() {
-        return velocity_;
-    };
 
-   private:
-    geometry_msgs::msg::Twist velocity_ = geometry_msgs::msg::Twist();
+struct RequestVelocity : RequestBase {
+    geometry_msgs::msg::Twist velocity;
 };
 
 class IRequester {

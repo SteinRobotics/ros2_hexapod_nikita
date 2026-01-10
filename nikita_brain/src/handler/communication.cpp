@@ -29,49 +29,48 @@ void CCommunication::onCommunicationStatus(const nikita_interfaces::msg::Communi
     }
 }
 
-// TODO needed as timeout??
-// void CCommunication::timerCallback([[maybe_unused]] const ros::TimerEvent& event) {
-//     m_isDone = true;
-// }
-
 void CCommunication::run(std::shared_ptr<RequestListening> request) {
-    RCLCPP_INFO_STREAM(node_->get_logger(), "CCommunication::run Listening |" << request->active());
+    RCLCPP_INFO_STREAM(node_->get_logger(), "CCommunication::run Listening |" << request->active);
     std_msgs::msg::Bool msg;
-    msg.data = request->active();
+    msg.data = request->active;
     m_pubListening->publish(msg);
     setDone(false);
 }
 
 void CCommunication::run(std::shared_ptr<RequestTalking> request) {
-    RCLCPP_INFO_STREAM(node_->get_logger(), "CCommunication::run Talking |" << request->text().c_str());
+    RCLCPP_INFO_STREAM(node_->get_logger(), "CCommunication::run Talking |" << request->text.c_str());
     std_msgs::msg::String msg;
-    msg.data = request->text();
+    msg.data = request->text;
     m_pubTalking->publish(msg);
     setDone(false);
 }
 
 void CCommunication::run(std::shared_ptr<RequestChat> request) {
-    RCLCPP_INFO_STREAM(node_->get_logger(), "CCommunication::run Chat |" << request->text().c_str());
+    RCLCPP_INFO_STREAM(node_->get_logger(), "CCommunication::run Chat |" << request->text.c_str());
     std_msgs::msg::String msg;
-    msg.data = request->text();
+    msg.data = request->text;
     m_pubChat->publish(msg);
     setDone(false);
 }
 
 void CCommunication::run(std::shared_ptr<RequestMusic> request) {
-    RCLCPP_INFO_STREAM(node_->get_logger(), "CCommunication::run Music |" << request->song().c_str());
+    RCLCPP_INFO_STREAM(node_->get_logger(), "CCommunication::run Music |" << request->song.c_str());
     std_msgs::msg::String msg;
-    msg.data = request->song();
+    msg.data = request->song;
     m_pubMusic->publish(msg);
     setDone(false);
 }
 
 void CCommunication::cancel() {
     if (m_communication.status == nikita_interfaces::msg::CommunicationStatus::STT_OFFLINE_ACTIVE) {
-        run(std::make_shared<RequestListening>(false));
+        auto request = std::make_shared<RequestListening>();
+        request->active = false;
+        run(request);
     }
     if (m_communication.status == nikita_interfaces::msg::CommunicationStatus::PLAYING_MUSIC) {
-        run(std::make_shared<RequestMusic>("STOP"));
+        auto request = std::make_shared<RequestMusic>();
+        request->song = "STOP";
+        run(request);
     }
 }
 

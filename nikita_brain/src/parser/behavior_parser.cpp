@@ -59,19 +59,10 @@ bool CBehaviorParser::parseString(const std::string& jsonString) {
     try {
         json jsonData = json::parse(jsonString);
 
-        // Parse behavior name
-        if (jsonData.contains("name") && jsonData["name"].is_string()) {
-            behaviorName_ = jsonData["name"].get<std::string>();
+        if (jsonData.contains("behaviors") && jsonData["behaviors"].is_array()) {
+            return parseBehaviors(&jsonData["behaviors"]);
         } else {
-            RCLCPP_WARN(node_->get_logger(), "Behavior name not found or invalid");
-            behaviorName_ = "UNKNOWN";
-        }
-
-        // Parse actions
-        if (jsonData.contains("actions") && jsonData["actions"].is_array()) {
-            return parseActions(&jsonData["actions"]);
-        } else {
-            RCLCPP_ERROR(node_->get_logger(), "Actions array not found in behavior JSON");
+            RCLCPP_ERROR(node_->get_logger(), "Invalid JSON format: expected 'behaviors' array");
             return false;
         }
     } catch (const std::exception& e) {
@@ -80,28 +71,145 @@ bool CBehaviorParser::parseString(const std::string& jsonString) {
     }
 }
 
-std::string CBehaviorParser::getBehaviorName() const {
-    return behaviorName_;
-}
+bool CBehaviorParser::parseBehaviors(const void* behaviorsJson) {
+    const json* behaviorsArray = static_cast<const json*>(behaviorsJson);
 
-const std::vector<std::vector<std::shared_ptr<RequestBase>>>& CBehaviorParser::getActionGroups() const {
-    return actionGroups_;
-}
+    if (!behaviorsArray->is_array()) {
+        RCLCPP_ERROR(node_->get_logger(), "Expected behaviors to be an array");
+        return false;
+    }
 
-bool CBehaviorParser::parseActions(const void* actionsJson) {
-    const json* actionsArray = static_cast<const json*>(actionsJson);
-    actionGroups_.clear();
+    behaviors_.clear();
 
-    for (const auto& actionItem : *actionsArray) {
-        if (actionItem.is_object()) {
-            auto actionGroup = parseActionGroup(&actionItem);
-            if (!actionGroup.empty()) {
-                actionGroups_.push_back(actionGroup);
-            }
+    for (const auto& behaviorJson : *behaviorsArray) {
+        if (!parseSingleBehavior(&behaviorJson)) {
+            RCLCPP_WARN(node_->get_logger(), "Failed to parse one behavior, continuing with others");
         }
     }
 
-    return !actionGroups_.empty();
+    return !behaviors_.empty();
+}
+
+bool CBehaviorParser::parseSingleBehavior(const void* behaviorJson) {
+    const json* j = static_cast<const json*>(behaviorJson);
+
+    Behavior behavior;
+
+    // Parse behavior name
+    if (j->contains("name") && (*j)["name"].is_string()) {
+        behavior.name = (*j)["name"].get<std::string>();
+    } else {
+        RCLCPP_WARN(node_->get_logger(), "Behavior name not found or invalid");
+        behavior.name = "UNKNOWN";
+    }
+
+    // Parse triggers
+    BehaviorTrigger trigger;
+    if (j->contains("trigger") && (*j)["trigger"].is_object()) {
+        const auto& triggerJson = (*j)["trigger"];
+        if (triggerJson.contains("joystick") && triggerJson["joystick"].is_string()) {
+            trigger.joystick = triggerJson["joystick"].get<std::string>();
+        }
+        if (triggerJson.contains("voice") && triggerJson["voice"].is_string()) {
+            trigger.voice = triggerJson["voice"].get<std::string>();
+        }
+        behaviorTriggers_[behavior.name] = trigger;
+    }
+
+    // Parse actions
+    if (j->contains("actions") && (*j)["actions"].is_array()) {
+        const auto& actionsJson = (*j)["actions"];
+
+        for (const auto& actionJson : actionsJson) {
+            auto requests = parseActionGroup(&actionJson);
+            if (!requests.empty()) {
+                behavior.actionGroups.push_back(requests);
+            }
+        }
+
+        if (behavior.actionGroups.empty()) {
+            RCLCPP_ERROR(node_->get_logger(), "No valid action groups found for behavior: %s",
+                         behavior.name.c_str());
+            return false;
+        }
+    } else {
+        RCLCPP_ERROR(node_->get_logger(), "Actions array not found for behavior: %s", behavior.name.c_str());
+        return false;
+    }
+
+    behaviors_.push_back(behavior);
+    RCLCPP_INFO(node_->get_logger(), "Parsed behavior '%s' with %zu action groups", behavior.name.c_str(),
+                behavior.actionGroups.size());
+
+    return true;
+}
+
+const std::vector<Behavior>& CBehaviorParser::getBehaviors() const {
+    return behaviors_;
+}
+
+std::optional<std::reference_wrapper<const Behavior>> CBehaviorParser::getBehavior(
+    const std::string& name) const {
+    for (const auto& behavior : behaviors_) {
+        if (behavior.name == name) {
+            return std::cref(behavior);
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::reference_wrapper<const Behavior>> CBehaviorParser::getBehaviorForJoystickRequest(
+    const nikita_interfaces::msg::JoystickRequest& msg) const {
+    // Check each behavior's joystick trigger
+    for (const auto& behavior : behaviors_) {
+        const auto& trigger = behaviorTriggers_.find(behavior.name);
+        if (trigger == behaviorTriggers_.end()) {
+            continue;
+        }
+
+        const std::string& joystickTrigger = trigger->second.joystick;
+
+        // Match button triggers
+        if (joystickTrigger == "button_a" && msg.button_a) return std::cref(behavior);
+        if (joystickTrigger == "button_b" && msg.button_b) return std::cref(behavior);
+        if (joystickTrigger == "button_x" && msg.button_x) return std::cref(behavior);
+        if (joystickTrigger == "button_y" && msg.button_y) return std::cref(behavior);
+        if (joystickTrigger == "button_l1" && msg.button_l1) return std::cref(behavior);
+        if (joystickTrigger == "button_l2" && msg.button_l2) return std::cref(behavior);
+        if (joystickTrigger == "button_r1" && msg.button_r1) return std::cref(behavior);
+        if (joystickTrigger == "button_r2" && msg.button_r2) return std::cref(behavior);
+        if (joystickTrigger == "button_select" && msg.button_select) return std::cref(behavior);
+        if (joystickTrigger == "button_start" && msg.button_start) return std::cref(behavior);
+        if (joystickTrigger == "button_home" && msg.button_home) return std::cref(behavior);
+
+        // Match dpad triggers
+        if (joystickTrigger == "dpad_vertical_up" && msg.dpad_vertical == 1) return std::cref(behavior);
+        if (joystickTrigger == "dpad_vertical_down" && msg.dpad_vertical == -1) return std::cref(behavior);
+        if (joystickTrigger == "dpad_horizontal_left" && msg.dpad_horizontal == -1)
+            return std::cref(behavior);
+        if (joystickTrigger == "dpad_horizontal_right" && msg.dpad_horizontal == 1)
+            return std::cref(behavior);
+    }
+
+    return std::nullopt;
+}
+
+std::optional<std::reference_wrapper<const Behavior>> CBehaviorParser::getBehaviorForVoiceRequest(
+    const std::string& voiceCommand) const {
+    // Check each behavior's voice trigger
+    for (const auto& behavior : behaviors_) {
+        const auto& trigger = behaviorTriggers_.find(behavior.name);
+        if (trigger == behaviorTriggers_.end()) {
+            continue;
+        }
+
+        const std::string& voiceTrigger = trigger->second.voice;
+        if (voiceTrigger == voiceCommand) {
+            return std::cref(behavior);
+        }
+    }
+
+    return std::nullopt;
 }
 
 std::vector<std::shared_ptr<RequestBase>> CBehaviorParser::parseActionGroup(const void* actionJson) {
@@ -125,11 +233,11 @@ std::vector<std::shared_ptr<RequestBase>> CBehaviorParser::parseActionGroup(cons
             request = createRequestListening(&requestValue);
         } else if (requestType == "RequestSystem") {
             request = createRequestSystem(&requestValue);
-        } else if (requestType == "CRequestMovementType") {
+        } else if (requestType == "RequestMovementType") {
             request = createRequestMovementType(&requestValue);
-        } else if (requestType == "CRequestMoveBody") {
+        } else if (requestType == "RequestBodyPose") {
             request = createRequestMoveBody(&requestValue);
-        } else if (requestType == "CRequestMoveVelocity") {
+        } else if (requestType == "RequestVelocity") {
             request = createRequestMoveVelocity(&requestValue);
         } else {
             RCLCPP_WARN(node_->get_logger(), "Unknown request type: %s", requestType.c_str());
@@ -147,17 +255,17 @@ std::shared_ptr<RequestTalking> CBehaviorParser::createRequestTalking(const void
     const json* jsonValue = static_cast<const json*>(value);
 
     try {
+        auto request = std::make_shared<RequestTalking>();
+
         if (jsonValue->is_string()) {
-            // Simple string value
-            std::string text = jsonValue->get<std::string>();
-            return std::make_shared<RequestTalking>(text);
+            request->text = jsonValue->get<std::string>();
         } else if (jsonValue->is_object()) {
-            // Object with text, language, and minDuration
-            std::string text = jsonValue->value("text", "");
-            std::string language = jsonValue->value("language", "de");
-            double minDuration = jsonValue->value("minDuration", 0.0);
-            return std::make_shared<RequestTalking>(text, language, minDuration);
+            request->text = jsonValue->value("text", "");
+            request->language = jsonValue->value("language", "de");
+            request->minDuration = jsonValue->value("minDuration", 0.0);
         }
+
+        return request;
     } catch (const std::exception& e) {
         RCLCPP_ERROR(node_->get_logger(), "Failed to create RequestTalking: %s", e.what());
     }
@@ -169,15 +277,17 @@ std::shared_ptr<RequestChat> CBehaviorParser::createRequestChat(const void* valu
     const json* jsonValue = static_cast<const json*>(value);
 
     try {
+        auto request = std::make_shared<RequestChat>();
+
         if (jsonValue->is_string()) {
-            std::string text = jsonValue->get<std::string>();
-            return std::make_shared<RequestChat>(text);
+            request->text = jsonValue->get<std::string>();
         } else if (jsonValue->is_object()) {
-            std::string text = jsonValue->value("text", "");
-            std::string language = jsonValue->value("language", "de");
-            double minDuration = jsonValue->value("minDuration", 0.0);
-            return std::make_shared<RequestChat>(text, language, minDuration);
+            request->text = jsonValue->value("text", "");
+            request->language = jsonValue->value("language", "de");
+            request->minDuration = jsonValue->value("minDuration", 0.0);
         }
+
+        return request;
     } catch (const std::exception& e) {
         RCLCPP_ERROR(node_->get_logger(), "Failed to create RequestChat: %s", e.what());
     }
@@ -189,15 +299,17 @@ std::shared_ptr<RequestMusic> CBehaviorParser::createRequestMusic(const void* va
     const json* jsonValue = static_cast<const json*>(value);
 
     try {
+        auto request = std::make_shared<RequestMusic>();
+
         if (jsonValue->is_string()) {
-            std::string song = jsonValue->get<std::string>();
-            return std::make_shared<RequestMusic>(song);
+            request->song = jsonValue->get<std::string>();
         } else if (jsonValue->is_object()) {
-            std::string song = jsonValue->value("song", "");
-            float volume = jsonValue->value("volume", 0.8f);
-            double minDuration = jsonValue->value("minDuration", 0.0);
-            return std::make_shared<RequestMusic>(song, volume, minDuration);
+            request->song = jsonValue->value("song", "");
+            request->volume = jsonValue->value("volume", 0.8f);
+            request->minDuration = jsonValue->value("minDuration", 0.0);
         }
+
+        return request;
     } catch (const std::exception& e) {
         RCLCPP_ERROR(node_->get_logger(), "Failed to create RequestMusic: %s", e.what());
     }
@@ -209,14 +321,16 @@ std::shared_ptr<RequestListening> CBehaviorParser::createRequestListening(const 
     const json* jsonValue = static_cast<const json*>(value);
 
     try {
+        auto request = std::make_shared<RequestListening>();
+
         if (jsonValue->is_boolean()) {
-            bool active = jsonValue->get<bool>();
-            return std::make_shared<RequestListening>(active);
+            request->active = jsonValue->get<bool>();
         } else if (jsonValue->is_object()) {
-            bool active = jsonValue->value("active", false);
-            double minDuration = jsonValue->value("minDuration", 0.0);
-            return std::make_shared<RequestListening>(active, minDuration);
+            request->active = jsonValue->value("active", false);
+            request->minDuration = jsonValue->value("minDuration", 0.0);
         }
+
+        return request;
     } catch (const std::exception& e) {
         RCLCPP_ERROR(node_->get_logger(), "Failed to create RequestListening: %s", e.what());
     }
@@ -229,10 +343,11 @@ std::shared_ptr<RequestSystem> CBehaviorParser::createRequestSystem(const void* 
 
     try {
         if (jsonValue->is_object()) {
-            bool turnOffServoRelay = jsonValue->value("turnOffServoRelay", false);
-            bool systemShutdown = jsonValue->value("systemShutdown", false);
-            double minDuration = jsonValue->value("minDuration", 0.0);
-            return std::make_shared<RequestSystem>(turnOffServoRelay, systemShutdown, minDuration);
+            auto request = std::make_shared<RequestSystem>();
+            request->turnOffServoRelay = jsonValue->value("turnOffServoRelay", false);
+            request->systemShutdown = jsonValue->value("systemShutdown", false);
+            request->minDuration = jsonValue->value("minDuration", 0.0);
+            return request;
         }
     } catch (const std::exception& e) {
         RCLCPP_ERROR(node_->get_logger(), "Failed to create RequestSystem: %s", e.what());
@@ -241,7 +356,7 @@ std::shared_ptr<RequestSystem> CBehaviorParser::createRequestSystem(const void* 
     return nullptr;
 }
 
-std::shared_ptr<CRequestMovementType> CBehaviorParser::createRequestMovementType(const void* value) {
+std::shared_ptr<RequestMovementType> CBehaviorParser::createRequestMovementType(const void* value) {
     const json* jsonValue = static_cast<const json*>(value);
 
     try {
@@ -282,17 +397,19 @@ std::shared_ptr<CRequestMovementType> CBehaviorParser::createRequestMovementType
                 movementRequest.duration_s = (*jsonValue)["duration_s"].get<double>();
             }
 
-            double minDuration = jsonValue->value("minDuration", 0.0);
-            return std::make_shared<CRequestMovementType>(movementRequest, minDuration);
+            auto request = std::make_shared<RequestMovementType>();
+            request->movementRequest = movementRequest;
+            request->minDuration = jsonValue->value("minDuration", 0.0);
+            return request;
         }
     } catch (const std::exception& e) {
-        RCLCPP_ERROR(node_->get_logger(), "Failed to create CRequestMovementType: %s", e.what());
+        RCLCPP_ERROR(node_->get_logger(), "Failed to create RequestMovementType: %s", e.what());
     }
 
     return nullptr;
 }
 
-std::shared_ptr<CRequestMoveBody> CBehaviorParser::createRequestMoveBody(const void* value) {
+std::shared_ptr<RequestBodyPose> CBehaviorParser::createRequestMoveBody(const void* value) {
     const json* jsonValue = static_cast<const json*>(value);
 
     try {
@@ -316,17 +433,19 @@ std::shared_ptr<CRequestMoveBody> CBehaviorParser::createRequestMoveBody(const v
                 if (orientation.contains("yaw")) pose.orientation.yaw = orientation["yaw"].get<double>();
             }
 
-            double minDuration = jsonValue->value("minDuration", 0.0);
-            return std::make_shared<CRequestMoveBody>(pose, minDuration);
+            auto request = std::make_shared<RequestBodyPose>();
+            request->pose = pose;
+            request->minDuration = jsonValue->value("minDuration", 0.0);
+            return request;
         }
     } catch (const std::exception& e) {
-        RCLCPP_ERROR(node_->get_logger(), "Failed to create CRequestMoveBody: %s", e.what());
+        RCLCPP_ERROR(node_->get_logger(), "Failed to create RequestBodyPose: %s", e.what());
     }
 
     return nullptr;
 }
 
-std::shared_ptr<CRequestMoveVelocity> CBehaviorParser::createRequestMoveVelocity(const void* value) {
+std::shared_ptr<RequestVelocity> CBehaviorParser::createRequestMoveVelocity(const void* value) {
     const json* jsonValue = static_cast<const json*>(value);
 
     try {
@@ -349,11 +468,13 @@ std::shared_ptr<CRequestMoveVelocity> CBehaviorParser::createRequestMoveVelocity
                 if (angular.contains("z")) velocity.angular.z = angular["z"].get<double>();
             }
 
-            double minDuration = jsonValue->value("minDuration", 0.0);
-            return std::make_shared<CRequestMoveVelocity>(velocity, minDuration);
+            auto request = std::make_shared<RequestVelocity>();
+            request->velocity = velocity;
+            request->minDuration = jsonValue->value("minDuration", 0.0);
+            return request;
         }
     } catch (const std::exception& e) {
-        RCLCPP_ERROR(node_->get_logger(), "Failed to create CRequestMoveVelocity: %s", e.what());
+        RCLCPP_ERROR(node_->get_logger(), "Failed to create RequestVelocity: %s", e.what());
     }
 
     return nullptr;

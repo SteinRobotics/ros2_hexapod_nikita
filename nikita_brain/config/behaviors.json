@@ -1,26 +1,66 @@
 {
-    "name": "WATCH",
-    "trigger":
-    {
-        "joystick": "button_y",
-        "voice": "commandWatch",
-        "distance_smaller": 0.5,
-        "error_management": "VoltageLow"
-    },
-    "actions": [
+    "behaviors": [
         {
-            "RequestTalking": "sehe mich um",
-            "RequestMusic": "titel",
-            "CRequestMovementType":
+            "name": "normal_standup",
+            "trigger":
             {
-                "name": "WATCH",
-                "direction": "CLOCKWISE",
-                "duration_s": 1.0
-            }
-
+                "joystick": "dpad_vertical_up",
+                "voice": "commandStandup"
+            },
+            "actions": [
+                {
+                    "RequestTalking": "ich stehe auf",
+                    "RequestMovementType": { "name": "STAND_UP", "duration_s": 1.5 }
+                }
+            ]
         },
         {
-            "RequestTalking": "Fertig mit dem Umschauen."
+            "name": "normal_laydown",
+            "trigger":
+            {
+                "joystick": "dpad_vertical_down",
+                "voice": "commandLaydown"
+            },
+            "actions": [
+                {
+                    "RequestTalking": "ich lege mich hin",
+                    "RequestMovementType": { "name": "LAYDOWN", "duration_s": 1.5 }
+                }
+            ]
+        },
+        {
+            "name": "normal_watch",
+            "trigger":
+            {
+                "joystick": "button_a",
+                "voice": "commandWatch"
+            },
+            "actions": [
+                {
+                    "RequestTalking": "ich sehe mich um",
+                    "RequestMovementType": { "name": "WATCH", "duration_s": 5.0 }
+                },
+                {
+                    "RequestTalking": "Fertig mit dem Umschauen."
+                }
+            ]
+        },
+        {
+            "name": "normal_look",
+            "trigger":
+            {
+                "joystick": "button_b",
+                "voice": "commandLook"
+            },
+            "actions": [
+                {
+                    "RequestTalking": "Ich schaue nach etwas",
+                    "RequestMovementType": { "name": "LOOK", "duration_s": 4.0 }
+                },
+                {
+                    "RequestTalking": "Ich habe geschaut."
+                }
+            ]
         }
     ]
 }

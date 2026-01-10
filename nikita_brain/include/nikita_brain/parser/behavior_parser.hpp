@@ -4,20 +4,34 @@
 
 #pragma once
 
+#include <functional>
+#include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "nikita_brain/requester/irequester.hpp"
+#include "nikita_interfaces/msg/joystick_request.hpp"
 #include "rclcpp/rclcpp.hpp"
 
 namespace brain {
+
+struct Behavior {
+    std::string name;
+    std::vector<std::vector<std::shared_ptr<RequestBase>>> actionGroups;
+};
+
+struct BehaviorTrigger {
+    std::string joystick;
+    std::string voice;
+};
 
 /**
  * @brief Parser for behaviors.json file that creates Request objects
  * 
  * This class parses a JSON file containing behavior definitions and creates
- * appropriate Request objects (RequestTalking, RequestMusic, CRequestMovementType, etc.)
+ * appropriate Request objects (RequestTalking, RequestMusic, RequestMovementType, etc.)
  */
 class CBehaviorParser {
    public:
@@ -47,24 +61,48 @@ class CBehaviorParser {
     bool parseString(const std::string& jsonString);
 
     /**
-     * @brief Get the behavior name
-     * @return Name of the behavior
+     * @brief Get all behaviors parsed from the file
+     * @return Vector of Behavior objects, each containing name and action groups
      */
-    std::string getBehaviorName() const;
+    const std::vector<Behavior>& getBehaviors() const;
 
     /**
-     * @brief Get all action groups (each action group contains multiple requests)
-     * @return Vector of action groups, where each group is a vector of Request base pointers
+     * @brief Get a specific behavior by name
+     * @param name Name of the behavior to retrieve
+     * @return Optional reference to Behavior if found, nullopt otherwise
      */
-    const std::vector<std::vector<std::shared_ptr<RequestBase>>>& getActionGroups() const;
+    std::optional<std::reference_wrapper<const Behavior>> getBehavior(const std::string& name) const;
+
+    /**
+     * @brief Get behavior that matches the joystick request
+     * @param msg Joystick request message
+     * @return Optional reference to Behavior if a matching trigger is found, nullopt otherwise
+     */
+    std::optional<std::reference_wrapper<const Behavior>> getBehaviorForJoystickRequest(
+        const nikita_interfaces::msg::JoystickRequest& msg) const;
+
+    /**
+     * @brief Get behavior that matches the voice command
+     * @param voiceCommand Voice command string
+     * @return Optional reference to Behavior if a matching trigger is found, nullopt otherwise
+     */
+    std::optional<std::reference_wrapper<const Behavior>> getBehaviorForVoiceRequest(
+        const std::string& voiceCommand) const;
 
    private:
     /**
-     * @brief Parse actions from JSON
-     * @param actionsJson JSON value containing actions array
+     * @brief Parse multiple behaviors from JSON
+     * @param behaviorsJson JSON value containing behaviors array
      * @return true if parsing was successful
      */
-    bool parseActions(const void* actionsJson);
+    bool parseBehaviors(const void* behaviorsJson);
+
+    /**
+     * @brief Parse a single behavior
+     * @param behaviorJson JSON value containing a behavior object
+     * @return true if parsing was successful
+     */
+    bool parseSingleBehavior(const void* behaviorJson);
 
     /**
      * @brief Parse a single action group
@@ -109,29 +147,29 @@ class CBehaviorParser {
     std::shared_ptr<RequestSystem> createRequestSystem(const void* value);
 
     /**
-     * @brief Create CRequestMovementType from JSON value
+     * @brief Create RequestMovementType from JSON value
      * @param value JSON value (object)
-     * @return Shared pointer to CRequestMovementType object, or nullptr if parsing failed
+     * @return Shared pointer to RequestMovementType object, or nullptr if parsing failed
      */
-    std::shared_ptr<CRequestMovementType> createRequestMovementType(const void* value);
+    std::shared_ptr<RequestMovementType> createRequestMovementType(const void* value);
 
     /**
-     * @brief Create CRequestMoveBody from JSON value
+     * @brief Create RequestBodyPose from JSON value
      * @param value JSON value (object)
-     * @return Shared pointer to CRequestMoveBody object, or nullptr if parsing failed
+     * @return Shared pointer to RequestBodyPose object, or nullptr if parsing failed
      */
-    std::shared_ptr<CRequestMoveBody> createRequestMoveBody(const void* value);
+    std::shared_ptr<RequestBodyPose> createRequestMoveBody(const void* value);
 
     /**
-     * @brief Create CRequestMoveVelocity from JSON value
+     * @brief Create RequestVelocity from JSON value
      * @param value JSON value (object)
-     * @return Shared pointer to CRequestMoveVelocity object, or nullptr if parsing failed
+     * @return Shared pointer to RequestVelocity object, or nullptr if parsing failed
      */
-    std::shared_ptr<CRequestMoveVelocity> createRequestMoveVelocity(const void* value);
+    std::shared_ptr<RequestVelocity> createRequestMoveVelocity(const void* value);
 
     rclcpp::Node::SharedPtr node_;
-    std::string behaviorName_;
-    std::vector<std::vector<std::shared_ptr<RequestBase>>> actionGroups_;
+    std::vector<Behavior> behaviors_;
+    std::map<std::string, BehaviorTrigger> behaviorTriggers_;  // Map behavior name to triggers
 
     // Map of movement type names to their enum values
     static const std::map<std::string, uint32_t> movementTypeNameMap_;

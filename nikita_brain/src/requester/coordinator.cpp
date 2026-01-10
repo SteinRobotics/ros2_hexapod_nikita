@@ -4,6 +4,7 @@
 
 #include "requester/coordinator.hpp"
 
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <sstream>
 
 using namespace nikita_interfaces::msg;
@@ -15,6 +16,7 @@ CCoordinator::CCoordinator(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     : node_(node), actionPlanner_(actionPlanner) {
     textInterpreter_ = std::make_shared<CTextInterpreter>(node_);
     errorManagement_ = std::make_shared<CErrorManagement>(node_);
+    behaviorParser_ = std::make_shared<CBehaviorParser>(node_);
 
     kVelocityFactorLinear_ =
         node->declare_parameter<double>("velocity_factor_linear", rclcpp::PARAMETER_DOUBLE);
@@ -28,16 +30,55 @@ CCoordinator::CCoordinator(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
         node->declare_parameter<double>("max_body_height", rclcpp::PARAMETER_DOUBLE);  // positive value
 
     if (node->declare_parameter<bool>("autostart_listening")) {
-        submitSingleRequest<RequestListening>(Prio::Background, true);
+        auto request = std::make_shared<RequestListening>();
+        request->active = true;
+        submitRequest(request, Prio::Background);
     }
 
     kActivateMovementWaiting_ = node->declare_parameter<bool>("activate_movement_waiting");
+
+    loadBehaviors();
+
     timerMovementRequest_ = std::make_shared<CCallbackTimer>();
     timerErrorRequest_ = std::make_shared<CSimpleTimer>();
     timerNoRequest_ = std::make_shared<CSimpleTimer>(kActivateMovementWaiting_);
 }
 
+void CCoordinator::loadBehaviors() {
+    std::string package_share_directory = ament_index_cpp::get_package_share_directory("nikita_brain");
+    std::string file_path = package_share_directory + "/config/behaviors.json";
+
+    if (!behaviorParser_->parseFile(file_path)) {
+        RCLCPP_ERROR(node_->get_logger(), "Failed to parse behaviors from: %s", file_path.c_str());
+        return;
+    }
+
+    // just for logging
+    for (const auto& behavior : behaviorParser_->getBehaviors()) {
+        RCLCPP_INFO(node_->get_logger(), "Loaded behavior: %s", behavior.name.c_str());
+    }
+}
+
+void CCoordinator::executeBehavior(const Behavior& behavior, Prio prio) {
+    RCLCPP_INFO(node_->get_logger(), "Executing behavior: %s", behavior.name.c_str());
+
+    // Submit all action groups from the behavior
+    for (const auto& actionGroup : behavior.actionGroups) {
+        std::vector<std::shared_ptr<RequestBase>> requests;
+        for (const auto& request : actionGroup) {
+            requests.push_back(request);
+        }
+        actionPlanner_->request(requests, prio);
+    }
+}
+
 void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
+    auto behavior = behaviorParser_->getBehaviorForJoystickRequest(msg);
+    if (behavior) {
+        executeBehavior(behavior->get(), Prio::High);
+        return;
+    }
+
     if (msg.button_home) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "Shutdown requested by joystick");
         requestShutdown(Prio::High);
@@ -137,7 +178,9 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         newMovementType == MovementRequest::NO_REQUEST) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "end move request");
         // submit zero velocity request
-        submitSingleRequest<CRequestMoveVelocity>(Prio::High, velocity);
+        auto request = std::make_shared<RequestVelocity>();
+        request->velocity = velocity;
+        submitRequest(request, Prio::High);
         return;
     }
 
@@ -154,20 +197,43 @@ void CCoordinator::speechRecognized(std::string text) {
     auto command = textInterpreter_->searchInterpretation(identifiedWords);
     RCLCPP_INFO_STREAM(node_->get_logger(), "next command is: " << command);
 
-    if (command == "notFound") {
-        requestNotFound(text);
-    } else if (command == "commandStandup") {
-        submitRequestMove(MovementRequest::STAND_UP, 1.5, "ich stehe auf", Prio::High);
-    } else if (command == "commandLaydown") {
-        submitRequestMove(MovementRequest::LAYDOWN, 1.5, "ich leg mich hin", Prio::High);
-    } else if (command == "commandHighFive") {
+    // Check if command matches a behavior from JSON
+    auto behavior = behaviorParser_->getBehaviorForVoiceRequest(command);
+    if (behavior) {
+        executeBehavior(behavior->get(), Prio::High);
+        return;
+    }
+
+    // Fallback to hardcoded commands
+    // if (command == "notFound") {
+    //     requestNotFound(text);
+    // } else if (command == "commandStandup") {
+    //     behavior = behaviorParser_->getBehavior("STANDUP");
+    //     if (behavior) {
+    //         executeBehavior(behavior->get(), Prio::High);
+    //     } else {
+    //         submitRequestMove(MovementRequest::STAND_UP, 1.5, "ich stehe auf", Prio::High);
+    //     }
+    // } else if (command == "commandLaydown") {
+    //     behavior = behaviorParser_->getBehavior("LAYDOWN");
+    //     if (behavior) {
+    //         executeBehavior(behavior->get(), Prio::High);
+    //     } else {
+    //         submitRequestMove(MovementRequest::LAYDOWN, 1.5, "ich leg mich hin", Prio::High);
+    //     }
+    if (command == "commandHighFive") {
         submitRequestMove(MovementRequest::HIGH_FIVE, 5.0, "ich gebe dir ein High Five", Prio::High);
     } else if (command == "commandLegWave") {
         submitRequestMove(MovementRequest::LEGS_WAVE, 3.0, "bein welle", Prio::High);
     } else if (command == "commandBodyRoll") {
         submitRequestMove(MovementRequest::BODY_ROLL, 4.0, "ich rolle den rumpf", Prio::High);
     } else if (command == "commandWatch") {
-        submitRequestMove(MovementRequest::WATCH, 5.0, "ich schaue mich um", Prio::High);
+        behavior = behaviorParser_->getBehavior("WATCH");
+        if (behavior) {
+            executeBehavior(behavior->get(), Prio::High);
+        } else {
+            submitRequestMove(MovementRequest::WATCH, 5.0, "ich schaue mich um", Prio::High);
+        }
     } else if (command == "commandTurnHead") {
         uint8_t direction = 0;
         std::string text = "";
@@ -258,27 +324,33 @@ void CCoordinator::servoStatusReceived(const ServoStatus& msg) {
 // ----------------------------------------------------------------------------
 //  Requests
 // ---------------------------------------------------------------------------
-template <typename RequestT, typename... Args>
-void CCoordinator::submitSingleRequest(Prio prio, Args&&... args) {
-    static_assert(std::is_base_of<RequestBase, RequestT>::value, "RequestT must derive from RequestBase");
+// Helper to submit a single request
+void CCoordinator::submitRequest(std::shared_ptr<RequestBase> request, Prio prio) {
     std::vector<std::shared_ptr<RequestBase>> request_v;
-    request_v.push_back(std::make_shared<RequestT>(std::forward<Args>(args)...));
+    request_v.push_back(request);
     actionPlanner_->request(request_v, prio);
 }
 
 void CCoordinator::requestNotFound(std::string textRecognized, Prio prio) {
     std::string textOutput = "Ich habe folgendes nicht verstanden " + textRecognized;
-    submitSingleRequest<RequestTalking>(prio, textOutput);
+    auto request = std::make_shared<RequestTalking>();
+    request->text = textOutput;
+    submitRequest(request, prio);
 }
 
 void CCoordinator::requestShutdown(Prio prio) {
     std::string text = "Ich muss mich jetzt abschalten";
-    submitSingleRequest<RequestTalking>(prio, text);
+    auto request = std::make_shared<RequestTalking>();
+    request->text = text;
+    submitRequest(request, prio);
 
     if (isStanding_) {
         submitRequestMove(MovementRequest::LAYDOWN, 1.5, "", prio);
     }
-    submitSingleRequest<RequestSystem>(prio, true, true);
+    auto sysRequest = std::make_shared<RequestSystem>();
+    sysRequest->turnOffServoRelay = true;
+    sysRequest->systemShutdown = true;
+    submitRequest(sysRequest, prio);
 }
 
 void CCoordinator::requestReactionOnError(std::string text, bool switchServoRelayOff,
@@ -289,32 +361,48 @@ void CCoordinator::requestReactionOnError(std::string text, bool switchServoRela
         timerErrorRequest_->start();
     }
 
-    submitSingleRequest<RequestTalking>(prio, text);
+    auto talkRequest = std::make_shared<RequestTalking>();
+    talkRequest->text = text;
+    submitRequest(talkRequest, prio);
 
     if (switchServoRelayOff) {
         submitRequestMove(MovementRequest::LAYDOWN, 1.5, "", prio);
-        submitSingleRequest<RequestSystem>(prio, switchServoRelayOff, false);
+        auto sysRequest = std::make_shared<RequestSystem>();
+        sysRequest->turnOffServoRelay = switchServoRelayOff;
+        sysRequest->systemShutdown = false;
+        submitRequest(sysRequest, prio);
     }
     if (isShutdownRequested) {
-        submitSingleRequest<RequestSystem>(prio, true, isShutdownRequested);
+        auto sysRequest = std::make_shared<RequestSystem>();
+        sysRequest->turnOffServoRelay = true;
+        sysRequest->systemShutdown = isShutdownRequested;
+        submitRequest(sysRequest, prio);
     }
 }
 
 void CCoordinator::requestMusikOn(Prio prio) {
     std::string song = "musicfox_hot_dogs_for_breakfast.mp3";
-    actionPlanner_->request({std::make_shared<RequestMusic>(song)}, prio);
+    auto request = std::make_shared<RequestMusic>();
+    request->song = song;
+    actionPlanner_->request({request}, prio);
 }
 
 void CCoordinator::requestMusikOff(Prio prio) {
-    actionPlanner_->request({std::make_shared<RequestListening>(false)}, prio);
+    auto request = std::make_shared<RequestListening>();
+    request->active = false;
+    actionPlanner_->request({request}, prio);
 }
 
 void CCoordinator::requestTalking(std::string text, Prio prio) {
-    actionPlanner_->request({std::make_shared<RequestTalking>(text)}, prio);
+    auto request = std::make_shared<RequestTalking>();
+    request->text = text;
+    actionPlanner_->request({request}, prio);
 }
 
 void CCoordinator::requestChat(std::string text, Prio prio) {
-    actionPlanner_->request({std::make_shared<RequestChat>(text)}, prio);
+    auto request = std::make_shared<RequestChat>();
+    request->text = text;
+    actionPlanner_->request({request}, prio);
 }
 
 void CCoordinator::requestTestBody() {
@@ -374,7 +462,9 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
                                      std::optional<uint8_t> direction) {
     std::vector<std::shared_ptr<RequestBase>> request_v;
     if (!comment.empty()) {
-        request_v.push_back(std::make_shared<RequestTalking>(comment));
+        auto talkRequest = std::make_shared<RequestTalking>();
+        talkRequest->text = comment;
+        request_v.push_back(talkRequest);
     }
     // If we are not standing, we need to stand up first
     if (!isStanding_ && movementType == MovementRequest::MOVE_TRIPOD) {
@@ -391,12 +481,18 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
         request.direction = direction.value();
     }
     request.name = movementTypeName_.at(request.type);
-    request_v.push_back(std::make_shared<CRequestMovementType>(request));
+    auto moveRequest = std::make_shared<RequestMovementType>();
+    moveRequest->movementRequest = request;
+    request_v.push_back(moveRequest);
     if (body.has_value()) {
-        request_v.push_back(std::make_shared<CRequestMoveBody>(body.value()));
+        auto bodyRequest = std::make_shared<RequestBodyPose>();
+        bodyRequest->pose = body.value();
+        request_v.push_back(bodyRequest);
     }
     if (velocity.has_value()) {
-        request_v.push_back(std::make_shared<CRequestMoveVelocity>(velocity.value()));
+        auto velocityRequest = std::make_shared<RequestVelocity>();
+        velocityRequest->velocity = velocity.value();
+        request_v.push_back(velocityRequest);
     }
     actionPlanner_->request(request_v, prio);
 
@@ -426,19 +522,25 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
 void CCoordinator::requestTellSupplyVoltage(Prio prio) {
     std::string text = "Die Versorgungsspannung ist aktuell " +
                        to_string_with_precision(errorManagement_->getFilteredSupplyVoltage(), 1) + " Volt";
-    submitSingleRequest<RequestTalking>(prio, text);
+    auto request = std::make_shared<RequestTalking>();
+    request->text = text;
+    submitRequest(request, prio);
 }
 
 void CCoordinator::requestTellServoVoltage(Prio prio) {
     std::string text = "Die Servo Spannung ist aktuell " +
                        to_string_with_precision(errorManagement_->getFilteredServoVoltage(), 1) + " Volt";
-    submitSingleRequest<RequestTalking>(prio, text);
+    auto request = std::make_shared<RequestTalking>();
+    request->text = text;
+    submitRequest(request, prio);
 }
 
 void CCoordinator::requestTellServoTemperature(Prio prio) {
     std::string text = "Die Servo Spannung ist aktuell " +
                        to_string_with_precision(errorManagement_->getFilteredServoVoltage(), 1) + " Volt";
-    submitSingleRequest<RequestTalking>(prio, text);
+    auto request = std::make_shared<RequestTalking>();
+    request->text = text;
+    submitRequest(request, prio);
 }
 
 // ----------------------------------------------------------------------------

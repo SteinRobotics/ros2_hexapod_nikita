@@ -48,6 +48,22 @@ target_link_libraries(node_brain nikita_brain_lib)
 target_include_directories(node_brain PRIVATE include)
 ament_target_dependencies(node_brain rclcpp std_msgs geometry_msgs std_srvs ament_index_cpp nikita_interfaces nlohmann_json)
 
+# Test executable for behavior parser
+add_executable(test_behavior_parser
+  test_behavior_parser.cpp
+)
+target_link_libraries(test_behavior_parser nikita_brain_lib)
+target_include_directories(test_behavior_parser PRIVATE include)
+ament_target_dependencies(test_behavior_parser rclcpp nikita_interfaces nlohmann_json)
+
+# Test executable for coordinator with behaviors
+add_executable(test_coordinator_behaviors
+  test_coordinator_behaviors.cpp
+)
+target_link_libraries(test_coordinator_behaviors nikita_brain_lib)
+target_include_directories(test_coordinator_behaviors PRIVATE include)
+ament_target_dependencies(test_coordinator_behaviors rclcpp nikita_interfaces nlohmann_json)
+
 include_directories(
   include/nikita_brain/
 )
