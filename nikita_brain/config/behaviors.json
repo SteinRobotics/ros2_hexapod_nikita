@@ -1,0 +1,26 @@
+{
+    "name": "WATCH",
+    "trigger":
+    {
+        "joystick": "button_y",
+        "voice": "commandWatch",
+        "distance_smaller": 0.5,
+        "error_management": "VoltageLow"
+    },
+    "actions": [
+        {
+            "RequestTalking": "sehe mich um",
+            "RequestMusic": "titel",
+            "CRequestMovementType":
+            {
+                "name": "WATCH",
+                "direction": "CLOCKWISE",
+                "duration_s": 1.0
+            }
+
+        },
+        {
+            "RequestTalking": "Fertig mit dem Umschauen."
+        }
+    ]
+}

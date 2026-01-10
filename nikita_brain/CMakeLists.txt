@@ -32,6 +32,7 @@ src/requester/text_interpreter.cpp
 src/handler/system.cpp
 src/handler/communication.cpp
 src/handler/movement.cpp
+src/parser/behavior_parser.cpp
 )
 add_library(nikita_brain_lib ${SOURCES})
 target_include_directories(nikita_brain_lib PUBLIC

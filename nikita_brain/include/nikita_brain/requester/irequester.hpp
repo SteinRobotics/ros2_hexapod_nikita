@@ -90,19 +90,19 @@ class RequestChat : public RequestBase {
 
 class RequestMusic : public RequestBase {
    public:
-    RequestMusic(std::string song, int volumePercent = 50, double minDuration = 0.0)
-        : RequestBase(minDuration), song_(song), volumePercent_(volumePercent) {
+    RequestMusic(std::string song, float volume = 0.8, double minDuration = 0.0)
+        : RequestBase(minDuration), song_(song), volume_(volume) {
     }
     std::string song() {
         return song_;
     };
-    int volumePercent() {
-        return volumePercent_;
+    float volume() {
+        return volume_;
     };
 
    private:
     std::string song_ = "";
-    int volumePercent_ = 50;
+    float volume_ = 0.8;
 };
 
 class RequestListening : public RequestBase {
