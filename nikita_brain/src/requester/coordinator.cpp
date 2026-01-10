@@ -234,7 +234,7 @@ void CCoordinator::speechRecognized(std::string text) {
         } else {
             submitRequestMove(MovementRequest::WATCH, 5.0, "ich schaue mich um", Prio::High);
         }
-    } else if (command == "commandTurnHead") {
+    } else if (command == "commandLookLeft" || command == "commandLookRight") {
         uint8_t direction = 0;
         std::string text = "";
         if (textInterpreter_->lettersIdentified("links", identifiedWords)) {

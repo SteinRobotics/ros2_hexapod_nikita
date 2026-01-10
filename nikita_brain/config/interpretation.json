@@ -1,8 +1,13 @@
 {
-    "commandTurnHead": {
+    "commandLookLeft": {
         "doing": [ "sieh", "sehe", "schau", "schaue" ],
         "preposition": [ "nach" ],
-        "direction": [ "links", "rechts" ]
+        "direction": [ "links" ]
+    },
+    "commandLookRight": {
+        "doing": [ "sieh", "sehe", "schau", "schaue" ],
+        "preposition": [ "nach" ],
+        "direction": [ "rechts" ]
     },
     "commandWatch": {
         "doing": [ "sieh", "schau", "schaue", "sehe", "seh" ],
