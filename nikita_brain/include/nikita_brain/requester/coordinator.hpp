@@ -46,7 +46,8 @@ class CCoordinator : public IRequester {
                            std::optional<uint8_t> direction = std::nullopt);
 
     void requestShutdown(Prio prio);
-    void requestReactionOnError(std::string text, bool isShutdownRequested, Prio prio = Prio::Normal);
+    void requestReactionOnError(std::string text, bool switchServoRelayOff, bool isShutdownRequested,
+                                Prio prio = Prio::Normal);
     void requestNotFound(std::string textRecognized, Prio prio = Prio::Normal);
     void requestDefault(Prio prio = Prio::Normal);
     void requestStopMoveBody(Prio prio = Prio::Normal);

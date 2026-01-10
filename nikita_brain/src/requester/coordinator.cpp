@@ -35,7 +35,6 @@ CCoordinator::CCoordinator(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     timerMovementRequest_ = std::make_shared<CCallbackTimer>();
     timerErrorRequest_ = std::make_shared<CSimpleTimer>();
     timerNoRequest_ = std::make_shared<CSimpleTimer>(kActivateMovementWaiting_);
-    // timerLeaveMove_ = std::make_shared<CCallbackTimer>();
 }
 
 void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
@@ -103,24 +102,25 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
 
     // LEFT_STICK -> linear movement
     // float32 left_stick_vertical   # TOP  = -1.0, DOWN = 1.0,  hangs on 0.004 -> means 0.0
-    if (msg.left_stick_vertical > kJoystickDeadzone_ || msg.left_stick_vertical < -kJoystickDeadzone_) {
+    if (std::abs(msg.left_stick_vertical) > kJoystickDeadzone_) {
         velocity.linear.x = msg.left_stick_vertical * kVelocityFactorLinear_;
         newMovementType = MovementRequest::MOVE_TRIPOD;
     }
     // float32 left_stick_horizontal # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
-    if (msg.left_stick_horizontal > kJoystickDeadzone_ || msg.left_stick_horizontal < -kJoystickDeadzone_) {
+    if (std::abs(msg.left_stick_horizontal) > kJoystickDeadzone_) {
         velocity.linear.y = msg.left_stick_horizontal * kVelocityFactorLinear_;
         newMovementType = MovementRequest::MOVE_TRIPOD;
     }
     // RIGHT_STICK -> rotation
     // float32 right_stick_horizontal  # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
-    if (msg.right_stick_horizontal > kJoystickDeadzone_ || msg.right_stick_horizontal < -kJoystickDeadzone_) {
+    if (std::abs(msg.right_stick_horizontal) > kJoystickDeadzone_) {
         velocity.angular.z = msg.right_stick_horizontal * kVelocityFactorRotation_;
         newMovementType = MovementRequest::MOVE_TRIPOD;
     }
 
     // float32 right_stick_vertical    # TOP  = -1.0, DOWN = 1.0, hangs on 0.004 -> means 0.0
-    if (msg.right_stick_vertical > kJoystickDeadzone_ || msg.right_stick_vertical < -kJoystickDeadzone_) {
+    if (std::abs(msg.right_stick_vertical) > kJoystickDeadzone_) {
+        utils::lowPassFilter(body.position.z, msg.right_stick_vertical * kBodyFactorHeight_, 0.02);
         body.position.z = msg.right_stick_vertical * kBodyFactorHeight_;
         body.position.z = std::clamp(body.position.z, kMinBodyHeight_, kMaxBodyHeight_);
         newMovementType = MovementRequest::MOVE_TRIPOD;
@@ -226,17 +226,17 @@ void CCoordinator::speechRecognized(std::string text) {
 void CCoordinator::supplyVoltageReceived(float voltage) {
     auto statusSupplyVoltage = errorManagement_->filterSupplyVoltage(voltage);
     if (statusSupplyVoltage == EError::VoltageCriticalLow) {
-        RCLCPP_ERROR_STREAM(node_->get_logger(), "SupplyVoltage is critical low, Shutting down the system");
+        RCLCPP_ERROR_STREAM(node_->get_logger(), "SupplyVoltage is critical low, shutting down the system");
 
         std::string text = "Versorgungsspannung extrem niedrig, schalte ab";
-        requestReactionOnError(text, true, Prio::Highest);
+        requestReactionOnError(text, true, true, Prio::Highest);
+        return;
+    }
 
-    } else if (statusSupplyVoltage == EError::VoltageLow) {
+    if (statusSupplyVoltage == EError::VoltageLow) {
         RCLCPP_WARN_STREAM(node_->get_logger(), "SupplyVoltage is low");
-        std::string text = "Versorgungsspannung ist niedrig bei " +
-                           to_string_with_precision(errorManagement_->getFilteredSupplyVoltage(), 1) +
-                           " Volt";
-        requestReactionOnError(text, false);
+        std::string text = "Versorgungsspannung ist zu niedrig";
+        requestReactionOnError(text, false, false, Prio::High);
     }
 }
 
@@ -247,11 +247,11 @@ void CCoordinator::servoStatusReceived(const ServoStatus& msg) {
         return;
     }
     if (error == EError::VoltageCriticalLow) {
-        text = "Servo Spannung ist niedrig";
-        requestReactionOnError(text, false, Prio::Highest);
+        text = "Servo Spannung ist zu niedrig";
+        requestReactionOnError(text, true, false, Prio::Highest);
     } else {
         text = "Servo Fehler " + errorManagement_->getErrorName(error);
-        requestReactionOnError(text, false, Prio::High);
+        requestReactionOnError(text, true, false, Prio::High);
     }
 }
 
@@ -281,18 +281,23 @@ void CCoordinator::requestShutdown(Prio prio) {
     submitSingleRequest<RequestSystem>(prio, true, true);
 }
 
-void CCoordinator::requestReactionOnError(std::string text, bool isShutdownRequested, Prio prio) {
-    if (timerErrorRequest_->isRunning()) {
+void CCoordinator::requestReactionOnError(std::string text, bool switchServoRelayOff,
+                                          bool isShutdownRequested, Prio prio) {
+    if (timerErrorRequest_->isRunning() && !timerErrorRequest_->haveSecondsElapsed(10.0)) {
         return;
+    } else {
+        timerErrorRequest_->start();
     }
-    // timerErrorRequest_->startWithoutCallback(10s);
 
     submitSingleRequest<RequestTalking>(prio, text);
 
-    if (isShutdownRequested) {
+    if (switchServoRelayOff) {
         submitRequestMove(MovementRequest::LAYDOWN, 1.5, "", prio);
+        submitSingleRequest<RequestSystem>(prio, switchServoRelayOff, false);
     }
-    submitSingleRequest<RequestSystem>(prio, isShutdownRequested, isShutdownRequested);
+    if (isShutdownRequested) {
+        submitSingleRequest<RequestSystem>(prio, true, isShutdownRequested);
+    }
 }
 
 void CCoordinator::requestMusikOn(Prio prio) {

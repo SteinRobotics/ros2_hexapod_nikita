@@ -64,3 +64,8 @@ wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.90
 wpctl status
 ```
 ___  
+## No PW
+```
+sudo visudo
+nikita ALL=(ALL) NOPASSWD: /sbin/shutdown, /sbin/restart, /bin/systemctl start autostart_ros2.service, /bin/systemctl stop autostart_ros2.service, /bin/systemctl status autostart_ros2.service
+```
