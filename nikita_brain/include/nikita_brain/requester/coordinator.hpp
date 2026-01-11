@@ -62,19 +62,12 @@ class CCoordinator : public IRequester {
     void requestTalking(std::string text, Prio prio = Prio::Normal);
     void requestChat(std::string text, Prio prio = Prio::Normal);
     void requestWaiting(Prio prio = Prio::Normal);
-    void requestTestBody();
-    void requestTestLegs();
 
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CActionPlanner> actionPlanner_;
     std::shared_ptr<CErrorManagement> errorManagement_;
     std::shared_ptr<CTextInterpreter> textInterpreter_;
     std::shared_ptr<CBehaviorParser> behaviorParser_;
-
-    // Maps to quickly find behaviors by trigger
-    std::map<std::string, const Behavior*> voiceTriggerMap_;
-    std::map<std::string, const Behavior*> joystickTriggerMap_;
-
     std::shared_ptr<CSimpleTimer> timerErrorRequest_;
     std::shared_ptr<CSimpleTimer> timerNoRequest_;
     std::shared_ptr<CCallbackTimer> timerMovementRequest_;

@@ -88,55 +88,6 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     auto velocity = geometry_msgs::msg::Twist();
     std::optional<uint8_t> direction = std::nullopt;
 
-    // BUTTONS
-    if (msg.button_a) {
-        newMovementType = MovementRequest::WATCH;
-        comment = "ich sehe mich um";
-        duration_s = 5.0;
-    } else if (msg.button_b) {
-        newMovementType = MovementRequest::HIGH_FIVE;
-        comment = "ich gebe dir ein High Five";
-        duration_s = 4.0;
-    } else if (msg.button_x) {
-        newMovementType = MovementRequest::BODY_ROLL;
-        comment = "ich rolle den Rumpf";
-        duration_s = 4.0;
-    } else if (msg.button_y) {
-        newMovementType = MovementRequest::LEGS_WAVE;
-        comment = "was ist eine Beinewelle";
-        duration_s = 3.0;
-    } else if (msg.button_l1) {
-        newMovementType = MovementRequest::LOOK;
-        direction = MovementRequest::ANTICLOCKWISE;
-        duration_s = 3.0;
-    } else if (msg.button_l2) {
-        // TODO add function
-    } else if (msg.button_r1) {
-        newMovementType = MovementRequest::LOOK;
-        direction = MovementRequest::CLOCKWISE;
-        duration_s = 3.0;
-    } else if (msg.button_r2) {
-        // TODO add function
-    } else if (msg.button_start) {
-        // TODO add function
-    }
-
-    // DPAD
-    // int8 dpad_vertical     # DOWN = -1, UP = 1
-    // int8 dpad_horizontal   # LEFT = -1, RIGHT = 1
-    if (msg.dpad_vertical == 1) {
-        newMovementType = MovementRequest::STAND_UP;
-        duration_s = 1.5;
-        if (!isStanding_)
-            comment = "ich stehe auf";
-        else
-            comment = "nehme neutrale Position ein";
-    } else if (msg.dpad_vertical == -1) {
-        newMovementType = MovementRequest::LAYDOWN;
-        duration_s = 1.5;
-        comment = "ich lege mich hin";
-    }
-
     // LEFT_STICK -> linear movement
     // float32 left_stick_vertical   # TOP  = -1.0, DOWN = 1.0,  hangs on 0.004 -> means 0.0
     if (std::abs(msg.left_stick_vertical) > kJoystickDeadzone_) {
@@ -200,49 +151,7 @@ void CCoordinator::speechRecognized(std::string text) {
         return;
     }
 
-    // Fallback to hardcoded commands
-    // if (command == "notFound") {
-    //     requestNotFound(text);
-    // } else if (command == "commandStandup") {
-    //     behavior = behaviorParser_->getBehavior("STANDUP");
-    //     if (behavior) {
-    //         executeBehavior(behavior->get(), Prio::High);
-    //     } else {
-    //         submitRequestMove(MovementRequest::STAND_UP, 1.5, "ich stehe auf", Prio::High);
-    //     }
-    // } else if (command == "commandLaydown") {
-    //     behavior = behaviorParser_->getBehavior("LAYDOWN");
-    //     if (behavior) {
-    //         executeBehavior(behavior->get(), Prio::High);
-    //     } else {
-    //         submitRequestMove(MovementRequest::LAYDOWN, 1.5, "ich leg mich hin", Prio::High);
-    //     }
-    if (command == "commandHighFive") {
-        submitRequestMove(MovementRequest::HIGH_FIVE, 5.0, "ich gebe dir ein High Five", Prio::High);
-    } else if (command == "commandLegWave") {
-        submitRequestMove(MovementRequest::LEGS_WAVE, 3.0, "bein welle", Prio::High);
-    } else if (command == "commandBodyRoll") {
-        submitRequestMove(MovementRequest::BODY_ROLL, 4.0, "ich rolle den rumpf", Prio::High);
-    } else if (command == "commandWatch") {
-        behavior = behaviorParser_->getBehavior("WATCH");
-        if (behavior) {
-            executeBehavior(behavior->get(), Prio::High);
-        } else {
-            submitRequestMove(MovementRequest::WATCH, 5.0, "ich schaue mich um", Prio::High);
-        }
-    } else if (command == "commandLookLeft" || command == "commandLookRight") {
-        uint8_t direction = 0;
-        std::string text = "";
-        if (textInterpreter_->lettersIdentified("links", identifiedWords)) {
-            direction = MovementRequest::ANTICLOCKWISE;
-            text = "ich schaue nach links";
-        } else if (textInterpreter_->lettersIdentified("rechts", identifiedWords)) {
-            direction = MovementRequest::CLOCKWISE;
-            text = "ich schaue nach rechts";
-        }
-        submitRequestMove(MovementRequest::LOOK, 3.0, text, Prio::High, std::nullopt, std::nullopt,
-                          std::nullopt, direction);
-    } else if (command == "commandMove") {
+    if (command == "commandMove") {
         constexpr double kVelocityLinear_ = 0.005;
         geometry_msgs::msg::Twist velocity;
         if (textInterpreter_->lettersIdentified("vorn", identifiedWords) ||
@@ -264,14 +173,7 @@ void CCoordinator::speechRecognized(std::string text) {
         geometry_msgs::msg::Twist velocity;
         submitRequestMove(MovementRequest::MOVE_TRIPOD, 0, "ich halte an", Prio::High, std::nullopt,
                           std::nullopt, velocity);
-    } else if (command == "commandTestBody") {
-        requestTestBody();
-    } else if (command == "commandTestLegs") {
-        requestTestLegs();
-    } else if (command == "talk") {
-        // requestTalking(awareness_->m_speechRecognized);
-    } else if (command == "chat") {
-        // requestChat(awareness_->m_speechRecognized);
+
     } else if (command == "tellMeSupplyVoltage") {
         requestTellSupplyVoltage(Prio::High);
     } else if (command == "tellMeServoVoltage") {
@@ -399,52 +301,6 @@ void CCoordinator::requestChat(std::string text, Prio prio) {
     auto request = std::make_shared<RequestChat>();
     request->text = text;
     actionPlanner_->request({request}, prio);
-}
-
-void CCoordinator::requestTestBody() {
-    nikita_interfaces::msg::Pose body;
-    double duration_s = 2.0;
-    std::string text = "";
-
-    text = "teste x Richtung";
-    body.position.x = 0.05;
-    submitRequestMove(MovementRequest::POSE, duration_s, text, Prio::High, body);
-    body.position.x = 0.0;
-    submitRequestMove(MovementRequest::POSE, duration_s, "", Prio::High, body);
-
-    text = "teste y Richtung";
-    body.position.y = 0.05;
-    submitRequestMove(MovementRequest::POSE, duration_s, text, Prio::High, body);
-    body.position.y = 0.0;
-    submitRequestMove(MovementRequest::POSE, duration_s, "", Prio::High, body);
-
-    text = "teste z Richtung nach oben";
-    body.position.z = 0.03;
-    submitRequestMove(MovementRequest::POSE, duration_s, text, Prio::High, body);
-    body.position.z = 0.0;
-    submitRequestMove(MovementRequest::POSE, duration_s, "", Prio::High, body);
-
-    text = "teste Roll";
-    body.orientation.roll = 20.0;
-    submitRequestMove(MovementRequest::POSE, duration_s, text, Prio::High, body);
-    body.orientation.roll = 0.0;
-    submitRequestMove(MovementRequest::POSE, duration_s, "", Prio::High, body);
-
-    text = "teste Pitch";
-    body.orientation.pitch = 20.0;
-    submitRequestMove(MovementRequest::POSE, duration_s, text, Prio::High, body);
-    body.orientation.pitch = 0.0;
-    submitRequestMove(MovementRequest::POSE, duration_s, "", Prio::High, body);
-
-    text = "teste Yaw";
-    body.orientation.yaw = 20.0;
-    submitRequestMove(MovementRequest::POSE, duration_s, text, Prio::High, body);
-    body.orientation.yaw = 0.0;
-    submitRequestMove(MovementRequest::POSE, duration_s, "", Prio::High, body);
-}
-
-void CCoordinator::requestTestLegs() {
-    submitRequestMove(MovementRequest::TESTLEGS, 2.0, "", Prio::High);
 }
 
 void CCoordinator::requestWaiting(Prio prio) {

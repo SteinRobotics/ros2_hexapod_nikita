@@ -183,10 +183,10 @@
             },
             "actions": [
                 {
-                    "RequestTalking": "Ich tanze"
+                    "RequestTalking": "Party time!"
                 },
                 {
-                    "RequestMusic": "musicfox_hot_dogs_for_breakfast.mp3",
+                    "RequestMusic": "musicfox_excess_party.mp3",
                     "RequestMovementType": { "name": "POSE", "duration_s": 2.0 },
                     "RequestBodyPose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 15.0 } },
                     "RequestHeadOrientation": { "yaw": 0.0, "pitch": 15.0 }
@@ -197,7 +197,7 @@
                     "RequestHeadOrientation": { "yaw": 0.0, "pitch": 0.0 }
                 },
                 {
-                    "RequestMusic": "off"
+                    "RequestMusic": "STOP"
                 }
             ]
         },
@@ -224,7 +224,7 @@
                     "RequestHeadOrientation": { "yaw": 0.0, "pitch": 0.0 }
                 },
                 {
-                    "RequestMusic": "off"
+                    "RequestMusic": "STOP"
                 }
             ]
         }
