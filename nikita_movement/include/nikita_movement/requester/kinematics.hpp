@@ -29,11 +29,6 @@ class CKinematics {
                   const CPose body = CPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
     void moveBody(const CPose body);
 
-    // New version of moveBody which uses the segment-wise IK solver (solveIKSegmentwise)
-    // to compute joint states per leg from world/body-frame foot targets.
-    // void moveBodyNew(const std::map<ELegIndex, CPosition>& footTargets,
-    //                  const CPose body = CPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
-
     void setHead(double yaw_deg, double pitch_deg);
     void setHead(COrientation head);
 
@@ -52,9 +47,6 @@ class CKinematics {
     CPose& getBody() {
         return body_;
     };
-
-    // Expose the complete body (segment-wise) for testing/inspection
-    // const CBody& getCompleteBody() const;
 
    private:
     void initializeLegs(const std::map<ELegIndex, CPosition>& footTargets, const CPose body,

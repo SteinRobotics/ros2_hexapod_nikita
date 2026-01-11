@@ -23,7 +23,7 @@ CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared
 
     // Create all gait instances
     gaits_[MovementRequest::BODY_ROLL] =
-        std::make_shared<CBodyRollGait>(node_, kinematics_, params_.bodyRoll);
+        std::make_shared<CGaitBodyRoll>(node_, kinematics_, params_.bodyRoll);
     gaits_[MovementRequest::CALIBRATE] = std::make_shared<CCalibrateGait>(node_, kinematics_);
     gaits_[MovementRequest::CLAP] = std::make_shared<CClapGait>(node_, kinematics_, params_.clap);
     gaits_[MovementRequest::HIGH_FIVE] =

@@ -15,11 +15,11 @@
 
 namespace nikita_movement {
 
-class CBodyRollGait : public IGait {
+class CGaitBodyRoll : public IGait {
    public:
-    CBodyRollGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+    CGaitBodyRoll(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
                   Parameters::BodyRoll& params);
-    ~CBodyRollGait() override = default;
+    ~CGaitBodyRoll() override = default;
 
     void start(double duration_s, uint8_t direction) override;
     bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body,

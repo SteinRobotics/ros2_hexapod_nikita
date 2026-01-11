@@ -5,20 +5,20 @@ constexpr double kUpdateIntervalS = 0.1;  // Update interval in seconds
 
 namespace nikita_movement {
 
-CBodyRollGait::CBodyRollGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+CGaitBodyRoll::CGaitBodyRoll(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
                              Parameters::BodyRoll& params)
     : node_(node), kinematics_(kinematics), params_(params) {
 }
 
-void CBodyRollGait::start(double duration_s, uint8_t /*direction*/) {
-    assert(duration_s > 0.0 && "CBodyRollGait::start duration must be positive.");
+void CGaitBodyRoll::start(double duration_s, uint8_t /*direction*/) {
+    assert(duration_s > 0.0 && "CGaitBodyRoll::start duration must be positive.");
     state_ = EGaitState::Starting;
     phase_ = 0.0;
     phase_increment_ = kPhaseLimit / (duration_s / kUpdateIntervalS);
     origin_leg_positions_ = kinematics_->getLegsPositions();
 }
 
-bool CBodyRollGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/,
+bool CGaitBodyRoll::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/,
                            const COrientation& /*head*/) {
     if (state_ == EGaitState::Stopped) {
         return false;
@@ -56,13 +56,13 @@ bool CBodyRollGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const 
     return true;
 }
 
-void CBodyRollGait::requestStop() {
+void CGaitBodyRoll::requestStop() {
     if (state_ == EGaitState::Running) {
         state_ = EGaitState::StopPending;
     }
 }
 
-void CBodyRollGait::cancelStop() {
+void CGaitBodyRoll::cancelStop() {
     // if the state is not in state StopPending, cancel the transition to Stop is not possible
     if (state_ == EGaitState::StopPending) {
         state_ = EGaitState::Running;

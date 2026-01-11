@@ -22,7 +22,7 @@ class BodyRollGaitTest : public ::testing::Test {
 
         kinematics_ = std::make_shared<CKinematics>(node_);
         params_ = test_helpers::makeDeclaredParameters(node_);
-        gait_ = std::make_unique<CBodyRollGait>(node_, kinematics_, params_.bodyRoll);
+        gait_ = std::make_unique<CGaitBodyRoll>(node_, kinematics_, params_.bodyRoll);
     }
 
     void TearDown() override {
@@ -33,7 +33,7 @@ class BodyRollGaitTest : public ::testing::Test {
 
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
-    std::unique_ptr<CBodyRollGait> gait_;
+    std::unique_ptr<CGaitBodyRoll> gait_;
     Parameters params_;
 };
 
