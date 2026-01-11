@@ -16,6 +16,7 @@
 #include "nikita_interfaces/msg/movement_request.hpp"
 #include "nikita_utils/geometry.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "requester/gait_bodypose.hpp"
 #include "requester/gait_bodyroll.hpp"
 #include "requester/gait_calibrate.hpp"
 #include "requester/gait_clap.hpp"

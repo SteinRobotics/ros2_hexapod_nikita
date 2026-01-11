@@ -35,7 +35,7 @@ void CStandUpGait::start(double duration_s, uint8_t /*direction*/) {
     state_ = EGaitState::Running;
 }
 
-bool CStandUpGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& body) {
+bool CStandUpGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
     if (state_ == EGaitState::Stopped) {
         return false;
     }
@@ -59,7 +59,7 @@ bool CStandUpGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const C
         CPosition intermediate_position = origin_position.linearInterpolate(target_position, progress);
         intermediate_positions[legIndex] = intermediate_position;
     }
-    kinematics_->moveBody(intermediate_positions, body);
+    kinematics_->moveBody(intermediate_positions);
 
     // Move head to neutral position
     CHead intermediate_head = origin_head_position_.linearInterpolate(target_head_position_, progress);

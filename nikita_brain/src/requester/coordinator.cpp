@@ -52,11 +52,6 @@ void CCoordinator::loadBehaviors() {
         RCLCPP_ERROR(node_->get_logger(), "Failed to parse behaviors from: %s", file_path.c_str());
         return;
     }
-
-    // just for logging
-    for (const auto& behavior : behaviorParser_->getBehaviors()) {
-        RCLCPP_INFO(node_->get_logger(), "Loaded behavior: %s", behavior.name.c_str());
-    }
 }
 
 void CCoordinator::executeBehavior(const Behavior& behavior, Prio prio) {
@@ -412,39 +407,39 @@ void CCoordinator::requestTestBody() {
 
     text = "teste x Richtung";
     body.position.x = 0.05;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
+    submitRequestMove(MovementRequest::BODY_POSE, duration_s, text, Prio::High, body);
     body.position.x = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
+    submitRequestMove(MovementRequest::BODY_POSE, duration_s, "", Prio::High, body);
 
     text = "teste y Richtung";
     body.position.y = 0.05;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
+    submitRequestMove(MovementRequest::BODY_POSE, duration_s, text, Prio::High, body);
     body.position.y = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
+    submitRequestMove(MovementRequest::BODY_POSE, duration_s, "", Prio::High, body);
 
     text = "teste z Richtung nach oben";
     body.position.z = 0.03;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
+    submitRequestMove(MovementRequest::BODY_POSE, duration_s, text, Prio::High, body);
     body.position.z = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
+    submitRequestMove(MovementRequest::BODY_POSE, duration_s, "", Prio::High, body);
 
     text = "teste Roll";
     body.orientation.roll = 20.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
+    submitRequestMove(MovementRequest::BODY_POSE, duration_s, text, Prio::High, body);
     body.orientation.roll = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
+    submitRequestMove(MovementRequest::BODY_POSE, duration_s, "", Prio::High, body);
 
     text = "teste Pitch";
     body.orientation.pitch = 20.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
+    submitRequestMove(MovementRequest::BODY_POSE, duration_s, text, Prio::High, body);
     body.orientation.pitch = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
+    submitRequestMove(MovementRequest::BODY_POSE, duration_s, "", Prio::High, body);
 
     text = "teste Yaw";
     body.orientation.yaw = 20.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, text, Prio::High, body);
+    submitRequestMove(MovementRequest::BODY_POSE, duration_s, text, Prio::High, body);
     body.orientation.yaw = 0.0;
-    submitRequestMove(MovementRequest::TESTBODY, duration_s, "", Prio::High, body);
+    submitRequestMove(MovementRequest::BODY_POSE, duration_s, "", Prio::High, body);
 }
 
 void CCoordinator::requestTestLegs() {

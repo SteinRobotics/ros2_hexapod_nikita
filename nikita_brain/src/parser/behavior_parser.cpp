@@ -27,7 +27,7 @@ const std::map<std::string, uint32_t> CBehaviorParser::movementTypeNameMap_ = {
     {"BITE", nikita_interfaces::msg::MovementRequest::BITE},
     {"STOMP", nikita_interfaces::msg::MovementRequest::STOMP},
     {"CLAP", nikita_interfaces::msg::MovementRequest::CLAP},
-    {"TESTBODY", nikita_interfaces::msg::MovementRequest::TESTBODY},
+    {"BODY_POSE", nikita_interfaces::msg::MovementRequest::BODY_POSE},
     {"TESTLEGS", nikita_interfaces::msg::MovementRequest::TESTLEGS},
     {"NEUTRAL", nikita_interfaces::msg::MovementRequest::NEUTRAL},
     {"CALIBRATE", nikita_interfaces::msg::MovementRequest::CALIBRATE},

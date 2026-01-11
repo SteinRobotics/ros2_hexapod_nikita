@@ -36,6 +36,8 @@ CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared
     gaits_[MovementRequest::NEUTRAL] = std::make_shared<CNeutralGait>(node_, kinematics_);
     gaits_[MovementRequest::STAND_UP] = std::make_shared<CStandUpGait>(node_, kinematics_, params_.standUp);
     gaits_[MovementRequest::TESTLEGS] = std::make_shared<CTestLegsGait>(node_, kinematics_, params_.testLegs);
+    gaits_[MovementRequest::BODY_POSE] =
+        std::make_shared<CGaitBodyPose>(node_, kinematics_, params_.bodyPose);
     gaits_[MovementRequest::WAITING] = std::make_shared<CWaitingGait>(node_, kinematics_, params_.waiting);
     gaits_[MovementRequest::WATCH] = std::make_shared<CGaitWatch>(node_, kinematics_, params_.watch);
 

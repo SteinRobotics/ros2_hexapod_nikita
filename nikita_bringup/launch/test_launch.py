@@ -23,7 +23,7 @@ def generate_launch_description():
     # delay brain launch
     # - the HMI node needs to be started first (it needs the servo voltage released by the relay. The relay is controlled by the HMI node)
     # - the servo node needs to be started first (the servo status is needed by the brain node)
-    delay_brain_launch = launch.actions.TimerAction(period=4.0, actions=[IncludeLaunchDescription(PythonLaunchDescriptionSource([
+    delay_brain_launch = launch.actions.TimerAction(period=2.0, actions=[IncludeLaunchDescription(PythonLaunchDescriptionSource([
         FindPackageShare("nikita_brain"), '/launch', '/brain_launch.py']))])
 
     ld.add_action(delay_brain_launch)

@@ -107,7 +107,7 @@ class CCoordinator : public IRequester {
         {nikita_interfaces::msg::MovementRequest::BITE, "BITE"},
         {nikita_interfaces::msg::MovementRequest::STOMP, "STOMP"},
         {nikita_interfaces::msg::MovementRequest::CLAP, "CLAP"},
-        {nikita_interfaces::msg::MovementRequest::TESTBODY, "TESTBODY"},
+        {nikita_interfaces::msg::MovementRequest::BODY_POSE, "BODY_POSE"},
         {nikita_interfaces::msg::MovementRequest::TESTLEGS, "TESTLEGS"},
         {nikita_interfaces::msg::MovementRequest::NEUTRAL, "NEUTRAL"},
         {nikita_interfaces::msg::MovementRequest::CALIBRATE, "CALIBRATE"},

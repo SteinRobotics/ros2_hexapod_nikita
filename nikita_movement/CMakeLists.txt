@@ -28,6 +28,7 @@ set(SOURCES
   src/handler/servo_controller.cpp
   src/handler/servo_protocol.cpp
   src/handler/servohandler.cpp
+  src/requester/gait_bodypose.cpp
   src/requester/gait_bodyroll.cpp
   src/requester/gait_calibrate.cpp
   src/requester/gait_clap.cpp

@@ -111,7 +111,7 @@
             "actions": [
                 {
                     "RequestTalking": "Das ist eine Beinwelle",
-                    "RequestMovementType": { "name": "LEG_WAVE", "duration_s": 4.0 }
+                    "RequestMovementType": { "name": "LEGS_WAVE", "duration_s": 4.0 }
                 }
             ]
         },
@@ -125,33 +125,38 @@
             "actions": [
                 {
                     "RequestTalking": "teste x Richtung",
-                    "RequestMovementType": { "name": "TESTBODY", "duration_s": 2.0 },
+                    "RequestMovementType": { "name": "BODY_POSE", "duration_s": 2.0 },
                     "RequestBodyPose": { "position": { "x": 0.05, "y": 0.0, "z": 0.0 } }
                 },
                 {
                     "RequestTalking": "teste y Richtung",
-                    "RequestMovementType": { "name": "TESTBODY", "duration_s": 2.0 },
+                    "RequestMovementType": { "name": "BODY_POSE", "duration_s": 2.0 },
                     "RequestBodyPose": { "position": { "x": 0.0, "y": 0.05, "z": 0.0 } }
                 },
                 {
                     "RequestTalking": "teste z Richtung",
-                    "RequestMovementType": { "name": "TESTBODY", "duration_s": 2.0 },
+                    "RequestMovementType": { "name": "BODY_POSE", "duration_s": 2.0 },
                     "RequestBodyPose": { "position": { "x": 0.0, "y": 0.0, "z": 0.03 } }
                 },
                 {
                     "RequestTalking": "teste rollen",
-                    "RequestMovementType": { "name": "TESTBODY", "duration_s": 2.0 },
+                    "RequestMovementType": { "name": "BODY_POSE", "duration_s": 2.0 },
                     "RequestBodyPose": { "orientation": { "roll": 15.0, "pitch": 0.0, "yaw": 0.0 } }
                 },
                 {
                     "RequestTalking": "teste nicken",
-                    "RequestMovementType": { "name": "TESTBODY", "duration_s": 2.0 },
+                    "RequestMovementType": { "name": "BODY_POSE", "duration_s": 2.0 },
                     "RequestBodyPose": { "orientation": { "roll": 0.0, "pitch": 15.0, "yaw": 0.0 } }
                 },
                 {
                     "RequestTalking": "teste drehen",
-                    "RequestMovementType": { "name": "TESTBODY", "duration_s": 2.0 },
+                    "RequestMovementType": { "name": "BODY_POSE", "duration_s": 2.0 },
                     "RequestBodyPose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 15.0 } }
+                },
+                {
+                    "RequestTalking": "ausgangsposition",
+                    "RequestMovementType": { "name": "BODY_POSE", "duration_s": 2.0 },
+                    "RequestBodyPose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 } }
                 }
             ]
         },

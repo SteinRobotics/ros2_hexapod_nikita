@@ -7,6 +7,7 @@
 namespace nikita_movement {
 
 struct Parameters {
+    struct BodyPose {};
     struct BodyRoll {
         double body_max_roll_deg{0.0};
         double body_max_pitch_deg{0.0};
@@ -56,6 +57,7 @@ struct Parameters {
         double head_max_yaw_deg{0.0};
     };
 
+    BodyPose bodyPose;
     BodyRoll bodyRoll;
     Clap clap;
     HighFive highFive;

@@ -35,7 +35,7 @@ void CLayDownGait::start(double duration_s, uint8_t /*direction*/) {
     state_ = EGaitState::Running;
 }
 
-bool CLayDownGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& body) {
+bool CLayDownGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
     if (state_ == EGaitState::Stopped) {
         return false;
     }
@@ -58,7 +58,7 @@ bool CLayDownGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const C
         CPosition intermediate_position = origin_pos.linearInterpolate(laydown_pos, progress);
         intermediate_positions[legIndex] = intermediate_position;
     }
-    kinematics_->moveBody(intermediate_positions, body);
+    kinematics_->moveBody(intermediate_positions);
 
     // Move head up
     CHead intermediate_head = origin_head_position_.linearInterpolate(target_head_position_, progress);
