@@ -401,6 +401,11 @@ void CKinematics::setHead(CHead head) {
     logHeadPosition();
 }
 
+void CKinematics::setHead(COrientation head) {
+    head_ = head;
+    logHeadPosition();
+}
+
 void CKinematics::setHead(double yaw_deg, double pitch_deg) {
     head_.yaw_deg = yaw_deg;
     head_.pitch_deg = pitch_deg;

@@ -24,7 +24,8 @@ void CGaitWatch::start(double duration_s, uint8_t direction) {
     delta_phase_ = (2.0 * M_PI) / (duration_s / 0.1);
 }
 
-bool CGaitWatch::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
+bool CGaitWatch::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/,
+                        const COrientation& /*head*/) {
     if (state_ == EGaitState::Stopped) return false;
 
     // set head yaw using sinusoidal oscillation

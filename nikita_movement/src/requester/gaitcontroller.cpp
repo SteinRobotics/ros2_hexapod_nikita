@@ -90,12 +90,13 @@ void CGaitController::switchGait(nikita_interfaces::msg::MovementRequest request
     active_gait_->start(request.duration_s, request.direction);
 }
 
-bool CGaitController::updateSelectedGait(const geometry_msgs::msg::Twist& velocity, CPose body) {
+bool CGaitController::updateSelectedGait(const geometry_msgs::msg::Twist& velocity, CPose body,
+                                         COrientation head) {
     if (pending_request_.type != MovementRequest::NO_REQUEST &&
         active_gait_->state() == EGaitState::Stopped) {
         switchGait(pending_request_);
     }
-    return active_gait_->update(velocity, body);
+    return active_gait_->update(velocity, body, head);
 }
 
 void CGaitController::requestStopSelectedGait() {

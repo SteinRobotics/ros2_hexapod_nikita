@@ -28,7 +28,8 @@ void CHighFiveGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     hold_iterations_remaining_ = kHoldIterations;
 }
 
-bool CHighFiveGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
+bool CHighFiveGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/,
+                           const COrientation& /*head*/) {
     if (state_ == EGaitState::Stopped) {
         return false;
     }

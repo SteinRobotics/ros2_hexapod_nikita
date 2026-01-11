@@ -29,7 +29,8 @@ void CNeutralGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     state_ = EGaitState::Running;
 }
 
-bool CNeutralGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
+bool CNeutralGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/,
+                          const COrientation& /*head*/) {
     if (state_ == EGaitState::Stopped) {
         return false;
     }

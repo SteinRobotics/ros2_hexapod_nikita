@@ -18,7 +18,8 @@ void CBodyRollGait::start(double duration_s, uint8_t /*direction*/) {
     origin_leg_positions_ = kinematics_->getLegsPositions();
 }
 
-bool CBodyRollGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
+bool CBodyRollGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/,
+                           const COrientation& /*head*/) {
     if (state_ == EGaitState::Stopped) {
         return false;
     }

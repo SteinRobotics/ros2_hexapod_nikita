@@ -18,7 +18,8 @@ class CRippleGait : public IGait {
     ~CRippleGait() override = default;
 
     void start(double duration_s, uint8_t direction) override;
-    bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body) override;
+    bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body,
+                const COrientation& head) override;
     void requestStop() override;
     void cancelStop() override;
     EGaitState state() const override {

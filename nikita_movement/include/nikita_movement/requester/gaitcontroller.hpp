@@ -51,7 +51,8 @@ class CGaitController {
     }
 
     bool updateSelectedGait(const geometry_msgs::msg::Twist& velocity,
-                            CPose body = CPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+                            CPose body = CPose(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                            COrientation head = COrientation(0.0, 0.0, 0.0));
     void requestStopSelectedGait();
 
    private:

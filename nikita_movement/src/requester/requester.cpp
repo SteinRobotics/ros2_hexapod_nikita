@@ -12,14 +12,14 @@ namespace nikita_movement {
 CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServoHandler> servoHandler)
     : node_(node) {
     kinematics_ = std::make_shared<CKinematics>(node);
-    gaitController_ = std::make_shared<CGaitController>(node, kinematics_);
+    gait_controller_ = std::make_shared<CGaitController>(node, kinematics_);
     if (servoHandler) {
-        servoHandler_ = servoHandler;
+        servo_handler_ = servoHandler;
     } else {
-        servoHandler_ = std::make_shared<CServoHandler>(node);
+        servo_handler_ = std::make_shared<CServoHandler>(node);
     }
 
-    if (auto servo_controller = servoHandler_->getServoController()) {
+    if (auto servo_controller = servo_handler_->getServoController()) {
         servo_controller->setInitialAnglesCallback(
             [this](const std::map<ELegIndex, CLegAngles>& initial_angles) {
                 RCLCPP_INFO_STREAM(node_->get_logger(),
@@ -38,17 +38,20 @@ CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServ
 
     subMovementBodyPoseRequest_ = node_->create_subscription<nikita_interfaces::msg::Pose>(
         "cmd_body_pose", 10, std::bind(&CRequester::onMovementBodyPoseRequest, this, _1));
+
+    subMovementHeadOrientationRequest_ = node_->create_subscription<nikita_interfaces::msg::Orientation>(
+        "cmd_head_orientation", 10, std::bind(&CRequester::onMovementHeadOrientationRequest, this, _1));
 }
 
 void CRequester::sendServoRequest(const double duration_s) {
     auto head = kinematics_->getHead();
     auto legs = kinematics_->getLegsAngles();
-    servoHandler_->run(CRequest(head, legs, duration_s));
+    servo_handler_->run(CRequest(head, legs, duration_s));
 }
 
 void CRequester::onMovementTypeRequest(const MovementRequest& msg) {
     RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::onMovementRequest: " << msg.name);
-    gaitController_->setGait(msg);
+    gait_controller_->setGait(msg);
 }
 
 void CRequester::onMovementVelocityRequest(const geometry_msgs::msg::Twist& msg) {
@@ -56,11 +59,15 @@ void CRequester::onMovementVelocityRequest(const geometry_msgs::msg::Twist& msg)
 }
 
 void CRequester::onMovementBodyPoseRequest(const nikita_interfaces::msg::Pose& msg) {
-    poseBody_ = msg;
+    pose_body_ = msg;
+}
+
+void CRequester::onMovementHeadOrientationRequest(const nikita_interfaces::msg::Orientation& msg) {
+    orientation_head_ = msg;
 }
 
 void CRequester::update(std::chrono::milliseconds timeslice) {
-    if (gaitController_->updateSelectedGait(velocity_, poseBody_)) {
+    if (gait_controller_->updateSelectedGait(velocity_, pose_body_, orientation_head_)) {
         double duration_s = double(timeslice.count() / 1000.0);
         sendServoRequest(duration_s);
     }

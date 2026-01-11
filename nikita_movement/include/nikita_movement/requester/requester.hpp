@@ -15,6 +15,7 @@
 //
 #include "geometry_msgs/msg/twist.hpp"
 #include "nikita_interfaces/msg/movement_request.hpp"
+#include "nikita_interfaces/msg/orientation.hpp"
 #include "nikita_interfaces/msg/pose.hpp"
 #include "nikita_interfaces/msg/servo_index.hpp"
 //
@@ -35,22 +36,24 @@ class CRequester {
     void onMovementTypeRequest(const nikita_interfaces::msg::MovementRequest& msg);
     void onMovementVelocityRequest(const geometry_msgs::msg::Twist& msg);
     void onMovementBodyPoseRequest(const nikita_interfaces::msg::Pose& msg);
+    void onMovementHeadOrientationRequest(const nikita_interfaces::msg::Orientation& msg);
 
    private:
     rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr m_subMovementRequest;
+    rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr subMovementTypeRequest_;
+    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subMovementVelocityRequest_;
+    rclcpp::Subscription<nikita_interfaces::msg::Pose>::SharedPtr subMovementBodyPoseRequest_;
+    rclcpp::Subscription<nikita_interfaces::msg::Orientation>::SharedPtr subMovementHeadOrientationRequest_;
 
     void sendServoRequest(const double duration_s);
 
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
-    std::shared_ptr<CGaitController> gaitController_;
-    std::shared_ptr<CServoHandler> servoHandler_;
-
-    rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr subMovementTypeRequest_;
-    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subMovementVelocityRequest_;
-    rclcpp::Subscription<nikita_interfaces::msg::Pose>::SharedPtr subMovementBodyPoseRequest_;
+    std::shared_ptr<CGaitController> gait_controller_;
+    std::shared_ptr<CServoHandler> servo_handler_;
 
     geometry_msgs::msg::Twist velocity_;
-    nikita_interfaces::msg::Pose poseBody_;
+    nikita_interfaces::msg::Pose pose_body_;
+    nikita_interfaces::msg::Orientation orientation_head_;
 };
 }  // namespace nikita_movement

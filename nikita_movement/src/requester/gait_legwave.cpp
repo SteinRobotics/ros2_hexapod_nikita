@@ -17,7 +17,8 @@ void CGaitLegWave::start(double /*duration_s*/, uint8_t /*direction*/) {
     active_leg_index_ = ELegIndex::RightFront;
 }
 
-bool CGaitLegWave::update(const geometry_msgs::msg::Twist& velocity, const CPose& /*body*/) {
+bool CGaitLegWave::update(const geometry_msgs::msg::Twist& velocity, const CPose& /*body*/,
+                          const COrientation& /*head*/) {
     if (state_ == EGaitState::Stopped) {
         return false;
     }

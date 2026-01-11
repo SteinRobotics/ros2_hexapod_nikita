@@ -19,7 +19,8 @@ class CGaitBodyPose : public IGait {
     ~CGaitBodyPose() override = default;
 
     void start(double duration_s, uint8_t direction) override;
-    bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body) override;
+    bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body,
+                const COrientation& head) override;
     void requestStop() override;
     void cancelStop() override;
     EGaitState state() const override {
@@ -32,12 +33,9 @@ class CGaitBodyPose : public IGait {
     Parameters::BodyPose params_;
     EGaitState state_ = EGaitState::Stopped;
 
-    // std::map<ELegIndex, CPosition> target_leg_positions_;
-    // CHead target_head_position_;
-    // std::map<ELegIndex, CPosition> origin_leg_positions_;
     CPose body_origin_ = CPose();
+    CHead origin_head_ = CHead();
 
-    CHead origin_head_position_;
     double duration_s_ = 0.0;
     double phase_increment_ = 0.1;
     double phase_ = 0.0;

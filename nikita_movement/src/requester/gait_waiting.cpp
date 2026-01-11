@@ -14,7 +14,8 @@ void CWaitingGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     phase_ = 0.0;
 }
 
-bool CWaitingGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/) {
+bool CWaitingGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/,
+                          const COrientation& /*head*/) {
     if (state_ == EGaitState::Stopped) {
         return false;
     }

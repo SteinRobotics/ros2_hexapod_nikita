@@ -11,7 +11,9 @@
 #include <memory>
 #include <string>
 
+#include "nikita_interfaces/msg/orientation.hpp"
 #include "nikita_interfaces/msg/pose.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 namespace nikita_movement {
 
@@ -70,7 +72,12 @@ class COrientation {
     COrientation() = default;
     COrientation(double roll_deg, double pitch_deg, double yaw_deg)
         : roll_deg(roll_deg), pitch_deg(pitch_deg), yaw_deg(yaw_deg) {};
+
+    COrientation(const nikita_interfaces::msg::Orientation& orientation)
+        : roll_deg(orientation.roll), pitch_deg(orientation.pitch), yaw_deg(orientation.yaw) {};
+
     virtual ~COrientation() = default;
+
     bool operator==(const COrientation& rhs) const {
         return roll_deg == rhs.roll_deg && pitch_deg == rhs.pitch_deg && yaw_deg == rhs.yaw_deg;
     }
@@ -158,6 +165,9 @@ class CHead {
    public:
     CHead() = default;
     CHead(double yaw_deg, double pitch_deg) : yaw_deg(yaw_deg), pitch_deg(pitch_deg) {};
+
+    CHead(COrientation& orientation) : yaw_deg(orientation.yaw_deg), pitch_deg(orientation.pitch_deg) {};
+
     virtual ~CHead() = default;
 
     double yaw_deg = double(0);
@@ -165,6 +175,10 @@ class CHead {
 
     bool operator==(const CHead& rhs) const {
         return yaw_deg == rhs.yaw_deg && pitch_deg == rhs.pitch_deg;
+    }
+
+    COrientation toOrientation() const {
+        return COrientation(0.0, pitch_deg, yaw_deg);
     }
 
     // Linear interpolation member: interpolate yaw and pitch angles (degrees)
@@ -176,38 +190,38 @@ class CHead {
 
 // --------------------------------------------------------
 // ------------------  for future usage ------------------
-struct CJointDesc {
-    double offset_rad = 0.0;
-    double limit_min_rad = -M_PI_2;
-    double limit_max_rad = M_PI_2;
-    // axis info if needed later
-};
+// struct CJointDesc {
+//     double offset_rad = 0.0;
+//     double limit_min_rad = -M_PI_2;
+//     double limit_max_rad = M_PI_2;
+//     // axis info if needed later
+// };
 
-struct CJointState {
-    double angle_rad = 0.0;
-    bool dirty = true;
-};
+// struct CJointState {
+//     double angle_rad = 0.0;
+//     bool dirty = true;
+// };
 
-struct CLink {
-    double length_m = 0.0;
-};
+// struct CLink {
+//     double length_m = 0.0;
+// };
 
-struct CSegment {
-    CLink link;         // geometry: length
-    CJointDesc desc;    // geometry/limit/offset
-    CJointState state;  // runtime
-};
+// struct CSegment {
+//     CLink link;         // geometry: length
+//     CJointDesc desc;    // geometry/limit/offset
+//     CJointState state;  // runtime
+// };
 
-struct CLegSegmentwise {
-    CSegment coxa;
-    CSegment femur;
-    CSegment tibia;
-};
+// struct CLegSegmentwise {
+//     CSegment coxa;
+//     CSegment femur;
+//     CSegment tibia;
+// };
 
-struct CBody {
-    CPose pose;
-    std::map<ELegIndex, CLegSegmentwise> legs;
-    std::map<ELegIndex, CBodyCenterOffset> bodyCenterOffsets;
-};
+// struct CBody {
+//     CPose pose;
+//     std::map<ELegIndex, CLegSegmentwise> legs;
+//     std::map<ELegIndex, CBodyCenterOffset> bodyCenterOffsets;
+// };
 
 }  // namespace nikita_movement
