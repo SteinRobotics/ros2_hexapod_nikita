@@ -14,8 +14,13 @@
         "pronoun": [ "dich" ],
         "preposition": [ "um" ]
     },
-    "commandDance": {
-        "doing": [ "tanz", "tanze" ]
+    "commandDanceHotDogsForBreakfast": {
+        "doing": [ "tanz", "tanze" ],
+        "noun": [ "hot", "dogs", "breakfast" ]
+    },
+    "commandDanceExcessParty": {
+        "doing": [ "tanz", "tanze" ],
+        "noun": [ "excess", "party", "partie" ]
     },
     "commandMove": {
         "doing": [ "fahr", "fahre", "beweg", "bewege", "lauf", "laufe", "dreh", "drehe" ],

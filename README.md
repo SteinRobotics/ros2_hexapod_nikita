@@ -123,6 +123,9 @@ sudo systemctl status autostart_ros2
 - Diagrams and images are provided for wiring and architecture overview.
 
 
+## Music
+https://www.musicfox.com/info/kostenlose-gemafreie-musik/
+
 ## Contributing
 This is a maker project—experimentation, hacking, and learning are encouraged! Contributions, bug reports, and feature requests are welcome. Please open issues or pull requests for improvements.
 
