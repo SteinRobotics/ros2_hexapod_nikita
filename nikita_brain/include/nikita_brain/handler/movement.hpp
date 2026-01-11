@@ -26,6 +26,7 @@ class CMovement : public IHandler {
 
     void run(std::shared_ptr<RequestMovementType> request);
     void run(std::shared_ptr<RequestBodyPose> request);
+    void run(std::shared_ptr<RequestHeadOrientation> request);
     void run(std::shared_ptr<RequestVelocity> request);
 
    private:
@@ -34,6 +35,7 @@ class CMovement : public IHandler {
     std::shared_ptr<rclcpp::Node> node_;
     rclcpp::Publisher<nikita_interfaces::msg::MovementRequest>::SharedPtr pub_movement_type_;
     rclcpp::Publisher<nikita_interfaces::msg::Pose>::SharedPtr pub_body_pose_;
+    rclcpp::Publisher<nikita_interfaces::msg::Orientation>::SharedPtr pub_head_orientation_;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_cmd_vel_;
 
     std::shared_ptr<CCallbackTimer> callback_timer_;

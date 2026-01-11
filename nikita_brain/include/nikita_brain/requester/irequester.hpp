@@ -61,6 +61,10 @@ struct RequestBodyPose : RequestBase {
     nikita_interfaces::msg::Pose pose;
 };
 
+struct RequestHeadOrientation : RequestBase {
+    nikita_interfaces::msg::Orientation orientation;
+};
+
 struct RequestVelocity : RequestBase {
     geometry_msgs::msg::Twist velocity;
 };

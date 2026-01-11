@@ -44,6 +44,7 @@ class CCoordinator : public IRequester {
     void submitRequestMove(uint32_t movementType, double duration_s = 0.0, std::string comment = "",
                            Prio prio = Prio::Normal,
                            std::optional<nikita_interfaces::msg::Pose> body = std::nullopt,
+                           std::optional<nikita_interfaces::msg::Orientation> head = std::nullopt,
                            std::optional<geometry_msgs::msg::Twist> velocity = std::nullopt,
                            std::optional<uint8_t> direction = std::nullopt);
 
@@ -107,7 +108,7 @@ class CCoordinator : public IRequester {
         {nikita_interfaces::msg::MovementRequest::BITE, "BITE"},
         {nikita_interfaces::msg::MovementRequest::STOMP, "STOMP"},
         {nikita_interfaces::msg::MovementRequest::CLAP, "CLAP"},
-        {nikita_interfaces::msg::MovementRequest::BODY_POSE, "BODY_POSE"},
+        {nikita_interfaces::msg::MovementRequest::POSE, "POSE"},
         {nikita_interfaces::msg::MovementRequest::TESTLEGS, "TESTLEGS"},
         {nikita_interfaces::msg::MovementRequest::NEUTRAL, "NEUTRAL"},
         {nikita_interfaces::msg::MovementRequest::CALIBRATE, "CALIBRATE"},

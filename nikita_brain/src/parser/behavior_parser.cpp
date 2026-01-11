@@ -27,7 +27,7 @@ const std::map<std::string, uint32_t> CBehaviorParser::movementTypeNameMap_ = {
     {"BITE", nikita_interfaces::msg::MovementRequest::BITE},
     {"STOMP", nikita_interfaces::msg::MovementRequest::STOMP},
     {"CLAP", nikita_interfaces::msg::MovementRequest::CLAP},
-    {"BODY_POSE", nikita_interfaces::msg::MovementRequest::BODY_POSE},
+    {"POSE", nikita_interfaces::msg::MovementRequest::POSE},
     {"TESTLEGS", nikita_interfaces::msg::MovementRequest::TESTLEGS},
     {"NEUTRAL", nikita_interfaces::msg::MovementRequest::NEUTRAL},
     {"CALIBRATE", nikita_interfaces::msg::MovementRequest::CALIBRATE},
@@ -237,6 +237,8 @@ std::vector<std::shared_ptr<RequestBase>> CBehaviorParser::parseActionGroup(cons
             request = createRequestMovementType(&requestValue);
         } else if (requestType == "RequestBodyPose") {
             request = createRequestMoveBody(&requestValue);
+        } else if (requestType == "RequestHeadOrientation") {
+            request = createRequestHeadOrientation(&requestValue);
         } else if (requestType == "RequestVelocity") {
             request = createRequestMoveVelocity(&requestValue);
         } else {
@@ -440,6 +442,30 @@ std::shared_ptr<RequestBodyPose> CBehaviorParser::createRequestMoveBody(const vo
         }
     } catch (const std::exception& e) {
         RCLCPP_ERROR(node_->get_logger(), "Failed to create RequestBodyPose: %s", e.what());
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<RequestHeadOrientation> CBehaviorParser::createRequestHeadOrientation(const void* value) {
+    const json* jsonValue = static_cast<const json*>(value);
+
+    try {
+        if (jsonValue->is_object()) {
+            nikita_interfaces::msg::Orientation orientation;
+
+            // Parse orientation values (roll, pitch, yaw)
+            if (jsonValue->contains("roll")) orientation.roll = (*jsonValue)["roll"].get<double>();
+            if (jsonValue->contains("pitch")) orientation.pitch = (*jsonValue)["pitch"].get<double>();
+            if (jsonValue->contains("yaw")) orientation.yaw = (*jsonValue)["yaw"].get<double>();
+
+            auto request = std::make_shared<RequestHeadOrientation>();
+            request->orientation = orientation;
+            request->minDuration = jsonValue->value("minDuration", 0.0);
+            return request;
+        }
+    } catch (const std::exception& e) {
+        RCLCPP_ERROR(node_->get_logger(), "Failed to create RequestHeadOrientation: %s", e.what());
     }
 
     return nullptr;

@@ -161,6 +161,13 @@ class CBehaviorParser {
     std::shared_ptr<RequestBodyPose> createRequestMoveBody(const void* value);
 
     /**
+     * @brief Create RequestHeadOrientation from JSON value
+     * @param value JSON value (object)
+     * @return Shared pointer to RequestHeadOrientation object, or nullptr if parsing failed
+     */
+    std::shared_ptr<RequestHeadOrientation> createRequestHeadOrientation(const void* value);
+
+    /**
      * @brief Create RequestVelocity from JSON value
      * @param value JSON value (object)
      * @return Shared pointer to RequestVelocity object, or nullptr if parsing failed

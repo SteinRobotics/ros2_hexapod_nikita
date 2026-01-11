@@ -15,7 +15,7 @@ uint8 BODY_ROLL = 11
 uint8 BITE = 12
 uint8 STOMP = 13
 uint8 CLAP = 14
-uint8 BODY_POSE = 15
+uint8 POSE = 15
 uint8 TESTLEGS = 16
 # the following types are not used for normal operation 
 uint8 NEUTRAL = 101  # set all servos position 0, used for calibration
