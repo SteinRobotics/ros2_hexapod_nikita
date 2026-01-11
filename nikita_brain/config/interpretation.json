@@ -14,6 +14,9 @@
         "pronoun": [ "dich" ],
         "preposition": [ "um" ]
     },
+    "commandDance": {
+        "doing": [ "tanz", "tanze" ]
+    },
     "commandMove": {
         "doing": [ "fahr", "fahre", "beweg", "bewege", "lauf", "laufe", "dreh", "drehe" ],
         "direction": [ "vorn", "vorne", "hinten", "links", "rechts" ]
