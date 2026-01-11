@@ -19,12 +19,12 @@ namespace nikita_movement {
 class CRequest {
    public:
     CRequest() = default;
-    CRequest(CHead head, std::map<ELegIndex, CLegAngles> legAngles, double duration)
+    CRequest(COrientation head, std::map<ELegIndex, CLegAngles> legAngles, double duration)
         : head_(head), legAngles_(legAngles), duration_(duration) {};
 
     virtual ~CRequest() = default;
 
-    CHead head() const {
+    COrientation head() const {
         return head_;
     }
     std::map<ELegIndex, CLegAngles> legAngles() const {
@@ -35,7 +35,7 @@ class CRequest {
     }
 
    private:
-    CHead head_;
+    COrientation head_;
     std::map<ELegIndex, CLegAngles> legAngles_;
     double duration_ = double(0);
 };

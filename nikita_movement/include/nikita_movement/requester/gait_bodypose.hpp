@@ -34,7 +34,7 @@ class CGaitBodyPose : public IGait {
     EGaitState state_ = EGaitState::Stopped;
 
     CPose body_origin_ = CPose();
-    CHead origin_head_ = CHead();
+    COrientation origin_head_ = COrientation();
 
     double duration_s_ = 0.0;
     double phase_increment_ = 0.1;

@@ -46,7 +46,7 @@ TEST_F(GaitLayDownTest, LayDownStopsAtLaydownHeight) {
     const auto standingTargets = kinematics_->getLegsStandingPositions();
 
     // Ensure we start from standing pose.
-    kinematics_->moveBodyNew(standingTargets, CPose());
+    kinematics_->moveBody(standingTargets, CPose());
     const auto initialPositions = kinematics_->getLegsPositions();
 
     CLayDownGait gait(node_, kinematics_, params_.layDown);
@@ -57,7 +57,7 @@ TEST_F(GaitLayDownTest, LayDownStopsAtLaydownHeight) {
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose());
+        gait.update(twist, CPose(), COrientation());
     }
 
     EXPECT_EQ(gait.state(), EGaitState::Stopped);

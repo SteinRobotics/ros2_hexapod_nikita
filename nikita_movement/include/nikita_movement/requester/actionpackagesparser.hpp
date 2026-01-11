@@ -15,14 +15,14 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-// Include POD type definitions (ELegIndex, CHead, CPose, CLegAngles, CPosition)
+// Include POD type definitions (ELegIndex, COrientation, CPose, CLegAngles, CPosition)
 #include "requester/types.hpp"
 
 namespace nikita_movement {
 
 class CActionPackage {
    public:
-    std::optional<CHead> head;
+    std::optional<COrientation> head;
     std::optional<CPose> body;
     std::optional<std::map<ELegIndex, CLegAngles>> legAngles;
     std::optional<std::map<ELegIndex, CPosition>> footPositions;
@@ -37,14 +37,14 @@ class CActionPackagesParser {
     std::vector<CActionPackage>& getRequests(const std::string& packageName);
     std::map<ELegIndex, CPosition> getFootPositions(const std::string& name);
     std::map<ELegIndex, CLegAngles> getLegAngles(const std::string& name);
-    CHead getHead(const std::string& name);
+    COrientation getHead(const std::string& name);
     CPose getBody(const std::string& name);
 
    private:
     void readYaml();
     void parseYamlStep(const YAML::Node& step, std::vector<CActionPackage>& actionPackage);
     void parseDefaultValues(const YAML::Node& defaults);
-    CHead parseHeadNode(const YAML::Node& headNode);
+    COrientation parseHeadNode(const YAML::Node& headNode);
     CPose parseBodyNode(const YAML::Node& bodyNode);
     std::map<ELegIndex, CLegAngles> parseLegAnglesNode(const YAML::Node& legsNode);
     std::map<ELegIndex, CPosition> parseFootPositionsNode(const YAML::Node& posNode);
@@ -58,7 +58,7 @@ class CActionPackagesParser {
     std::unordered_map<std::string, std::vector<CActionPackage>> actionPackages_;
     std::unordered_map<std::string, std::map<ELegIndex, CLegAngles>> defaultLegAngles_;
     std::unordered_map<std::string, std::map<ELegIndex, CPosition>> defaultFootPositions_;
-    std::unordered_map<std::string, CHead> defaultHeads_;
+    std::unordered_map<std::string, COrientation> defaultHeads_;
     std::unordered_map<std::string, CPose> defaultBodies_;
 };
 }  // namespace nikita_movement

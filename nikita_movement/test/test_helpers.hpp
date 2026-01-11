@@ -118,10 +118,12 @@ inline void expectLegNear(const CLeg& expected, const CLeg& actual, const std::s
     expectPositionNear(expected.foot_pos_, actual.foot_pos_, msg);
 }
 
-// Compare CHead (yaw, pitch)
-inline void expectHeadNear(const CHead& expected, const CHead& actual, const std::string& msg = "") {
-    EXPECT_DOUBLE_EQ(expected.yaw_deg, actual.yaw_deg) << msg;
+// Compare COrientation (roll, pitch, yaw) - for head, roll should be 0.0
+inline void expectHeadNear(const COrientation& expected, const COrientation& actual,
+                           const std::string& msg = "") {
+    EXPECT_DOUBLE_EQ(expected.roll_deg, actual.roll_deg) << msg;
     EXPECT_DOUBLE_EQ(expected.pitch_deg, actual.pitch_deg) << msg;
+    EXPECT_DOUBLE_EQ(expected.yaw_deg, actual.yaw_deg) << msg;
 }
 
 }  // namespace nikita_movement::test_helpers

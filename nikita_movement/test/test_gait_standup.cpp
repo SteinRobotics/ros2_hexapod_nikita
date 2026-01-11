@@ -57,7 +57,7 @@ TEST_F(GaitStandUpTest, StandUpStopsAtStandingHeight) {
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose());
+        gait.update(twist, CPose(), COrientation());
     }
 
     EXPECT_EQ(gait.state(), EGaitState::Stopped);

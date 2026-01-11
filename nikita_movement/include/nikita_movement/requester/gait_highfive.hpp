@@ -41,7 +41,7 @@ class CHighFiveGait : public IGait {
 
     CLegAngles initial_leg_angles_{};
     CLegAngles target_leg_angles_{20.0, 50.0, 60.0};
-    CHead initial_head_{};
+    COrientation initial_head_{};
     double target_head_yaw_deg_ = 0.0;
     double target_head_pitch_deg_ = -20.0;
 

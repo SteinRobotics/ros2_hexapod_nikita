@@ -32,11 +32,11 @@ bool CGaitWatch::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPo
     phase_ += delta_phase_;
     if (phase_ > 2.0 * M_PI) {
         state_ = EGaitState::Stopped;
-        kinematics_->setHead(CHead(0.0, 0.0));
+        kinematics_->setHead(COrientation(0.0, 0.0, 0.0));
         kinematics_->moveBody(CPose());
         return true;
     }
-    CHead head_request;
+    COrientation head_request;
     head_request.yaw_deg = amplitude_head_deg_ * std::sin(phase_);
     kinematics_->setHead(head_request);
 

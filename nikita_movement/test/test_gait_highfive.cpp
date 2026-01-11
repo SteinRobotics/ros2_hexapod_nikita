@@ -55,7 +55,7 @@ TEST_F(HighFiveGaitTest, RaisesRightFrontLegAndReturns) {
     bool raised = false;
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose());
+        gait.update(twist, CPose(), COrientation());
         const auto currentAngles = kinematics_->getAngles(ELegIndex::RightFront);
         if (currentAngles.femur_deg >= initialAngles.femur_deg + kLiftThresholdDegrees) {
             raised = true;
@@ -84,14 +84,14 @@ TEST_F(HighFiveGaitTest, RequestStopReturnsToNeutralQuickly) {
 
     // Begin the raise phase for a few iterations.
     for (int i = 0; i < 3; ++i) {
-        gait.update(twist, CPose());
+        gait.update(twist, CPose(), COrientation());
     }
 
     gait.requestStop();
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose());
+        gait.update(twist, CPose(), COrientation());
     }
 
     EXPECT_LT(iterations, kMaxIterations);

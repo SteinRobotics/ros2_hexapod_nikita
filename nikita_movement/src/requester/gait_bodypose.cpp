@@ -29,15 +29,14 @@ bool CGaitBodyPose::update(const geometry_msgs::msg::Twist& /*velocity*/, const 
     phase_ += phase_increment_;
     if (phase_ > duration_s_) {
         state_ = EGaitState::Stopped;
-        kinematics_->setHead(CHead(head));
+        kinematics_->setHead(head);
         kinematics_->moveBody(body);
         return true;
     }
     // interpolate body position from origin to target
     auto progress = phase_ / duration_s_;
     CPose intermediate_pose = body_origin_.linearInterpolate(body, progress);
-    CHead target_head = CHead(head);
-    CHead intermediate_head = origin_head_.linearInterpolate(target_head, progress);
+    COrientation intermediate_head = origin_head_.linearInterpolate(head, progress);
 
     kinematics_->moveBody(intermediate_pose);
     kinematics_->setHead(intermediate_head);

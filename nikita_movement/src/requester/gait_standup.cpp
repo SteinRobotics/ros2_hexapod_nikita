@@ -15,7 +15,7 @@ CStandUpGait::CStandUpGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
                            Parameters::StandUp& params)
     : node_(std::move(node)), kinematics_(std::move(kinematics)), params_(params) {
     target_leg_positions_ = kinematics_->getLegsStandingPositions();
-    target_head_position_ = CHead(0.0, 0.0);
+    target_head_position_ = COrientation(0.0, 0.0, 0.0);
 }
 
 void CStandUpGait::start(double duration_s, uint8_t /*direction*/) {
@@ -63,7 +63,7 @@ bool CStandUpGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const C
     kinematics_->moveBody(intermediate_positions);
 
     // Move head to neutral position
-    CHead intermediate_head = origin_head_position_.linearInterpolate(target_head_position_, progress);
+    COrientation intermediate_head = origin_head_position_.linearInterpolate(target_head_position_, progress);
     kinematics_->setHead(intermediate_head);
 
     return true;

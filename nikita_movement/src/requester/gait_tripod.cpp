@@ -94,7 +94,7 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
         phase_ = 0.0;
         state_ = EGaitState::Stopped;
         kinematics_->moveBody(kinematics_->getLegsStandingPositions(), body);
-        kinematics_->setHead(CHead(0.0, 0.0));
+        kinematics_->setHead(COrientation(0.0, 0.0, 0.0));
         return true;
     }
 
@@ -161,7 +161,7 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
 
     kinematics_->moveBody(target_positions_, body);
 
-    CHead head_request;
+    COrientation head_request;
     head_request.yaw_deg = params_.head_amplitude_yaw_deg * std::sin(phase_);
     kinematics_->setHead(head_request);
     return true;

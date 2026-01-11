@@ -32,7 +32,7 @@ TEST(LegServoConversionTest, LegAnglesMapToServoTargets) {
     EXPECT_DOUBLE_EQ(targetAngles.at(ServoIndex::LEG_LEFT_BACK_FEMUR), -10.0);
     EXPECT_DOUBLE_EQ(targetAngles.at(ServoIndex::LEG_LEFT_BACK_TIBIA), -15.0);
 
-    CHead head(5.0, -7.5);
+    COrientation head(0.0, -7.5, 5.0);
     auto combined = buildServoTargets(head, legAngles);
     EXPECT_DOUBLE_EQ(combined.at(ServoIndex::HEAD_YAW), 5.0);
     EXPECT_DOUBLE_EQ(combined.at(ServoIndex::HEAD_PITCH), -7.5);

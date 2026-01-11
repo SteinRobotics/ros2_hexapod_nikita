@@ -34,8 +34,8 @@ class CNeutralGait : public IGait {
     EGaitState state_ = EGaitState::Stopped;
     std::map<ELegIndex, CLegAngles> origin_leg_angles_;
     std::map<ELegIndex, CLegAngles> target_leg_angles_;
-    CHead origin_head_;
-    CHead target_head_{0.0, 0.0};
+    COrientation origin_head_;
+    COrientation target_head_{0.0, 0.0, 0.0};
     double phase_ = 0.0;
 };
 

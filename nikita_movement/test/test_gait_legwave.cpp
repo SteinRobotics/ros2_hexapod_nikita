@@ -53,7 +53,7 @@ TEST_F(LegWaveGaitTest, LiftOccursDuringRun) {
     bool seen_lift = false;
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose());
+        gait.update(twist, CPose(), COrientation());
         const auto pos = kinematics_->getLegsPositions();
         for (const auto& kv : standing) {
             const auto& idx = kv.first;
@@ -79,14 +79,14 @@ TEST_F(LegWaveGaitTest, StopRequestReturnsToNeutral) {
     geometry_msgs::msg::Twist twist;
 
     for (int i = 0; i < 3; ++i) {
-        gait.update(twist, CPose());
+        gait.update(twist, CPose(), COrientation());
     }
 
     gait.requestStop();
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose());
+        gait.update(twist, CPose(), COrientation());
     }
 
     EXPECT_LT(iterations, kMaxIterations);

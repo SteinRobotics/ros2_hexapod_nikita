@@ -161,33 +161,6 @@ class CLeg {
     CPosition foot_pos_;
 };
 
-class CHead {
-   public:
-    CHead() = default;
-    CHead(double yaw_deg, double pitch_deg) : yaw_deg(yaw_deg), pitch_deg(pitch_deg) {};
-
-    CHead(COrientation& orientation) : yaw_deg(orientation.yaw_deg), pitch_deg(orientation.pitch_deg) {};
-
-    virtual ~CHead() = default;
-
-    double yaw_deg = double(0);
-    double pitch_deg = double(0);
-
-    bool operator==(const CHead& rhs) const {
-        return yaw_deg == rhs.yaw_deg && pitch_deg == rhs.pitch_deg;
-    }
-
-    COrientation toOrientation() const {
-        return COrientation(0.0, pitch_deg, yaw_deg);
-    }
-
-    // Linear interpolation member: interpolate yaw and pitch angles (degrees)
-    inline CHead linearInterpolate(const CHead& target, double alpha) const {
-        return CHead(yaw_deg + (target.yaw_deg - yaw_deg) * alpha,
-                     pitch_deg + (target.pitch_deg - pitch_deg) * alpha);
-    }
-};
-
 // --------------------------------------------------------
 // ------------------  for future usage ------------------
 // struct CJointDesc {

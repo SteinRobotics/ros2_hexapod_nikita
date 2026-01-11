@@ -172,7 +172,7 @@ void CActionPackagesParser::parsePresetFootPositions(const std::string& key, con
 void CActionPackagesParser::parsePresetHead(const std::string& key, const YAML::Node& val) {
     const double yaw = val["yaw"] ? val["yaw"].as<double>() : 0.0;
     const double pitch = val["pitch"] ? val["pitch"].as<double>() : 0.0;
-    defaultHeads_[key] = CHead(yaw, pitch);
+    defaultHeads_[key] = COrientation(0.0, pitch, yaw);
 }
 
 void CActionPackagesParser::parsePresetBody(const std::string& key, const YAML::Node& val) {
@@ -259,12 +259,12 @@ std::map<ELegIndex, CLegAngles> CActionPackagesParser::getLegAngles(const std::s
     }
 }
 
-CHead CActionPackagesParser::getHead(const std::string& name) {
+COrientation CActionPackagesParser::getHead(const std::string& name) {
     if (defaultHeads_.find(name) != defaultHeads_.end()) {
         return defaultHeads_.at(name);
     } else {
         RCLCPP_ERROR_STREAM(node_->get_logger(), "Default head not found: " << name);
-        return CHead();
+        return COrientation();
     }
 }
 CPose CActionPackagesParser::getBody(const std::string& name) {
@@ -276,7 +276,7 @@ CPose CActionPackagesParser::getBody(const std::string& name) {
     }
 }
 
-CHead CActionPackagesParser::parseHeadNode(const YAML::Node& headNode) {
+COrientation CActionPackagesParser::parseHeadNode(const YAML::Node& headNode) {
     double yaw = 0.0, pitch = 0.0;
     // head can be a sequence of maps or a single map
     if (headNode.IsSequence()) {
@@ -288,7 +288,7 @@ CHead CActionPackagesParser::parseHeadNode(const YAML::Node& headNode) {
         if (headNode["yaw"]) yaw = headNode["yaw"].as<double>();
         if (headNode["pitch"]) pitch = headNode["pitch"].as<double>();
     }
-    return CHead(yaw, pitch);
+    return COrientation(0.0, pitch, yaw);
 }
 
 CPose CActionPackagesParser::parseBodyNode(const YAML::Node& bodyNode) {

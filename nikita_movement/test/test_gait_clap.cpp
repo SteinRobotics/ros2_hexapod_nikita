@@ -53,7 +53,7 @@ TEST_F(ClapGaitTest, CompletesCycleAndReturnsToInitialPose) {
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose());
+        gait.update(twist, CPose(), COrientation());
     }
 
     EXPECT_LT(iterations, kMaxIterations) << "Gait should complete within max iterations";
@@ -78,7 +78,7 @@ TEST_F(ClapGaitTest, BackLegsLiftDuringSequence) {
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose());
+        gait.update(twist, CPose(), COrientation());
 
         const auto currentPositions = kinematics_->getLegsPositions();
 
@@ -110,7 +110,7 @@ TEST_F(ClapGaitTest, FrontLegsPerformClapMovement) {
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose());
+        gait.update(twist, CPose(), COrientation());
 
         const auto currentLeftAngles = kinematics_->getAngles(ELegIndex::LeftFront);
         const auto currentRightAngles = kinematics_->getAngles(ELegIndex::RightFront);
@@ -136,7 +136,7 @@ TEST_F(ClapGaitTest, RequestStopReturnsToInitialState) {
 
     // Run for a few iterations
     for (int i = 0; i < 10; ++i) {
-        gait.update(twist, CPose());
+        gait.update(twist, CPose(), COrientation());
     }
 
     // Request stop
@@ -144,7 +144,7 @@ TEST_F(ClapGaitTest, RequestStopReturnsToInitialState) {
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose());
+        gait.update(twist, CPose(), COrientation());
     }
 
     EXPECT_LT(iterations, kMaxIterations) << "Gait should stop within max iterations";

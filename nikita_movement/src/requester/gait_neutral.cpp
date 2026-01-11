@@ -25,7 +25,7 @@ void CNeutralGait::start(double /*duration_s*/, uint8_t /*direction*/) {
         target_leg_angles_[leg_index] = CLegAngles(0.0, 0.0, 0.0);
     }
     origin_head_ = kinematics_->getHead();
-    target_head_ = CHead(0.0, 0.0);
+    target_head_ = COrientation(0.0, 0.0, 0.0);
     state_ = EGaitState::Running;
 }
 

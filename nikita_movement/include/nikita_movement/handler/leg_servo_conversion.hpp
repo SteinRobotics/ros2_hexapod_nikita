@@ -72,12 +72,12 @@ inline void appendLegServoTargets(const std::map<ELegIndex, CLegAngles>& legAngl
     }
 }
 
-inline void appendHeadServoTargets(const CHead& head, std::map<uint32_t, double>& targetAngles) {
+inline void appendHeadServoTargets(const COrientation& head, std::map<uint32_t, double>& targetAngles) {
     targetAngles[ServoIndex::HEAD_YAW] = head.yaw_deg;
     targetAngles[ServoIndex::HEAD_PITCH] = head.pitch_deg;
 }
 
-inline std::map<uint32_t, double> buildServoTargets(const CHead& head,
+inline std::map<uint32_t, double> buildServoTargets(const COrientation& head,
                                                     const std::map<ELegIndex, CLegAngles>& legAngles) {
     std::map<uint32_t, double> targets;
     appendHeadServoTargets(head, targets);
