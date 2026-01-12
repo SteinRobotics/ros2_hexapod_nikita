@@ -70,6 +70,11 @@ void CCoordinator::executeBehavior(const Behavior& behavior, Prio prio) {
 void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     auto behavior = behaviorParser_->getBehaviorForJoystickRequest(msg);
     if (behavior) {
+        if (behavior->get().name == "standup") {
+            isStanding_ = true;
+        } else if (behavior->get().name == "laydown") {
+            isStanding_ = false;
+        }
         executeBehavior(behavior->get(), Prio::High);
         return;
     }
@@ -147,6 +152,11 @@ void CCoordinator::speechRecognized(std::string text) {
     // Check if command matches a behavior from JSON
     auto behavior = behaviorParser_->getBehaviorForVoiceRequest(command);
     if (behavior) {
+        if (behavior->get().name == "standup") {
+            isStanding_ = true;
+        } else if (behavior->get().name == "laydown") {
+            isStanding_ = false;
+        }
         executeBehavior(behavior->get(), Prio::High);
         return;
     }
