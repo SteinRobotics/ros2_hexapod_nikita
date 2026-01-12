@@ -74,7 +74,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         return;
     }
 
-    if (msg.button_home) {
+    if (msg.button_start) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "Shutdown requested by joystick");
         requestShutdown(Prio::High);
         return;

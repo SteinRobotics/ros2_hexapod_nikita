@@ -1,8 +1,27 @@
+# Initial Setup
+## WiFi Connection
+```
+sudo cat /etc/netplan/50-cloud-init.yaml
+__
+network:
+  version: 2
+  wifis:
+    wlan0:
+      optional: true
+      dhcp4: true
+      access-points:
+        "XXXXXXXXXXXX":
+          auth:
+            key-management: "psk"
+            password: "YYYYYYYYYYYYY"
+__
+
 sudo apt update
 sudo apt upgrade
 sudo reboot
 sudo shutdown -h now
 mkdir Workspace
+```
 
 ____
 ## install Workspace
@@ -50,6 +69,7 @@ source ~/.bashrc
 
 ### install dependencies
 ```
+sudo apt install python3-pygame
 python3 -m pip install --break-system-packages vosk pyttsx3 google-api-python-client google-cloud-speech oauth2client sounddevice SpeechRecognition pyyaml
 sudo apt install -y portaudio19-dev python3-pyaudio
 sudo pip3 install adafruit-circuitpython-ssd1306 --break-system-packages
@@ -67,5 +87,9 @@ ___
 ## No PW
 ```
 sudo visudo
-nikita ALL=(ALL) NOPASSWD: /sbin/shutdown, /sbin/restart, /bin/systemctl start autostart_ros2.service, /bin/systemctl stop autostart_ros2.service, /bin/systemctl status autostart_ros2.service
+nikita ALL=(ALL) NOPASSWD: /sbin/shutdown, /sbin/restart, /usr/sbin/reboot, /bin/systemctl start autostart_ros2.service, /bin/systemctl stop autostart_ros2.service, /bin/systemctl status autostart_ros2.service
 ```
+
+
+## Autostart Service
+sudo loginctl enable-linger nikita

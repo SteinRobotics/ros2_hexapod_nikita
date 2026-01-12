@@ -40,6 +40,7 @@ class NodeTeleop(Node):
         super().__init__('node_teleop')
         self.get_logger().info('starting node_teleop')
         self.msg = JoystickRequest()
+        self.start_button_press_time = None  # Track when start button was first pressed
 
        # Initialize pygame and joystick
         pygame.init()
@@ -83,6 +84,22 @@ class NodeTeleop(Node):
             return
         self.publish_joystick_data()
 
+    def debounce_button(self, button_pressed, press_time_tracker, debounce_duration_s):
+        if button_pressed:
+            if press_time_tracker is None:
+                # Button just pressed, start tracking time
+                return False, self.get_clock().now()
+            else:
+                # Check if button has been held for required duration
+                elapsed_s = (self.get_clock().now() - press_time_tracker).nanoseconds / 1e9
+                if elapsed_s >= debounce_duration_s:
+                    return True, press_time_tracker
+                else:
+                    return False, press_time_tracker
+        else:
+            # Button released, reset tracking
+            return False, None
+
     def publish_joystick_data(self):
         # self.get_logger().info(f"publish_joystick_data")
         pygame.event.pump()  # Process events
@@ -101,7 +118,13 @@ class NodeTeleop(Node):
         self.msg.button_r1 = bool(buttons[self.layout['button']['R1']])
         self.msg.button_r2 = bool(buttons[self.layout['button']['R2']])
         self.msg.button_select = bool(buttons[self.layout['button']['SELECT']])
-        self.msg.button_start = bool(buttons[self.layout['button']['START']])
+
+        # Debouncing logic for start button (2 seconds)
+        start_button_pressed = bool(buttons[self.layout['button']['START']])
+        self.msg.button_start, self.start_button_press_time = self.debounce_button(
+            start_button_pressed, self.start_button_press_time, 2.0
+        )
+
         self.msg.button_home = bool(buttons[self.layout['button'].get('HOME', -1)]) if 'HOME' in self.layout['button'] else False
         # self.msg.button_return = bool(buttons[self.layout['button'].get('RETURN', -1)]) if 'RETURN' in self.layout['button'] else False
         # self.msg.button_list = bool(buttons[self.layout['button'].get('LIST', -1)]) if 'LIST' in self.layout['button'] else False

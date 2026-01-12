@@ -60,6 +60,7 @@ button_r1: false
 button_r2: false
 button_select: false
 button_start: false
+button_home: false
 dpad_vertical: 0
 dpad_horizontal: 0
 left_stick_vertical: 0.10
