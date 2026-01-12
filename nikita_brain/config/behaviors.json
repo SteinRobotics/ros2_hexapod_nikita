@@ -9,7 +9,7 @@
             },
             "actions": [
                 {
-                    "RequestTalking": "ich stehe auf",
+                    "RequestMusic": "STOP",
                     "RequestMovementType": { "name": "STAND_UP", "duration_s": 1.5 }
                 }
             ]
@@ -111,7 +111,7 @@
             "actions": [
                 {
                     "RequestTalking": "Das ist eine Beinwelle",
-                    "RequestMovementType": { "name": "LEGS_WAVE", "duration_s": 4.0 }
+                    "RequestMovementType": { "name": "LEGS_WAVE", "duration_s": 2.5 }
                 }
             ]
         },
@@ -170,7 +170,7 @@
             "actions": [
                 {
                     "RequestTalking": "Ich teste die Beine",
-                    "RequestMovementType": { "name": "TESTLEGS", "duration_s": 1.5 }
+                    "RequestMovementType": { "name": "TESTLEGS", "duration_s": 3.0 }
                 }
             ]
         },

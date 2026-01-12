@@ -90,14 +90,14 @@ class NodeTeleop(Node):
                 # Button just pressed, start tracking time
                 return False, self.get_clock().now()
             else:
-                # Check if button has been held for required duration
+                # Button still held, keep tracking
+                return False, press_time_tracker
+        else:
+            # Button released, check if it was held long enough
+            if press_time_tracker is not None:
                 elapsed_s = (self.get_clock().now() - press_time_tracker).nanoseconds / 1e9
                 if elapsed_s >= debounce_duration_s:
-                    return True, press_time_tracker
-                else:
-                    return False, press_time_tracker
-        else:
-            # Button released, reset tracking
+                    return True, None
             return False, None
 
     def publish_joystick_data(self):
