@@ -205,6 +205,9 @@ void CCoordinator::supplyVoltageReceived(float voltage) {
 }
 
 void CCoordinator::servoStatusReceived(const ServoStatus& msg) {
+    if (!isServoRelayOn_) {
+        return;
+    }
     std::string text = "";
     auto error = errorManagement_->getErrorServo(msg);
     if (error == EError::None) {
@@ -247,6 +250,7 @@ void CCoordinator::requestShutdown(Prio prio) {
     }
     auto sysRequest = std::make_shared<RequestSystem>();
     sysRequest->turnOffServoRelay = true;
+    isServoRelayOn_ = false;
     sysRequest->systemShutdown = true;
     submitRequest(sysRequest, prio);
 }
@@ -263,16 +267,13 @@ void CCoordinator::requestReactionOnError(std::string text, bool switchServoRela
     talkRequest->text = text;
     submitRequest(talkRequest, prio);
 
-    if (switchServoRelayOff) {
-        submitRequestMove(MovementRequest::LAYDOWN, 1.5, "", prio);
+    if (switchServoRelayOff || isShutdownRequested) {
+        if (isStanding_) {
+            submitRequestMove(MovementRequest::LAYDOWN, 1.5, "", prio);
+        }
         auto sysRequest = std::make_shared<RequestSystem>();
         sysRequest->turnOffServoRelay = switchServoRelayOff;
-        sysRequest->systemShutdown = false;
-        submitRequest(sysRequest, prio);
-    }
-    if (isShutdownRequested) {
-        auto sysRequest = std::make_shared<RequestSystem>();
-        sysRequest->turnOffServoRelay = true;
+        isServoRelayOn_ = !switchServoRelayOff;
         sysRequest->systemShutdown = isShutdownRequested;
         submitRequest(sysRequest, prio);
     }

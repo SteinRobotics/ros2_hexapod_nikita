@@ -76,7 +76,7 @@ class CCoordinator : public IRequester {
 
     uint32_t actualMovementType_ = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
     bool isStanding_ = false;
-    bool isRelayOn_ = false;
+    bool isServoRelayOn_ = true;
 
     double kVelocityFactorLinear_ = 0.0;
     double kVelocityFactorRotation_ = 0.0;
