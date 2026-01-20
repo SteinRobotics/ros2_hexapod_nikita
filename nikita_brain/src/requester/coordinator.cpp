@@ -79,7 +79,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         return;
     }
 
-    if (msg.button_start) {
+    if (msg.button_long_select) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "Shutdown requested by joystick");
         requestShutdown(Prio::High);
         return;
@@ -92,6 +92,30 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     auto head = nikita_interfaces::msg::Orientation();
     auto velocity = geometry_msgs::msg::Twist();
     std::optional<uint8_t> direction = std::nullopt;
+
+    if (msg.button_start) {
+        requested_movement_type_ = MovementRequest::CONTINUOUS_POSE;
+
+        // LEFT_STICK -> linear movement
+        // float32 left_stick_vertical   # TOP  = -1.0, DOWN = 1.0,  hangs on 0.004 -> means 0.0
+        if (std::abs(msg.left_stick_vertical) > kJoystickDeadzone_) {
+            body.position.x = msg.left_stick_vertical * 0.01;
+        }
+        // float32 left_stick_horizontal # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
+        if (std::abs(msg.left_stick_horizontal) > kJoystickDeadzone_) {
+            body.position.y = msg.left_stick_horizontal * 0.01;
+        }
+        // RIGHT_STICK -> rotation
+        // float32 right_stick_horizontal  # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
+        if (std::abs(msg.right_stick_horizontal) > kJoystickDeadzone_) {
+            head.yaw = msg.right_stick_horizontal * 0.01;  // small rotation
+        }
+        // float32 right_stick_vertical    # TOP  = -1.0, DOWN = 1.0, hangs on 0.004 -> means 0.0
+        if (std::abs(msg.right_stick_vertical) > kJoystickDeadzone_) {
+            head.pitch = msg.right_stick_vertical * 0.01;  // small rotation
+        }
+        return;
+    }
 
     // LEFT_STICK -> linear movement
     // float32 left_stick_vertical   # TOP  = -1.0, DOWN = 1.0,  hangs on 0.004 -> means 0.0
@@ -354,12 +378,12 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
     if (direction.has_value()) {
         request.direction = direction.value();
     }
-    request.name = movementTypeName_.at(request.type);
+    request.name = movementTypeToName.at(request.type);
     auto moveRequest = std::make_shared<RequestMovementType>();
     moveRequest->movementRequest = request;
     request_v.push_back(moveRequest);
     if (body.has_value()) {
-        auto bodyRequest = std::make_shared<RequestBodyPose>();
+        auto bodyRequest = std::make_shared<RequestSinglePose>();
         bodyRequest->pose = body.value();
         request_v.push_back(bodyRequest);
     }

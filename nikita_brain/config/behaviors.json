@@ -125,38 +125,38 @@
             "actions": [
                 {
                     "RequestTalking": "teste x Richtung",
-                    "RequestMovementType": { "name": "POSE", "duration_s": 2.0 },
-                    "RequestBodyPose": { "position": { "x": 0.05, "y": 0.0, "z": 0.0 } }
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
+                    "RequestSinglePose": { "position": { "x": 0.05, "y": 0.0, "z": 0.0 } }
                 },
                 {
                     "RequestTalking": "teste y Richtung",
-                    "RequestMovementType": { "name": "POSE", "duration_s": 2.0 },
-                    "RequestBodyPose": { "position": { "x": 0.0, "y": 0.05, "z": 0.0 } }
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
+                    "RequestSinglePose": { "position": { "x": 0.0, "y": 0.05, "z": 0.0 } }
                 },
                 {
                     "RequestTalking": "teste z Richtung",
-                    "RequestMovementType": { "name": "POSE", "duration_s": 2.0 },
-                    "RequestBodyPose": { "position": { "x": 0.0, "y": 0.0, "z": 0.03 } }
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
+                    "RequestSinglePose": { "position": { "x": 0.0, "y": 0.0, "z": 0.03 } }
                 },
                 {
                     "RequestTalking": "teste rollen",
-                    "RequestMovementType": { "name": "POSE", "duration_s": 2.0 },
-                    "RequestBodyPose": { "orientation": { "roll": 15.0, "pitch": 0.0, "yaw": 0.0 } }
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
+                    "RequestSinglePose": { "orientation": { "roll": 15.0, "pitch": 0.0, "yaw": 0.0 } }
                 },
                 {
                     "RequestTalking": "teste nicken",
-                    "RequestMovementType": { "name": "POSE", "duration_s": 2.0 },
-                    "RequestBodyPose": { "orientation": { "roll": 0.0, "pitch": 15.0, "yaw": 0.0 } }
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
+                    "RequestSinglePose": { "orientation": { "roll": 0.0, "pitch": 15.0, "yaw": 0.0 } }
                 },
                 {
                     "RequestTalking": "teste drehen",
-                    "RequestMovementType": { "name": "POSE", "duration_s": 2.0 },
-                    "RequestBodyPose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 15.0 } }
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
+                    "RequestSinglePose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 15.0 } }
                 },
                 {
                     "RequestTalking": "ausgangsposition",
-                    "RequestMovementType": { "name": "POSE", "duration_s": 2.0 },
-                    "RequestBodyPose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 } }
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
+                    "RequestSinglePose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 } }
                 }
             ]
         },
@@ -187,13 +187,13 @@
                 },
                 {
                     "RequestMusic": "musicfox_excess_party.mp3",
-                    "RequestMovementType": { "name": "POSE", "duration_s": 2.0 },
-                    "RequestBodyPose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 15.0 } },
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
+                    "RequestSinglePose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 15.0 } },
                     "RequestHeadOrientation": { "yaw": 0.0, "pitch": 15.0 }
                 },
                 {
-                    "RequestMovementType": { "name": "POSE", "duration_s": 2.0 },
-                    "RequestBodyPose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 } },
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
+                    "RequestSinglePose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 } },
                     "RequestHeadOrientation": { "yaw": 0.0, "pitch": 0.0 }
                 },
                 {
@@ -214,13 +214,13 @@
                 },
                 {
                     "RequestMusic": "musicfox_hot_dogs_for_breakfast.mp3",
-                    "RequestMovementType": { "name": "POSE", "duration_s": 2.0 },
-                    "RequestBodyPose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 15.0 } },
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
+                    "RequestSinglePose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 15.0 } },
                     "RequestHeadOrientation": { "yaw": 0.0, "pitch": 15.0 }
                 },
                 {
-                    "RequestMovementType": { "name": "POSE", "duration_s": 2.0 },
-                    "RequestBodyPose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 } },
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
+                    "RequestSinglePose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 } },
                     "RequestHeadOrientation": { "yaw": 0.0, "pitch": 0.0 }
                 },
                 {

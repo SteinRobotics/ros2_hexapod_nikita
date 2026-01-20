@@ -7,13 +7,14 @@
 namespace nikita_movement {
 
 struct Parameters {
-    struct BodyPose {};
     struct BodyRoll {
         double body_max_roll_deg{0.0};
         double body_max_pitch_deg{0.0};
     };
 
     struct Clap {};
+
+    struct ContinuousPose {};
 
     struct HighFive {};
 
@@ -33,6 +34,8 @@ struct Parameters {
     };
 
     struct StandUp {};
+
+    struct SinglePose {};
 
     struct TestLegs {
         double coxa_delta_deg{0.0};
@@ -57,15 +60,16 @@ struct Parameters {
         double head_max_yaw_deg{0.0};
     };
 
-    BodyPose bodyPose;
     BodyRoll bodyRoll;
     Clap clap;
+    ContinuousPose continuousPose;
     HighFive highFive;
     LayDown layDown;
     LegWave legWave;
     Look look;
     Ripple ripple;
     StandUp standUp;
+    SinglePose singlePose;
     TestLegs testLegs;
     Tripod tripod;
     Waiting waiting;

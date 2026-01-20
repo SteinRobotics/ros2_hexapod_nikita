@@ -57,7 +57,7 @@ struct RequestMovementType : RequestBase {
     nikita_interfaces::msg::MovementRequest movementRequest;
 };
 
-struct RequestBodyPose : RequestBase {
+struct RequestSinglePose : RequestBase {
     nikita_interfaces::msg::Pose pose;
 };
 

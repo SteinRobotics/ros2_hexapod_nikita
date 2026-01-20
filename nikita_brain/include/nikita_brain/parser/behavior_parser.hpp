@@ -14,6 +14,7 @@
 #include "nikita_brain/requester/irequester.hpp"
 #include "nikita_interfaces/msg/joystick_request.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "requester/utility.hpp"
 
 namespace brain {
 
@@ -154,11 +155,11 @@ class CBehaviorParser {
     std::shared_ptr<RequestMovementType> createRequestMovementType(const void* value);
 
     /**
-     * @brief Create RequestBodyPose from JSON value
+     * @brief Create RequestSinglePose from JSON value
      * @param value JSON value (object)
-     * @return Shared pointer to RequestBodyPose object, or nullptr if parsing failed
+     * @return Shared pointer to RequestSinglePose object, or nullptr if parsing failed
      */
-    std::shared_ptr<RequestBodyPose> createRequestMoveBody(const void* value);
+    std::shared_ptr<RequestSinglePose> createRequestMoveBody(const void* value);
 
     /**
      * @brief Create RequestHeadOrientation from JSON value
@@ -177,9 +178,6 @@ class CBehaviorParser {
     rclcpp::Node::SharedPtr node_;
     std::vector<Behavior> behaviors_;
     std::map<std::string, BehaviorTrigger> behaviorTriggers_;  // Map behavior name to triggers
-
-    // Map of movement type names to their enum values
-    static const std::map<std::string, uint32_t> movementTypeNameMap_;
 };
 
 }  // namespace brain

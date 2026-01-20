@@ -13,6 +13,18 @@ bool button_select
 bool button_start
 bool button_home
 
+bool button_long_a
+bool button_long_b
+bool button_long_x
+bool button_long_y
+bool button_long_l1
+bool button_long_l2
+bool button_long_r1
+bool button_long_r2
+bool button_long_select
+bool button_long_start
+bool button_long_home
+
 # DPAD
 int8 dpad_vertical     # DOWN = -1, UP = 1
 int8 dpad_horizontal   # LEFT = -1, RIGHT = 1

@@ -76,6 +76,7 @@ class CCoordinator : public IRequester {
     std::atomic<bool> isNewMoveRequestLocked_{false};
 
     uint32_t actualMovementType_ = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
+    uint32_t requested_movement_type_ = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
     bool isStanding_ = false;
     bool isServoRelayOn_ = true;
 
@@ -86,27 +87,6 @@ class CCoordinator : public IRequester {
     double kMaxBodyHeight_ = 0.0;
     double kJoystickDeadzone_ = 0.0;
     bool kActivateMovementWaiting_ = false;
-
-    std::map<const uint32_t, const std::string> movementTypeName_ = {
-        {nikita_interfaces::msg::MovementRequest::NO_REQUEST, "NO_REQUEST"},
-        {nikita_interfaces::msg::MovementRequest::LAYDOWN, "LAYDOWN"},
-        {nikita_interfaces::msg::MovementRequest::STAND_UP, "STAND_UP"},
-        {nikita_interfaces::msg::MovementRequest::WAITING, "WAITING"},
-        {nikita_interfaces::msg::MovementRequest::MOVE_TRIPOD, "MOVE_TRIPOD"},
-        {nikita_interfaces::msg::MovementRequest::WATCH, "WATCH"},
-        {nikita_interfaces::msg::MovementRequest::LOOK, "LOOK"},
-        {nikita_interfaces::msg::MovementRequest::DANCE, "DANCE"},
-        {nikita_interfaces::msg::MovementRequest::HIGH_FIVE, "HIGH_FIVE"},
-        {nikita_interfaces::msg::MovementRequest::LEGS_WAVE, "LEGS_WAVE"},
-        {nikita_interfaces::msg::MovementRequest::BODY_ROLL, "BODY_ROLL"},
-        {nikita_interfaces::msg::MovementRequest::BITE, "BITE"},
-        {nikita_interfaces::msg::MovementRequest::STOMP, "STOMP"},
-        {nikita_interfaces::msg::MovementRequest::CLAP, "CLAP"},
-        {nikita_interfaces::msg::MovementRequest::POSE, "POSE"},
-        {nikita_interfaces::msg::MovementRequest::TESTLEGS, "TESTLEGS"},
-        {nikita_interfaces::msg::MovementRequest::NEUTRAL, "NEUTRAL"},
-        {nikita_interfaces::msg::MovementRequest::CALIBRATE, "CALIBRATE"},
-    };
 };
 
 }  // namespace brain

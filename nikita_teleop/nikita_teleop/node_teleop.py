@@ -34,6 +34,8 @@ class NodeTeleop(Node):
         'dpad': {'HORIZONTAL': 0, 'VERTICAL': 1}
     }
 
+    button_debounce_duration_s = 2.0 
+    button_press_time = {'A': 0.0, 'B': 0.0, 'X': 0.0, 'Y': 0.0, 'L1': 0.0, 'R1': 0.0, 'L2': 0.0, 'R2': 0.0, 'SELECT': 0.0, 'START': 0.0} 
     axis_deadzone = 0.004
 
     def __init__(self):
@@ -74,60 +76,48 @@ class NodeTeleop(Node):
                 self.handle_event(event)
             pygame.time.wait(INTERVAL)
 
-
-    def handle_event(self, event):
-        # You can add filtering for different event types.
-        if not event.type in (pygame.JOYBUTTONDOWN,
-                            pygame.JOYBUTTONUP,
-                          pygame.JOYAXISMOTION,
-                          pygame.JOYHATMOTION):
-            return
-        self.publish_joystick_data()
-
     def debounce_button(self, button_pressed, press_time_tracker, debounce_duration_s):
         if button_pressed:
             if press_time_tracker is None:
                 # Button just pressed, start tracking time
                 return False, self.get_clock().now()
             else:
-                # Button still held, keep tracking
-                return False, press_time_tracker
-        else:
-            # Button released, check if it was held long enough
-            if press_time_tracker is not None:
+                # Button still held, check if held long enough
                 elapsed_s = (self.get_clock().now() - press_time_tracker).nanoseconds / 1e9
                 if elapsed_s >= debounce_duration_s:
+                    # Long press detected, reset tracker to avoid repeated triggers
                     return True, None
+                return False, press_time_tracker
+        else:
+            # Button released, reset tracker
             return False, None
+
+    def debounce_buttons(self):
+        pygame.event.pump()  # Process events
+        single_button_pressed = False
+        for button_name in self.button_press_time.keys():
+            button_pressed = bool(self.joystick.get_button(self.layout['button'][button_name]))
+            debounced, new_time = self.debounce_button(
+                button_pressed, self.button_press_time[button_name], self.button_debounce_duration_s
+            )
+            setattr(self.msg, f'button_long_{button_name.lower()}', debounced)
+            self.button_press_time[button_name] = new_time
+            if button_pressed:
+                single_button_pressed = True
+        return single_button_pressed
+
+    def handle_event(self, event):
+        if self.debounce_buttons() or event.type == pygame.JOYAXISMOTION or event.type == pygame.JOYHATMOTION:
+            self.publish_joystick_data()
 
     def publish_joystick_data(self):
         # self.get_logger().info(f"publish_joystick_data")
         pygame.event.pump()  # Process events
 
         axes = [self.joystick.get_axis(i) for i in range(self.joystick.get_numaxes())]
-        buttons = [self.joystick.get_button(i) for i in range(self.joystick.get_numbuttons())]
         hat_values = self.joystick.get_hat(0)  # Usually only one hat switch exists
         #self.get_logger().info(f"Published: Axes {axes} Buttons {buttons} Hat {hat_values}")
 
-        self.msg.button_a = bool(buttons[self.layout['button']['A']])
-        self.msg.button_b = bool(buttons[self.layout['button']['B']])
-        self.msg.button_x = bool(buttons[self.layout['button']['X']])
-        self.msg.button_y = bool(buttons[self.layout['button']['Y']])
-        self.msg.button_l1 = bool(buttons[self.layout['button']['L1']])
-        self.msg.button_l2 = bool(buttons[self.layout['button']['L2']])
-        self.msg.button_r1 = bool(buttons[self.layout['button']['R1']])
-        self.msg.button_r2 = bool(buttons[self.layout['button']['R2']])
-        self.msg.button_select = bool(buttons[self.layout['button']['SELECT']])
-
-        # Debouncing logic for start button (2 seconds)
-        start_button_pressed = bool(buttons[self.layout['button']['START']])
-        self.msg.button_start, self.start_button_press_time = self.debounce_button(
-            start_button_pressed, self.start_button_press_time, 2.0
-        )
-
-        self.msg.button_home = bool(buttons[self.layout['button'].get('HOME', -1)]) if 'HOME' in self.layout['button'] else False
-        # self.msg.button_return = bool(buttons[self.layout['button'].get('RETURN', -1)]) if 'RETURN' in self.layout['button'] else False
-        # self.msg.button_list = bool(buttons[self.layout['button'].get('LIST', -1)]) if 'LIST' in self.layout['button'] else False
         if abs(axes[0]) < self.axis_deadzone:
             self.msg.left_stick_horizontal = 0.0
         else:

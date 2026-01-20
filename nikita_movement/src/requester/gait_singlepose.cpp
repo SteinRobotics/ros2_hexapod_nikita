@@ -1,28 +1,28 @@
-#include "requester/gait_bodypose.hpp"
+#include "requester/gait_singlepose.hpp"
 
 using namespace nikita_interfaces::msg;
 namespace nikita_movement {
 
-CGaitBodyPose::CGaitBodyPose(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
-                             Parameters::BodyPose& params)
+CGaitSinglePose::CGaitSinglePose(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                                 Parameters::SinglePose& params)
     : node_(node), kinematics_(kinematics), params_(params) {
 }
 
-void CGaitBodyPose::start(double duration_s, uint8_t /*direction*/) {
-    RCLCPP_INFO(node_->get_logger(), "Starting CGaitBodyPose");
+void CGaitSinglePose::start(double duration_s, uint8_t /*direction*/) {
+    RCLCPP_INFO(node_->get_logger(), "Starting CGaitSinglePose");
     state_ = EGaitState::Running;
     phase_ = 0.0;
     duration_s_ = duration_s;
 
     body_origin_ = kinematics_->getBody();
-    origin_head_ = kinematics_->getHead();
+    head_origin_ = kinematics_->getHead();
 
     // 100ms task update time, duration in seconds,
     phase_increment_ = duration_s_ * 0.1;
 }
 
-bool CGaitBodyPose::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& body,
-                           const COrientation& head) {
+bool CGaitSinglePose::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& body,
+                             const COrientation& head) {
     if (state_ == EGaitState::Stopped) return false;
 
     // set head yaw using sinusoidal oscillation
@@ -36,7 +36,7 @@ bool CGaitBodyPose::update(const geometry_msgs::msg::Twist& /*velocity*/, const 
     // interpolate body position from origin to target
     auto progress = phase_ / duration_s_;
     CPose intermediate_pose = body_origin_.linearInterpolate(body, progress);
-    COrientation intermediate_head = origin_head_.linearInterpolate(head, progress);
+    COrientation intermediate_head = head_origin_.linearInterpolate(head, progress);
 
     kinematics_->moveBody(intermediate_pose);
     kinematics_->setHead(intermediate_head);
@@ -44,11 +44,11 @@ bool CGaitBodyPose::update(const geometry_msgs::msg::Twist& /*velocity*/, const 
     return true;
 }
 
-void CGaitBodyPose::requestStop() {
+void CGaitSinglePose::requestStop() {
     // gait is stopped automatically after completing the current cycle
 }
 
-void CGaitBodyPose::cancelStop() {
+void CGaitSinglePose::cancelStop() {
     // this gait cannot be stopped nor the stop can be cancelled
 }
 

@@ -24,7 +24,7 @@ void CMovement::run(std::shared_ptr<RequestMovementType> request) {
                                             std::bind(&CMovement::timerCallback, this));
 }
 
-void CMovement::run(std::shared_ptr<RequestBodyPose> request) {
+void CMovement::run(std::shared_ptr<RequestSinglePose> request) {
     pub_body_pose_->publish(request->pose);
 }
 

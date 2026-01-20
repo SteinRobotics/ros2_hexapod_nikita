@@ -4,6 +4,7 @@
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 
+#include "nikita_utils/filters.hpp"
 #include "nikita_utils/linear_interpolation.hpp"
 #include "requester/gait_parameters.hpp"
 #include "requester/igaits.hpp"
@@ -12,11 +13,11 @@
 
 namespace nikita_movement {
 
-class CGaitBodyPose : public IGait {
+class CGaitContinuousPose : public IGait {
    public:
-    CGaitBodyPose(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
-                  Parameters::BodyPose& params);
-    ~CGaitBodyPose() override = default;
+    CGaitContinuousPose(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                        Parameters::ContinuousPose& params);
+    ~CGaitContinuousPose() override = default;
 
     void start(double duration_s, uint8_t direction) override;
     bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body,
@@ -30,15 +31,11 @@ class CGaitBodyPose : public IGait {
    private:
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CKinematics> kinematics_;
-    Parameters::BodyPose params_;
+    Parameters::ContinuousPose params_;
     EGaitState state_ = EGaitState::Stopped;
 
     CPose body_origin_ = CPose();
-    COrientation origin_head_ = COrientation();
-
-    double duration_s_ = 0.0;
-    double phase_increment_ = 0.1;
-    double phase_ = 0.0;
+    COrientation head_origin_ = COrientation();
 };
 
 }  // namespace nikita_movement
