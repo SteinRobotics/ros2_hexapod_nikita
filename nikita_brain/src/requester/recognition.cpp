@@ -21,6 +21,9 @@ CRecognition::CRecognition(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
 
     subServoStatus_ = node_->create_subscription<nikita_interfaces::msg::ServoStatus>(
         "servo_status", 10, std::bind(&CRecognition::onServoStatus, this, _1));
+
+    subMovementTypeActual_ = node_->create_subscription<nikita_interfaces::msg::MovementRequest>(
+        "movement_type_actual", 10, std::bind(&CRecognition::onMovementTypeActual, this, _1));
 }
 
 void CRecognition::onSupplyVoltage(const std_msgs::msg::Float32& msg) const {
@@ -37,6 +40,10 @@ void CRecognition::onJoystickRequest(const nikita_interfaces::msg::JoystickReque
 
 void CRecognition::onServoStatus(const nikita_interfaces::msg::ServoStatus& msg) const {
     coordinator_->servoStatusReceived(msg);
+}
+
+void CRecognition::onMovementTypeActual(const nikita_interfaces::msg::MovementRequest& msg) const {
+    coordinator_->movementTypeActualReceived(msg);
 }
 
 }  // namespace brain

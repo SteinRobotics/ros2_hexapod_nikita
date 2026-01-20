@@ -1,0 +1,112 @@
+behaviors:
+  - name: normal_standup
+    trigger:
+      joystick: dpad_vertical_up
+      voice: commandStandup
+    actions:
+      - RequestTalking: ich stehe auf
+        RequestMovementType: { name: STAND_UP, duration_s: 1.5 }
+
+  - name: normal_laydown
+    trigger:
+      joystick: dpad_vertical_down
+      voice: commandLaydown
+    actions:
+      - RequestTalking: ich lege mich hin
+        RequestMovementType: { name: LAYDOWN, duration_s: 1.5 }
+
+  - name: normal_watch
+    trigger:
+      joystick: button_a
+      voice: commandWatch
+    actions:
+      - RequestTalking: ich sehe mich um
+        RequestMovementType: { name: WATCH, duration_s: 5.0 }
+
+  - name: normal_look_left
+    trigger:
+      joystick: button_l1
+      voice: commandLookLeft
+    actions:
+      - RequestTalking: Ich schaue nach links
+        RequestMovementType: { name: LOOK, direction: ANTICLOCKWISE, duration_s: 3.0 }
+
+  - name: normal_look_right
+    trigger:
+      joystick: button_r1
+      voice: commandLookRight
+    actions:
+      - RequestTalking: Ich schaue nach rechts
+        RequestMovementType: { name: LOOK, direction: CLOCKWISE, duration_s: 3.0 }
+
+  - name: normal_high_five
+    trigger:
+      joystick: button_b
+      voice: commandHighFive
+    actions:
+      - RequestTalking: Ich gebe dir ein High Five
+        RequestMovementType: { name: HIGH_FIVE, duration_s: 4.0 }
+
+  - name: normal_body_roll
+    trigger:
+      joystick: button_x
+      voice: commandBodyRoll
+    actions:
+      - RequestTalking: Ich rolle den Rumpf
+        RequestMovementType: { name: BODY_ROLL, duration_s: 4.0 }
+
+  - name: normal_leg_wave
+    trigger:
+      joystick: button_y
+      voice: commandLegWave
+    actions:
+      - RequestTalking: Das ist eine Beinwelle
+        RequestMovementType: { name: LEGS_WAVE, duration_s: 4.0 }
+
+  - name: normal_test_body
+    trigger:
+      joystick: button_r2
+      voice: commandTestBody
+    actions:
+      - RequestTalking: teste x Richtung
+        RequestMovementType: { name: POSE, duration_s: 2.0 }
+        RequestBodyPose: { position: { x: 0.05, y: 0.0, z: 0.0 } }
+      - RequestTalking: teste y Richtung
+        RequestMovementType: { name:  POSE, duration_s: 2.0 }
+        RequestBodyPose: { position: { x: 0.0, y: 0.0, z: 0.03 } }
+      - RequestTalking: teste rollen
+        RequestMovementType: { name:  POSE, duration_s: 2.0 }
+        RequestBodyPose: { orientation: { roll: 15.0, pitch: 0.0, yaw: 0.0 } }
+      - RequestTalking: teste nicken
+        RequestMovementType: { name:  POSE, duration_s: 2.0 }
+        RequestBodyPose: { orientation: { roll: 0.0, pitch: 15.0, yaw: 0.0 } }
+      - RequestTalking: teste drehen
+        RequestMovementType: { name:  POSE, duration_s: 2.0 }
+        RequestBodyPose: { orientation: { roll: 0.0, pitch: 0.0, yaw: 15.0 } }
+      - RequestTalking: ausgangsposition
+        RequestMovementType: { name:  POSE, duration_s: 2.0 }
+        RequestBodyPose: { orientation: { roll: 0.0, pitch: 0.0, yaw: 0.0 } }
+
+  - name: normal_test_legs
+    trigger:
+      joystick: button_l2
+      voice: commandTestLegs
+    actions:
+      - RequestTalking: Ich teste die Beine
+        RequestMovementType: { name: TESTLEGS, duration_s: 1.5 }
+
+  - name: normal_dance
+    trigger:
+      joystick: button_r2
+      voice: commandDance
+    actions:
+      - RequestTalking: Ich tanze
+      - RequestMusic: musicfox_hot_dogs_for_breakfast.mp3
+        RequestMovementType: { name: DANCE, duration_s: 20.0 }
+        RequestBodyPose: { position: { x: 0.0, y: 0.0, z: 0.0 }, orientation: { roll: 0.0, pitch: 0.0, yaw: 15.0 } }
+        RequestHeadOrientation: { yaw: 0.0, pitch: 15.0 }
+      - RequestMovementType: { name: POSE, duration_s: 2.0 }
+        RequestBodyPose: { orientation: { roll: 0.0, pitch: 0.0, yaw: 0.0 } }
+        RequestHeadOrientation: { yaw: 0.0, pitch: 0.0 }
+      - RequestMusic: "off"
+

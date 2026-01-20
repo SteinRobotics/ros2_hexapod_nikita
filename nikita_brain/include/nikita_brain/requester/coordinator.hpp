@@ -35,6 +35,7 @@ class CCoordinator : public IRequester {
     void speechRecognized(std::string text);
     void supplyVoltageReceived(float voltage);
     void servoStatusReceived(const nikita_interfaces::msg::ServoStatus& msg);
+    void movementTypeActualReceived(const nikita_interfaces::msg::MovementRequest& msg);
 
    private:
     void loadBehaviors();

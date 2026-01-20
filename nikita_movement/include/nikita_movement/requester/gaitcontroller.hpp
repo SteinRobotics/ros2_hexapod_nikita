@@ -69,6 +69,8 @@ class CGaitController {
 
     nikita_interfaces::msg::MovementRequest active_request_;
     nikita_interfaces::msg::MovementRequest pending_request_;
+
+    rclcpp::Publisher<nikita_interfaces::msg::MovementRequest>::SharedPtr movement_type_pub_;
 };
 
 }  // namespace nikita_movement

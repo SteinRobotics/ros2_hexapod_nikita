@@ -232,6 +232,16 @@ void CCoordinator::servoStatusReceived(const ServoStatus& msg) {
     }
 }
 
+void CCoordinator::movementTypeActualReceived(const MovementRequest& msg) {
+    RCLCPP_INFO_STREAM(node_->get_logger(), "movementTypeActualReceived: " << msg.name);
+    actualMovementType_ = msg.type;
+    if (actualMovementType_ == MovementRequest::STAND_UP) {
+        isStanding_ = true;
+    } else if (actualMovementType_ == MovementRequest::LAYDOWN) {
+        isStanding_ = false;
+    }
+}
+
 // ----------------------------------------------------------------------------
 //  Requests
 // ---------------------------------------------------------------------------
@@ -364,16 +374,6 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
         request_v.push_back(velocityRequest);
     }
     actionPlanner_->request(request_v, prio);
-
-    // update the actual movement type, it should only be updated in this function!
-    actualMovementType_ = movementType;
-
-    // update the isStanding_ state, it should only be updated in this function!
-    if (movementType == MovementRequest::LAYDOWN) {
-        isStanding_ = false;
-    } else if (movementType == MovementRequest::STAND_UP) {
-        isStanding_ = true;
-    }
 
     // Lock the new move request for the given duration except for MOVE_TRIPOD requests
     if (MovementRequest::MOVE_TRIPOD == movementType || MovementRequest::MOVE_RIPPLE == movementType) {

@@ -12,6 +12,7 @@
 #include "std_msgs/msg/string.hpp"
 //
 #include "nikita_interfaces/msg/joystick_request.hpp"
+#include "nikita_interfaces/msg/movement_request.hpp"
 #include "nikita_interfaces/msg/servo_status.hpp"
 #include "requester/coordinator.hpp"
 #include "requester/error_management.hpp"
@@ -28,6 +29,7 @@ class CRecognition {
     void onSpeechRecognition(const std_msgs::msg::String& msg) const;
     void onJoystickRequest(const nikita_interfaces::msg::JoystickRequest& msg) const;
     void onServoStatus(const nikita_interfaces::msg::ServoStatus& msg) const;
+    void onMovementTypeActual(const nikita_interfaces::msg::MovementRequest& msg) const;
 
     void update();
 
@@ -36,6 +38,7 @@ class CRecognition {
     rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr subSupplyVoltage_;
     rclcpp::Subscription<nikita_interfaces::msg::JoystickRequest>::SharedPtr subJoystick_;
     rclcpp::Subscription<nikita_interfaces::msg::ServoStatus>::SharedPtr subServoStatus_;
+    rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr subMovementTypeActual_;
 
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CCoordinator> coordinator_;

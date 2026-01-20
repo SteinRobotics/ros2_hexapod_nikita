@@ -21,6 +21,10 @@ CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared
     // read parameters
     params_ = Parameters::declare(node_);
 
+    // Create publisher for movement type
+    movement_type_pub_ =
+        node_->create_publisher<nikita_interfaces::msg::MovementRequest>("movement_type_actual", 10);
+
     // Create all gait instances
     gaits_[MovementRequest::BODY_ROLL] =
         std::make_shared<CGaitBodyRoll>(node_, kinematics_, params_.bodyRoll);
@@ -88,6 +92,9 @@ void CGaitController::switchGait(nikita_interfaces::msg::MovementRequest request
 
     active_gait_ = gaits_[request.type];
     active_gait_->start(request.duration_s, request.direction);
+
+    // Publish the new movement type
+    movement_type_pub_->publish(request);
 }
 
 bool CGaitController::updateSelectedGait(const geometry_msgs::msg::Twist& velocity, CPose body,
