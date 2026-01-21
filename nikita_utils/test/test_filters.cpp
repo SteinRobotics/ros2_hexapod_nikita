@@ -42,7 +42,7 @@ TEST(ChangeRateLimitTest, LimitsIncrease) {
     double last = 0.0;
     double target = 10.0;
     double changeRate = 2.0;  // max delta
-    double limited = utils::filterChangeRate(last, target, changeRate);
+    double limited = utils::limitChangeRate(last, target, changeRate);
     EXPECT_DOUBLE_EQ(limited, last + changeRate);
 }
 
@@ -50,7 +50,7 @@ TEST(ChangeRateLimitTest, LimitsDecrease) {
     double last = 10.0;
     double target = -5.0;
     double changeRate = 3.0;  // max delta
-    double limited = utils::filterChangeRate(last, target, changeRate);
+    double limited = utils::limitChangeRate(last, target, changeRate);
     EXPECT_DOUBLE_EQ(limited, last - changeRate);
 }
 
@@ -58,8 +58,32 @@ TEST(ChangeRateLimitTest, WithinRatePassesThrough) {
     double last = 5.0;
     double target = 6.5;      // delta 1.5
     double changeRate = 2.0;  // max delta greater than needed
-    double limited = utils::filterChangeRate(last, target, changeRate);
+    double limited = utils::limitChangeRate(last, target, changeRate);
     EXPECT_DOUBLE_EQ(limited, target);
+}
+
+TEST(ChangeRateLimitUpTest, PositiveTargetPositiveLast) {
+    double last = 5.0;
+    double target = 10.0;
+    double changeRate = 2.0;  // max delta
+    double limited = utils::limitChangeRateUp(last, target, changeRate);
+    EXPECT_DOUBLE_EQ(limited, last + changeRate);  // Should be limited to 7.0
+}
+
+TEST(ChangeRateLimitUpTest, NegativeTargetNegativeLast) {
+    double last = -5.0;
+    double target = -10.0;
+    double changeRate = 2.0;  // max delta
+    double limited = utils::limitChangeRateUp(last, target, changeRate);
+    EXPECT_DOUBLE_EQ(limited, last - changeRate);  // Should be limited to -7.0
+}
+
+TEST(ChangeRateLimitUpTest, PositiveTargetNegativeLast) {
+    double last = -5.0;
+    double target = 3.0;
+    double changeRate = 2.0;  // max delta
+    double limited = utils::limitChangeRateUp(last, target, changeRate);
+    EXPECT_DOUBLE_EQ(limited, last + changeRate);  // Should be limited to -3.0
 }
 
 TEST(KalmanFilterTest, ConvergesToMeasurement) {

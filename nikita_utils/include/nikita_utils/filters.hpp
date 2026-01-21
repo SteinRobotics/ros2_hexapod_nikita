@@ -87,10 +87,85 @@ class CKalmanFilter {
     T state_;
 };
 
-// limitation filter
+// limitation filters
 template <typename T>
-T filterChangeRate(const T& last_value, const T& target_value, const T& change_rate) {
+T limitChangeRate(const T& last_value, const T& target_value, const T& change_rate) {
     return std::clamp(target_value, last_value - change_rate, last_value + change_rate);
+}
+
+template <typename T>
+T limitChangeRateUp(const T& last_value, const T& target_value, const T& change_rate) {
+    if (target_value >= 0.0) {
+        return std::min(target_value, last_value + change_rate);
+    } else {
+        return std::max(target_value, last_value - change_rate);
+    }
+}
+
+template <typename T>
+T limitChangeRateDown(const T& last_value, const T& target_value, const T& change_rate) {
+    if (target_value >= 0.0) {
+        return std::max(target_value, last_value - change_rate);
+    } else {
+        return std::min(target_value, last_value + change_rate);
+    }
+}
+
+inline geometry_msgs::msg::Vector3 limitChangeRateVector3(const geometry_msgs::msg::Vector3& last_value,
+                                                          const geometry_msgs::msg::Vector3& target_value,
+                                                          double change_rate) {
+    geometry_msgs::msg::Vector3 limited;
+    limited.x = limitChangeRate(last_value.x, target_value.x, change_rate);
+    limited.y = limitChangeRate(last_value.y, target_value.y, change_rate);
+    limited.z = limitChangeRate(last_value.z, target_value.z, change_rate);
+    return limited;
+}
+
+inline geometry_msgs::msg::Vector3 limitChangeRateUpVector3(const geometry_msgs::msg::Vector3& last_value,
+                                                            const geometry_msgs::msg::Vector3& target_value,
+                                                            double change_rate) {
+    geometry_msgs::msg::Vector3 limited;
+    limited.x = limitChangeRateUp(last_value.x, target_value.x, change_rate);
+    limited.y = limitChangeRateUp(last_value.y, target_value.y, change_rate);
+    limited.z = limitChangeRateUp(last_value.z, target_value.z, change_rate);
+    return limited;
+}
+
+inline geometry_msgs::msg::Vector3 limitChangeRateDownVector3(const geometry_msgs::msg::Vector3& last_value,
+                                                              const geometry_msgs::msg::Vector3& target_value,
+                                                              double change_rate) {
+    geometry_msgs::msg::Vector3 limited;
+    limited.x = limitChangeRateDown(last_value.x, target_value.x, change_rate);
+    limited.y = limitChangeRateDown(last_value.y, target_value.y, change_rate);
+    limited.z = limitChangeRateDown(last_value.z, target_value.z, change_rate);
+    return limited;
+}
+
+inline geometry_msgs::msg::Twist limitChangeRateTwist(const geometry_msgs::msg::Twist& last_value,
+                                                      const geometry_msgs::msg::Twist& target_value,
+                                                      double change_rate) {
+    geometry_msgs::msg::Twist limited;
+    limited.linear = limitChangeRateVector3(last_value.linear, target_value.linear, change_rate);
+    limited.angular = limitChangeRateVector3(last_value.angular, target_value.angular, change_rate);
+    return limited;
+}
+
+inline geometry_msgs::msg::Twist limitChangeRateUpTwist(const geometry_msgs::msg::Twist& last_value,
+                                                        const geometry_msgs::msg::Twist& target_value,
+                                                        double change_rate) {
+    geometry_msgs::msg::Twist limited;
+    limited.linear = limitChangeRateUpVector3(last_value.linear, target_value.linear, change_rate);
+    limited.angular = limitChangeRateUpVector3(last_value.angular, target_value.angular, change_rate);
+    return limited;
+}
+
+inline geometry_msgs::msg::Twist limitChangeRateDownTwist(const geometry_msgs::msg::Twist& last_value,
+                                                          const geometry_msgs::msg::Twist& target_value,
+                                                          double change_rate) {
+    geometry_msgs::msg::Twist limited;
+    limited.linear = limitChangeRateDownVector3(last_value.linear, target_value.linear, change_rate);
+    limited.angular = limitChangeRateDownVector3(last_value.angular, target_value.angular, change_rate);
+    return limited;
 }
 
 // low-pass filter

@@ -76,7 +76,7 @@ class CCoordinator : public IRequester {
     std::atomic<bool> isNewMoveRequestLocked_{false};
 
     uint32_t actualMovementType_ = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
-    uint32_t requested_movement_type_ = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
+    // uint32_t requested_movement_type_ = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
     bool isStanding_ = false;
     bool isServoRelayOn_ = true;
 

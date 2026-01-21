@@ -175,6 +175,20 @@
             ]
         },
         {
+            "name": "continuous_pose",
+            "trigger":
+            {
+                "joystick": "button_start",
+                "voice": "commandContinuousPose"
+            },
+            "actions": [
+                {
+                    "RequestTalking": "Ich pose",
+                    "RequestMovementType": { "name": "CONTINUOUS_POSE" }
+                }
+            ]
+        },
+        {
             "name": "dance_excess_party",
             "trigger":
             {

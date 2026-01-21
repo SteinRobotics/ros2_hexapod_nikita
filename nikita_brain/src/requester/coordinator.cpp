@@ -93,9 +93,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     auto velocity = geometry_msgs::msg::Twist();
     std::optional<uint8_t> direction = std::nullopt;
 
-    if (msg.button_start) {
-        requested_movement_type_ = MovementRequest::CONTINUOUS_POSE;
-
+    if (actualMovementType_ == MovementRequest::CONTINUOUS_POSE) {
         // LEFT_STICK -> linear movement
         // float32 left_stick_vertical   # TOP  = -1.0, DOWN = 1.0,  hangs on 0.004 -> means 0.0
         if (std::abs(msg.left_stick_vertical) > kJoystickDeadzone_) {
@@ -113,6 +111,16 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         // float32 right_stick_vertical    # TOP  = -1.0, DOWN = 1.0, hangs on 0.004 -> means 0.0
         if (std::abs(msg.right_stick_vertical) > kJoystickDeadzone_) {
             head.pitch = msg.right_stick_vertical * 0.01;  // small rotation
+        }
+        if (body.position.x != 0.0 || body.position.y != 0.0) {
+            auto request_body = std::make_shared<RequestSinglePose>();
+            request_body->pose = body;
+            submitRequest(request_body, Prio::High);
+        }
+        if (head.yaw != 0.0 || head.pitch != 0.0) {
+            auto request_head = std::make_shared<RequestHeadOrientation>();
+            request_head->orientation = head;
+            submitRequest(request_head, Prio::High);
         }
         return;
     }
