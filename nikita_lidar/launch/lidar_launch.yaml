@@ -1,7 +1,0 @@
-launch:
-
-- node:
-    pkg: "nikita_lidar"
-    exec: "node_lidar"
-    name: "node_lidar"
-    output: "screen"

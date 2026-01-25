@@ -33,7 +33,7 @@ class NodeLidar : public rclcpp::Node {
                 auto distance = lidarLite_.readDistance();
                 auto message = std_msgs::msg::Float32();
                 message.data = float(distance) / 100.0;  // convert cm to m
-                RCLCPP_INFO_STREAM(this->get_logger(), "Distance: : " << message.data);
+                // RCLCPP_INFO_STREAM(this->get_logger(), "Distance: : " << message.data);
                 this->publisher_->publish(message);
             }
         };

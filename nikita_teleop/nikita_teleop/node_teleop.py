@@ -100,6 +100,9 @@ class NodeTeleop(Node):
             debounced, new_time = self.debounce_button(
                 button_pressed, self.button_press_time[button_name], self.button_debounce_duration_s
             )
+            # Set short press whenever button is currently pressed
+            setattr(self.msg, f'button_{button_name.lower()}', button_pressed)
+            # Set long press only when debounce threshold is reached
             setattr(self.msg, f'button_long_{button_name.lower()}', debounced)
             self.button_press_time[button_name] = new_time
             if button_pressed:
