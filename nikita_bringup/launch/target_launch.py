@@ -27,6 +27,9 @@ def generate_launch_description():
     ld.add_action(IncludeLaunchDescription(PythonLaunchDescriptionSource([
         FindPackageShare("nikita_teleop"), '/launch', '/teleop_launch.py'])))
 
+    ld.add_action(IncludeLaunchDescription(PythonLaunchDescriptionSource([
+        FindPackageShare("nikita_lidar"), '/launch', '/lidar_launch.py'])))
+
     # delay brain launch
     # - the HMI node needs to be started first (it needs the servo voltage released by the relay. The relay is controlled by the HMI node)
     # - the servo node needs to be started first (the servo status is needed by the brain node)

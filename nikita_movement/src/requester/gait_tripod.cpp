@@ -44,7 +44,6 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
     // filter and store the last non-zero velocity, zero velocities will be ignored and the old velocity is kept
     if (!utils::isTwistZero(velocity)) {
         const double alpha = 0.01;  // Adjust alpha for filtering strength (0.0 to 1.0)
-        // velocity_ = utils::lowPassFilterTwist(velocity_, velocity, alpha);
         velocity_ = utils::limitChangeRateUpTwist(velocity_, velocity, alpha);
     }
     // RCLCPP_INFO_STREAM(node_->get_logger(), "CGaitController::requestMove: filtered velocity: "
