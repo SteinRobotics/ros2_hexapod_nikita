@@ -97,20 +97,20 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         // LEFT_STICK -> linear movement
         // float32 left_stick_vertical   # TOP  = -1.0, DOWN = 1.0,  hangs on 0.004 -> means 0.0
         if (std::abs(msg.left_stick_vertical) > kJoystickDeadzone_) {
-            body.position.x = msg.left_stick_vertical * 0.1;
+            body.position.x = msg.left_stick_vertical * 0.08;
         }
         // float32 left_stick_horizontal # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
         if (std::abs(msg.left_stick_horizontal) > kJoystickDeadzone_) {
-            body.position.y = msg.left_stick_horizontal * 0.1;
+            body.position.y = msg.left_stick_horizontal * 0.08;
         }
         // RIGHT_STICK -> rotation
         // float32 right_stick_horizontal  # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
         if (std::abs(msg.right_stick_horizontal) > kJoystickDeadzone_) {
-            head.yaw = msg.right_stick_horizontal * 0.1;  // small rotation
+            head.yaw = msg.right_stick_horizontal * 0.08;  // small rotation
         }
         // float32 right_stick_vertical    # TOP  = -1.0, DOWN = 1.0, hangs on 0.004 -> means 0.0
         if (std::abs(msg.right_stick_vertical) > kJoystickDeadzone_) {
-            head.pitch = msg.right_stick_vertical * 0.1;  // small rotation
+            head.pitch = msg.right_stick_vertical * 0.08;  // small rotation
         }
         if (body.position.x != 0.0 || body.position.y != 0.0) {
             auto request_body = std::make_shared<RequestSinglePose>();
