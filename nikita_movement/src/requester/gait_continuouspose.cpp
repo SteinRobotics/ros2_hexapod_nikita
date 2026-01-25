@@ -15,22 +15,33 @@ void CGaitContinuousPose::start(double /*duration_s*/, uint8_t /*direction*/) {
 
     body_origin_ = kinematics_->getBody();
     head_origin_ = kinematics_->getHead();
+    body_target_ = body_origin_;
+    head_target_ = head_origin_;
 }
 
 bool CGaitContinuousPose::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& body,
                                  const COrientation& head) {
     if (state_ == EGaitState::Stopped) return false;
 
-    body_origin_ = body_origin_.linearInterpolate(body, 0.1);
-    head_origin_ = head_origin_.linearInterpolate(head, 0.1);
+    if (state_ == EGaitState::Stopping) {
+        kinematics_->moveBody(body_origin_);
+        kinematics_->setHead(head_origin_);
+        state_ = EGaitState::Stopped;
+        return true;
+    }
 
-    kinematics_->moveBody(body_origin_);
-    kinematics_->setHead(head_origin_);
+    body_target_ = body_target_.linearInterpolate(body, 0.1);
+    head_target_ = head_target_.linearInterpolate(head, 0.1);
+
+    kinematics_->moveBody(body_target_);
+    kinematics_->setHead(head_target_);
     return true;
 }
 
 void CGaitContinuousPose::requestStop() {
-    // gait is stopped automatically after completing the current cycle
+    if (state_ == EGaitState::Running) {
+        state_ = EGaitState::Stopping;
+    }
 }
 
 void CGaitContinuousPose::cancelStop() {

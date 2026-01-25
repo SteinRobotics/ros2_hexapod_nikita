@@ -36,6 +36,8 @@ class CGaitContinuousPose : public IGait {
 
     CPose body_origin_ = CPose();
     COrientation head_origin_ = COrientation();
+    CPose body_target_ = CPose();
+    COrientation head_target_ = COrientation();
 };
 
 }  // namespace nikita_movement

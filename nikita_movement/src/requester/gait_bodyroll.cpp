@@ -28,13 +28,16 @@ bool CGaitBodyRoll::update(const geometry_msgs::msg::Twist& /*velocity*/, const 
 
     // phase_ == M_PI_4 is reached when the leg is moving upwards and the normal cycle goes downwards again
     if (state_ == EGaitState::Starting && phase_ > M_PI_4) {
+        RCLCPP_INFO(node_->get_logger(), "CGaitBodyRoll change to Running.");
         state_ = EGaitState::Running;
     }
     if (state_ == EGaitState::StopPending && utils::areSinCosValuesEqual(phase_, phase_increment_)) {
+        RCLCPP_INFO(node_->get_logger(), "CGaitBodyRoll change to Stopping.");
         state_ = EGaitState::Stopping;
     }
 
     if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, phase_increment_)) {
+        RCLCPP_INFO(node_->get_logger(), "CGaitBodyRoll change to Stopped.");
         phase_ = 0.0;
         state_ = EGaitState::Stopped;
     }
