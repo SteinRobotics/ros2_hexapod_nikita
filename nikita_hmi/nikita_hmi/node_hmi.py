@@ -78,10 +78,10 @@ class NodeHmi(Node):
         # turn relay on
         self.relay_pin.value = True
 
-        self.create_subscription(Float32, 'lidar', self.callback_lidar, 10)
+        self.create_subscription(Float32, 'distance', self.callback_lidar, 10)
         self.create_subscription(Bool, 'request_servo_relay', self.callback_servo_relay, 10)
         self.create_subscription(Bool, 'request_system_shutdown', self.callback_system_shutdown, 10)
-        self.create_subscription(MovementRequest, 'actual_movement_type', self.callback_movement_type, 10)
+        self.create_subscription(MovementRequest, 'movement_type_actual', self.callback_movement_type, 10)
         self.create_subscription(ServoStatus, 'servo_status', self.callback_servo_status, 10)
         self.create_subscription(JoystickRequest, 'joystick_request', self.callback_joystick_request, 10)
         self.pub_gravity = self.create_publisher(Vector3, 'gravity', 10)
