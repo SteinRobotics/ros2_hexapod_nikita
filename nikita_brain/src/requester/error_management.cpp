@@ -72,15 +72,9 @@ double CErrorManagement::getFilteredServoVoltage() {
 
 EError CErrorManagement::getStatusVoltage(double voltage, const Parameters::VoltageGroup& thresholds) {
     if (voltage < thresholds.critical_low) {
-        RCLCPP_ERROR_STREAM(node_->get_logger(),
-                            "Servo voltage is critical low: "
-                                << to_string_with_precision(servo_voltage_filtered_, 1) + " Volt");
         return EError::VoltageCriticalLow;
     }
     if (voltage < thresholds.low) {
-        RCLCPP_ERROR_STREAM(
-            node_->get_logger(),
-            "Servo voltage is low: " << to_string_with_precision(servo_voltage_filtered_, 1) + " Volt");
         return EError::VoltageLow;
     }
     return EError::None;
