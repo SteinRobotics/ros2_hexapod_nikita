@@ -68,6 +68,13 @@ void CCoordinator::executeBehavior(const Behavior& behavior, Prio prio) {
 }
 
 void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
+    if (msg.button_long_select) {
+        RCLCPP_INFO_STREAM(node_->get_logger(), "Shutdown requested by joystick");
+        requestShutdown(Prio::High);
+        return;
+    }
+
+    // Check if joystick request matches a behavior from JSON
     auto behavior = behaviorParser_->getBehaviorForJoystickRequest(msg);
     if (behavior) {
         if (behavior->get().name == "standup") {
@@ -76,12 +83,6 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
             isStanding_ = false;
         }
         executeBehavior(behavior->get(), Prio::High);
-        return;
-    }
-
-    if (msg.button_long_select) {
-        RCLCPP_INFO_STREAM(node_->get_logger(), "Shutdown requested by joystick");
-        requestShutdown(Prio::High);
         return;
     }
 
@@ -96,21 +97,23 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     if (actualMovementType_ == MovementRequest::CONTINUOUS_POSE) {
         // LEFT_STICK -> linear movement
         // float32 left_stick_vertical   # TOP  = -1.0, DOWN = 1.0,  hangs on 0.004 -> means 0.0
+        const auto max_displacement_m = 0.05;  // meters
         if (std::abs(msg.left_stick_vertical) > kJoystickDeadzone_) {
-            body.position.x = msg.left_stick_vertical * 0.05;
+            body.position.x = msg.left_stick_vertical * max_displacement_m;
         }
         // float32 left_stick_horizontal # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
         if (std::abs(msg.left_stick_horizontal) > kJoystickDeadzone_) {
-            body.position.y = msg.left_stick_horizontal * 0.05;
+            body.position.y = msg.left_stick_horizontal * max_displacement_m;
         }
         // RIGHT_STICK -> rotation
         // float32 right_stick_horizontal  # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
+        const auto max_displacement_deg = 20.0;  // degrees
         if (std::abs(msg.right_stick_horizontal) > kJoystickDeadzone_) {
-            head.yaw = msg.right_stick_horizontal * 8.0;  // 8degrees
+            head.yaw = msg.right_stick_horizontal * max_displacement_deg;
         }
         // float32 right_stick_vertical    # TOP  = -1.0, DOWN = 1.0, hangs on 0.004 -> means 0.0
         if (std::abs(msg.right_stick_vertical) > kJoystickDeadzone_) {
-            head.pitch = msg.right_stick_vertical * 8.0;  // 8degrees
+            head.pitch = msg.right_stick_vertical * max_displacement_deg;
         }
         if (body.position.x != 0.0 || body.position.y != 0.0) {
             auto request_body = std::make_shared<RequestSinglePose>();

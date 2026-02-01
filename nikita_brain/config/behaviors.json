@@ -198,40 +198,6 @@
             "actions": [
                 {
                     "RequestTalking": "Party"
-                },
-                {
-                    "RequestMusic": "musicfox_excess_party.mp3",
-                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
-                    "RequestSinglePose": { "orientation": { "roll": 5.0, "pitch": 0.0, "yaw": 0.0 } },
-                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": 10.0 }
-                },
-                {
-                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
-                    "RequestSinglePose": { "orientation": { "roll": -5.0, "pitch": 0.0, "yaw": 0.0 } },
-                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": -5.0 }
-                },
-                {
-                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
-                    "RequestSinglePose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 } },
-                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": 10.0 }
-                },
-                {
-                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
-                    "RequestSinglePose": { "orientation": { "roll": 0.0, "pitch": 5.0, "yaw": 0.0 } },
-                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": -5.0 }
-                },
-                {
-                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
-                    "RequestSinglePose": { "orientation": { "roll": 0.0, "pitch": -5.0, "yaw": 0.0 } },
-                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": 10.0 }
-                },
-                {
-                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
-                    "RequestSinglePose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 } },
-                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": 0.0 }
-                },
-                {
-                    "RequestMusic": "STOP"
                 }
             ]
         },
@@ -248,27 +214,77 @@
                 },
                 {
                     "RequestMusic": "musicfox_hot_dogs_for_breakfast.mp3",
-                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
-                    "RequestSinglePose": { "position": { "x": 0.0, "y": 0.05, "z": 0.0 } },
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "position": { "x": 0.0, "y": 0.04, "z": 0.0 } },
                     "RequestHeadOrientation": { "yaw": 10.0, "pitch": 0.0 }
                 },
                 {
-                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
-                    "RequestSinglePose": { "position": { "x": 0.0, "y": -0.05, "z": 0.0 } },
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "position": { "x": 0.0, "y": -0.04, "z": 0.0 } },
                     "RequestHeadOrientation": { "yaw": -10.0, "pitch": 0.0 }
                 },
                 {
-                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
-                    "RequestSinglePose": { "position": { "x": 0.0, "y": 0.05, "z": 0.0 } },
-                    "RequestHeadOrientation": { "yaw": 10.0, "pitch": 0.0 }
-                },
-                {
-                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
-                    "RequestSinglePose": { "position": { "x": 0.0, "y": -0.05, "z": 0.0 } },
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "position": { "x": 0.0, "y": 0.0, "z": 0.0 } },
                     "RequestHeadOrientation": { "yaw": 0.0, "pitch": 0.0 }
                 },
                 {
-                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 2.0 },
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "orientation": { "roll": 15.0, "pitch": 0.0, "yaw": 0.0 } },
+                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": 15.0 }
+                },
+                {
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "orientation": { "roll": -15.0, "pitch": 0.0, "yaw": 0.0 } },
+                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": -15.0 }
+                },
+                {
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 } },
+                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": 0.0 }
+                },
+                {
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "position": { "x": 0.0, "y": 0.04, "z": 0.0 } },
+                    "RequestHeadOrientation": { "yaw": 10.0, "pitch": 0.0 }
+                },
+                {
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "position": { "x": 0.0, "y": -0.04, "z": 0.0 } },
+                    "RequestHeadOrientation": { "yaw": -10.0, "pitch": 0.0 }
+                },
+                {
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "position": { "x": 0.0, "y": 0.0, "z": 0.0 } },
+                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": 0.0 }
+                },
+                {
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "orientation": { "roll": 15.0, "pitch": 0.0, "yaw": 0.0 } },
+                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": 15.0 }
+                },
+                {
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "orientation": { "roll": -15.0, "pitch": 0.0, "yaw": 0.0 } },
+                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": -15.0 }
+                },
+                {
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 } },
+                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": 0.0 }
+                },
+                {
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "position": { "x": 0.0, "y": 0.04, "z": 0.0 } },
+                    "RequestHeadOrientation": { "yaw": 10.0, "pitch": 0.0 }
+                },
+                {
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
+                    "RequestSinglePose": { "position": { "x": 0.0, "y": -0.04, "z": 0.0 } },
+                    "RequestHeadOrientation": { "yaw": 0.0, "pitch": 0.0 }
+                },
+                {
+                    "RequestMovementType": { "name": "SINGLE_POSE", "duration_s": 1.5 },
                     "RequestSinglePose": { "position": { "x": 0.0, "y": 0.0, "z": 0.0 } },
                     "RequestHeadOrientation": { "yaw": 0.0, "pitch": 0.0 }
                 },

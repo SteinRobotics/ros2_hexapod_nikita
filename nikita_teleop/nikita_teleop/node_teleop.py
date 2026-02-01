@@ -85,8 +85,8 @@ class NodeTeleop(Node):
                 # Button still held, check if held long enough
                 elapsed_s = (self.get_clock().now() - press_time_tracker).nanoseconds / 1e9
                 if elapsed_s >= debounce_duration_s:
-                    # Long press detected, reset tracker to avoid repeated triggers
-                    return True, None
+                    # Long press detected, keep tracking to maintain long press state
+                    return True, press_time_tracker
                 return False, press_time_tracker
         else:
             # Button released, reset tracker

@@ -10,9 +10,9 @@ node_brain:
     joystick_deadzone: 0.04
     supply_voltage: 11.1
     supply_voltage_low: 10.5
-    supply_voltage_critical_low: 10.0
+    supply_voltage_critical_low: 10.1
     servo_voltage: 11.1
     servo_voltage_low: 10.5
-    servo_voltage_critical_low: 10.0
+    servo_voltage_critical_low: 10.1
     servo_temperature_high: 70.0
     servo_temperature_critical_high: 75.0

@@ -30,8 +30,8 @@ bool CGaitContinuousPose::update(const geometry_msgs::msg::Twist& /*velocity*/, 
         return true;
     }
 
-    body_target_ = body_target_.linearInterpolate(body, 0.1);
-    head_target_ = head_target_.linearInterpolate(head, 0.1);
+    body_target_ = body_target_.linearInterpolate(body, 0.2);
+    head_target_ = head_target_.linearInterpolate(head, 0.5);
 
     kinematics_->moveBody(body_target_);
     kinematics_->setHead(head_target_);

@@ -14,6 +14,12 @@ network:
           auth:
             key-management: "psk"
             password: "YYYYYYYYYYYYY"
+        "InnoWorX_1":
+          password: "AAAAAA"
+        "ChristianHotspot":
+          password: "AAAAAA"
+
+
 __
 
 sudo apt update
