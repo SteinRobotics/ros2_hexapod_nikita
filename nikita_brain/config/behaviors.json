@@ -198,6 +198,9 @@
             "actions": [
                 {
                     "RequestTalking": "Party"
+                },
+                {
+                    "RequestMusic": "musicfox_excess_party.mp3"
                 }
             ]
         },
