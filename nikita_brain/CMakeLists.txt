@@ -39,30 +39,52 @@ target_include_directories(nikita_brain_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-ament_target_dependencies(nikita_brain_lib rclcpp ament_index_cpp nikita_interfaces nikita_utils nlohmann_json)
+target_link_libraries(nikita_brain_lib PUBLIC
+  rclcpp::rclcpp
+  ament_index_cpp::ament_index_cpp
+  ${nikita_interfaces_TARGETS}
+  ${nikita_utils_TARGETS}
+  nlohmann_json::nlohmann_json
+)
 
 add_executable(node_brain
   src/node_brain.cpp
 )
-target_link_libraries(node_brain nikita_brain_lib)
+target_link_libraries(node_brain PRIVATE
+  nikita_brain_lib
+  rclcpp::rclcpp
+  ${std_msgs_TARGETS}
+  ${geometry_msgs_TARGETS}
+  ${std_srvs_TARGETS}
+  ament_index_cpp::ament_index_cpp
+  ${nikita_interfaces_TARGETS}
+  nlohmann_json::nlohmann_json
+)
 target_include_directories(node_brain PRIVATE include)
-ament_target_dependencies(node_brain rclcpp std_msgs geometry_msgs std_srvs ament_index_cpp nikita_interfaces nlohmann_json)
 
 # Test executable for behavior parser
 add_executable(test_behavior_parser
   test/test_behavior_parser.cpp
 )
-target_link_libraries(test_behavior_parser nikita_brain_lib)
+target_link_libraries(test_behavior_parser PRIVATE
+  nikita_brain_lib
+  rclcpp::rclcpp
+  ${nikita_interfaces_TARGETS}
+  nlohmann_json::nlohmann_json
+)
 target_include_directories(test_behavior_parser PRIVATE include)
-ament_target_dependencies(test_behavior_parser rclcpp nikita_interfaces nlohmann_json)
 
 # Test executable for coordinator with behaviors
 add_executable(test_coordinator_behaviors
   test/test_coordinator_behaviors.cpp
 )
-target_link_libraries(test_coordinator_behaviors nikita_brain_lib)
+target_link_libraries(test_coordinator_behaviors PRIVATE
+  nikita_brain_lib
+  rclcpp::rclcpp
+  ${nikita_interfaces_TARGETS}
+  nlohmann_json::nlohmann_json
+)
 target_include_directories(test_coordinator_behaviors PRIVATE include)
-ament_target_dependencies(test_coordinator_behaviors rclcpp nikita_interfaces nlohmann_json)
 
 include_directories(
   include/nikita_brain/
@@ -84,18 +106,16 @@ if(BUILD_TESTING)
     test/test_text_interpreter.cpp
   )
   if(TARGET test_text_interpreter)
-    ament_target_dependencies(test_text_interpreter rclcpp ament_index_cpp nikita_interfaces nlohmann_json)
     target_include_directories(test_text_interpreter PRIVATE include)
-    target_link_libraries(test_text_interpreter nikita_brain_lib)
+    target_link_libraries(test_text_interpreter nikita_brain_lib rclcpp::rclcpp ament_index_cpp::ament_index_cpp ${nikita_interfaces_TARGETS} nlohmann_json::nlohmann_json)
   endif()
 
   ament_add_gtest(test_error_management
     test/test_error_management.cpp
   )
   if(TARGET test_error_management)
-    ament_target_dependencies(test_error_management rclcpp nikita_interfaces nikita_utils)
     target_include_directories(test_error_management PRIVATE include)
-    target_link_libraries(test_error_management nikita_brain_lib)
+    target_link_libraries(test_error_management nikita_brain_lib rclcpp::rclcpp ${nikita_interfaces_TARGETS} ${nikita_utils_TARGETS})
   endif()
 
 

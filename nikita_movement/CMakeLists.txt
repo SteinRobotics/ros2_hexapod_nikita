@@ -53,17 +53,27 @@ add_library(nikita_movement_core
   ${SOURCES}
 )
 target_include_directories(nikita_movement_core PUBLIC include/nikita_movement include/nikita_movement/requester)
-ament_target_dependencies(nikita_movement_core rclcpp std_msgs geometry_msgs std_srvs ament_index_cpp nikita_utils nikita_interfaces)
-ament_target_dependencies(nikita_movement_core sensor_msgs)
-target_link_libraries(nikita_movement_core yaml-cpp::yaml-cpp magic_enum::magic_enum)
+target_link_libraries(nikita_movement_core PUBLIC
+  rclcpp::rclcpp
+  ${std_msgs_TARGETS}
+  ${geometry_msgs_TARGETS}
+  ${std_srvs_TARGETS}
+  ${sensor_msgs_TARGETS}
+  ament_index_cpp::ament_index_cpp
+  ${nikita_interfaces_TARGETS}
+  ${nikita_utils_TARGETS}
+  yaml-cpp::yaml-cpp
+  magic_enum::magic_enum
+)
 
 add_executable(node_movement
   src/node_movement.cpp
 )
-target_link_libraries(node_movement
+target_link_libraries(node_movement PRIVATE
   nikita_movement_core
+  rclcpp::rclcpp
+  ${nikita_utils_TARGETS}
 )
-ament_target_dependencies(node_movement rclcpp nikita_utils)
 
 include_directories(
   include/nikita_movement/
@@ -85,82 +95,72 @@ if(BUILD_TESTING)
     test/test_kinematics.cpp
   )
   if(TARGET test_kinematics)
-    ament_target_dependencies(test_kinematics rclcpp ament_index_cpp nikita_interfaces)
     target_include_directories(test_kinematics PRIVATE include)
-    target_link_libraries(test_kinematics nikita_movement_core)
+    target_link_libraries(test_kinematics nikita_movement_core rclcpp::rclcpp ament_index_cpp::ament_index_cpp ${nikita_interfaces_TARGETS})
   endif()
 
   ament_add_gtest(test_requester
     test/test_requester.cpp
   )
   if(TARGET test_requester)
-    ament_target_dependencies(test_requester rclcpp nikita_interfaces ament_index_cpp)
-    target_link_libraries(test_requester nikita_movement_core)
+    target_link_libraries(test_requester nikita_movement_core rclcpp::rclcpp ${nikita_interfaces_TARGETS} ament_index_cpp::ament_index_cpp)
   endif()
 
   ament_add_gtest(test_gait_bodyroll
     test/test_gait_bodyroll.cpp
   )
   if(TARGET test_gait_bodyroll)
-    ament_target_dependencies(test_gait_bodyroll rclcpp nikita_interfaces ament_index_cpp)
-    target_link_libraries(test_gait_bodyroll nikita_movement_core)
+    target_link_libraries(test_gait_bodyroll nikita_movement_core rclcpp::rclcpp ${nikita_interfaces_TARGETS} ament_index_cpp::ament_index_cpp)
   endif()
 
   ament_add_gtest(test_gait_laydown
     test/test_gait_laydown.cpp
   )
   if(TARGET test_gait_laydown)
-    ament_target_dependencies(test_gait_laydown rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
-    target_link_libraries(test_gait_laydown nikita_movement_core)
+    target_link_libraries(test_gait_laydown nikita_movement_core rclcpp::rclcpp ${nikita_interfaces_TARGETS} ament_index_cpp::ament_index_cpp ${geometry_msgs_TARGETS})
   endif()
 
   ament_add_gtest(test_gait_standup
     test/test_gait_standup.cpp
   )
   if(TARGET test_gait_standup)
-    ament_target_dependencies(test_gait_standup rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
-    target_link_libraries(test_gait_standup nikita_movement_core)
+    target_link_libraries(test_gait_standup nikita_movement_core rclcpp::rclcpp ${nikita_interfaces_TARGETS} ament_index_cpp::ament_index_cpp ${geometry_msgs_TARGETS})
   endif()
 
   ament_add_gtest(test_gait_highfive
     test/test_gait_highfive.cpp
   )
   if(TARGET test_gait_highfive)
-    ament_target_dependencies(test_gait_highfive rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
-    target_link_libraries(test_gait_highfive nikita_movement_core)
+    target_link_libraries(test_gait_highfive nikita_movement_core rclcpp::rclcpp ${nikita_interfaces_TARGETS} ament_index_cpp::ament_index_cpp ${geometry_msgs_TARGETS})
   endif()
 
   ament_add_gtest(test_gait_clap
     test/test_gait_clap.cpp
   )
   if(TARGET test_gait_clap)
-    ament_target_dependencies(test_gait_clap rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
-    target_link_libraries(test_gait_clap nikita_movement_core)
+    target_link_libraries(test_gait_clap nikita_movement_core rclcpp::rclcpp ${nikita_interfaces_TARGETS} ament_index_cpp::ament_index_cpp ${geometry_msgs_TARGETS})
   endif()
 
   ament_add_gtest(test_leg_servo_conversion
     test/test_leg_servo_conversion.cpp
   )
   if(TARGET test_leg_servo_conversion)
-    ament_target_dependencies(test_leg_servo_conversion rclcpp nikita_interfaces)
     target_include_directories(test_leg_servo_conversion PRIVATE include)
-    target_link_libraries(test_leg_servo_conversion nikita_movement_core)
+    target_link_libraries(test_leg_servo_conversion nikita_movement_core rclcpp::rclcpp ${nikita_interfaces_TARGETS})
   endif()
 
   ament_add_gtest(test_gait_legwave
     test/test_gait_legwave.cpp
   )
   if(TARGET test_gait_legwave)
-    ament_target_dependencies(test_gait_legwave rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
-    target_link_libraries(test_gait_legwave nikita_movement_core)
+    target_link_libraries(test_gait_legwave nikita_movement_core rclcpp::rclcpp ${nikita_interfaces_TARGETS} ament_index_cpp::ament_index_cpp ${geometry_msgs_TARGETS})
   endif()
 
   ament_add_gtest(test_gait_controller
     test/test_gait_controller.cpp
   )
   if(TARGET test_gait_controller)
-    ament_target_dependencies(test_gait_controller rclcpp nikita_interfaces ament_index_cpp geometry_msgs)
-    target_link_libraries(test_gait_controller nikita_movement_core)
+    target_link_libraries(test_gait_controller nikita_movement_core rclcpp::rclcpp ${nikita_interfaces_TARGETS} ament_index_cpp::ament_index_cpp ${geometry_msgs_TARGETS})
   endif()
 
 
