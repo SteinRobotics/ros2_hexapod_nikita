@@ -29,10 +29,6 @@ class CTextInterpreter {
     bool isWordIn(const CWord& word, const std::vector<CWord>& words);
     bool isIndexIn(const uint32_t index, const std::vector<uint32_t>& list);
     void readInterpretation();
-    bool isInt(const std::string& str);
-    bool isFloat(const std::string& str);
-    bool isGermanFloat(const std::string& str);
-
     std::shared_ptr<rclcpp::Node> node_;
     std::unordered_map<std::string, CWord> vocabulary_;
     std::unordered_map<std::string, CInterpretation> interpretations_;

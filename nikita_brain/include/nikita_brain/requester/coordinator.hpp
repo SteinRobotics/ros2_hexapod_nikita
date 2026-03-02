@@ -53,8 +53,7 @@ class CCoordinator : public IRequester {
     void requestReactionOnError(std::string text, bool switchServoRelayOff, bool isShutdownRequested,
                                 Prio prio = Prio::Normal);
     void requestNotFound(std::string textRecognized, Prio prio = Prio::Normal);
-    void requestDefault(Prio prio = Prio::Normal);
-    void requestStopMoveBody(Prio prio = Prio::Normal);
+
     void requestTellSupplyVoltage(Prio prio = Prio::Normal);
     void requestTellServoVoltage(Prio prio = Prio::Normal);
     void requestTellServoTemperature(Prio prio = Prio::Normal);

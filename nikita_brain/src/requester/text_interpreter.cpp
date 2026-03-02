@@ -183,17 +183,4 @@ bool CTextInterpreter::lettersIdentified(const std::string& letters, const std::
     return isWordIn(word, words);
 }
 
-/// helper functions to check if a string is an integer, float or german float
-bool CTextInterpreter::isInt(const std::string& str) {
-    return str.find_first_not_of("-0123456789") == std::string::npos;
-}
-
-bool CTextInterpreter::isFloat(const std::string& str) {
-    return str.find_first_not_of("-0123456789.") == std::string::npos;
-}
-
-bool CTextInterpreter::isGermanFloat(const std::string& str) {
-    return str.find_first_not_of("-0123456789,") == std::string::npos;
-}
-
 }  // namespace brain

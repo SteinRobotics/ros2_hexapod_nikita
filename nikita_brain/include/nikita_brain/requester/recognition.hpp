@@ -31,8 +31,6 @@ class CRecognition {
     void onServoStatus(const nikita_interfaces::msg::ServoStatus& msg) const;
     void onMovementTypeActual(const nikita_interfaces::msg::MovementRequest& msg) const;
 
-    void update();
-
    private:
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr subSpeechRecognition_;
     rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr subSupplyVoltage_;

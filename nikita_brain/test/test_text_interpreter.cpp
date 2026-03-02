@@ -29,13 +29,13 @@ class TextInterpreterTest : public ::testing::Test {
     std::unique_ptr<CTextInterpreter> interpreter_;
 };
 
-TEST_F(TextInterpreterTest, CommandTurnHead) {
+TEST_F(TextInterpreterTest, CommandLookLeft) {
     std::string text = "sieh nach links";
     auto words = interpreter_->parseText(text);
     EXPECT_EQ(words.size(), 3u);
 
     std::string command = interpreter_->searchInterpretation(words);
-    EXPECT_EQ(command, "commandTurnHead");
+    EXPECT_EQ(command, "commandLookLeft");
 }
 
 TEST_F(TextInterpreterTest, CommandWatch) {

@@ -33,6 +33,7 @@ class CErrorManagement {
     }
     double getFilteredSupplyVoltage();
     double getFilteredServoVoltage();
+    double getFilteredServoTemperature();
 
    private:
     struct Parameters {
@@ -62,6 +63,7 @@ class CErrorManagement {
     Parameters parameters_;
     double supply_voltage_filtered_ = 0.0;
     double servo_voltage_filtered_ = 0.0;
+    double servo_temperature_filtered_ = 0.0;
 };
 
 }  // namespace brain

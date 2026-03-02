@@ -440,8 +440,8 @@ void CCoordinator::requestTellServoVoltage(Prio prio) {
 }
 
 void CCoordinator::requestTellServoTemperature(Prio prio) {
-    std::string text = "Die Servo Spannung ist aktuell " +
-                       to_string_with_precision(errorManagement_->getFilteredServoVoltage(), 1) + " Volt";
+    std::string text = "Die Servo Temperatur ist aktuell " +
+                       to_string_with_precision(errorManagement_->getFilteredServoTemperature(), 0) + " Grad";
     auto request = std::make_shared<RequestTalking>();
     request->text = text;
     submitRequest(request, prio);

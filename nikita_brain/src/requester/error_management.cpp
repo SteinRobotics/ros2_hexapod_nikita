@@ -44,6 +44,8 @@ EError CErrorManagement::getErrorServo(const ServoStatus& msg) {
 
 // private methods:
 EError CErrorManagement::getStatusServoTemperature(const ServoStatus& msg) {
+    servo_temperature_filtered_ =
+        utils::lowPassFilter(servo_temperature_filtered_, static_cast<double>(msg.max_temperature), 0.2);
     if (msg.max_temperature > parameters_.servo_temperature.critical_high) {
         RCLCPP_ERROR_STREAM(node_->get_logger(), "Servo temperature of "
                                                      << msg.servo_max_temperature << " is critical: "
@@ -68,6 +70,10 @@ double CErrorManagement::getFilteredSupplyVoltage() {
 
 double CErrorManagement::getFilteredServoVoltage() {
     return servo_voltage_filtered_;
+}
+
+double CErrorManagement::getFilteredServoTemperature() {
+    return servo_temperature_filtered_;
 }
 
 EError CErrorManagement::getStatusVoltage(double voltage, const Parameters::VoltageGroup& thresholds) {
