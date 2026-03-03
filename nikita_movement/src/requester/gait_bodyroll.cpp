@@ -34,9 +34,7 @@ bool CGaitBodyRoll::update(const geometry_msgs::msg::Twist& /*velocity*/, const 
     if (state_ == EGaitState::StopPending && utils::areSinCosValuesEqual(phase_, phase_increment_)) {
         RCLCPP_INFO(node_->get_logger(), "CGaitBodyRoll change to Stopping.");
         state_ = EGaitState::Stopping;
-    }
-
-    if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, phase_increment_)) {
+    } else if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, phase_increment_)) {
         RCLCPP_INFO(node_->get_logger(), "CGaitBodyRoll change to Stopped.");
         phase_ = 0.0;
         state_ = EGaitState::Stopped;

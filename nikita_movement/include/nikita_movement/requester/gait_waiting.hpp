@@ -36,8 +36,6 @@ class CWaitingGait : public IGait {
 
     EGaitState state_ = EGaitState::Stopped;
 
-    double kLegLiftHeight_ = double(0);
-
     double phase_ = double(0);
 };
 

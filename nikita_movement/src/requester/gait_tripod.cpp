@@ -80,13 +80,13 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
         RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopping state, phase_: %.2f",
                     phase_);
         state_ = EGaitState::Stopping;
-        is_first_tripod_tiggered_stopping_ = true;
+        is_first_tripod_triggered_stopping_ = true;
     }
     if (state_ == EGaitState::StopPending && utils::isValueNear((3.0 / 4.0) * M_PI, phase_, delta_phase)) {
         RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopping state, phase_: %.2f",
                     phase_);
         state_ = EGaitState::Stopping;
-        is_first_tripod_tiggered_stopping_ = false;
+        is_first_tripod_triggered_stopping_ = false;
     }
     if (state_ == EGaitState::Stopping && utils::isSinValueNearZero(phase_, delta_phase)) {
         RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: Transitioning to Stopped state, phase_: %.2f",
@@ -122,10 +122,10 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
         if (state_ == EGaitState::Starting && is_first_tripod_active) {
             lift = lift_following_sin;
         } else if (state_ == EGaitState::Stopping && is_first_tripod_active &&
-                   is_first_tripod_tiggered_stopping_) {
+                   is_first_tripod_triggered_stopping_) {
             lift = lift_following_sin;
         } else if (state_ == EGaitState::Stopping && !is_first_tripod_active &&
-                   !is_first_tripod_tiggered_stopping_) {
+                   !is_first_tripod_triggered_stopping_) {
             lift = lift_following_sin;
         }
 

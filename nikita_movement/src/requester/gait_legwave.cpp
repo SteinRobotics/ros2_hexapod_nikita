@@ -42,12 +42,12 @@ bool CGaitLegWave::update(const geometry_msgs::msg::Twist& velocity, const CPose
         kinematics_->setSingleFeet(active_leg_index_, base_foot_pos.at(active_leg_index_));
 
         // advance to the next leg
-        int forward = true;
+        size_t step = 1;
         if (velocity.linear.x < 0.0) {
-            forward = false;
+            step = leg_order_.size() - 1;
         }
         active_leg_index_ = leg_order_[(std::find(leg_order_.begin(), leg_order_.end(), active_leg_index_) -
-                                        leg_order_.begin() + (1 * forward)) %
+                                        leg_order_.begin() + step) %
                                        leg_order_.size()];
         phase_ = 0.0;
     }

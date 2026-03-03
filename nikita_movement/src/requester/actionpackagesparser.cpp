@@ -229,14 +229,14 @@ void CActionPackagesParser::parseYamlStep(const YAML::Node& step,
     action_package.push_back(action);
 }
 
-std::vector<CActionPackage>& CActionPackagesParser::getRequests(const std::string& packageName) {
+const std::vector<CActionPackage>& CActionPackagesParser::getRequests(const std::string& packageName) {
     if (actionPackages_.find(packageName) != actionPackages_.end()) {
         auto& vec = actionPackages_.at(packageName);
         // No diagnostic logging here to keep test output clean
         return vec;
     } else {
         RCLCPP_ERROR_STREAM(node_->get_logger(), "Action package not found: " << packageName);
-        static std::vector<CActionPackage> empty_vector;
+        static const std::vector<CActionPackage> empty_vector;
         return empty_vector;
     }
 }

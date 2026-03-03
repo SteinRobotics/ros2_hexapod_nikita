@@ -24,7 +24,7 @@ namespace nikita_movement {
 
 class CServo {
    public:
-    CServo(const std::string name, uint8_t serial_id, bool orientation_clockwise, double offset_degree,
+    CServo(const std::string& name, uint8_t serial_id, bool orientation_clockwise, double offset_degree,
            double adaptation)
         : name_(name),
           serial_id_(serial_id),
@@ -34,7 +34,7 @@ class CServo {
     }
 
     CServo() = default;
-    virtual ~CServo() = default;
+    ~CServo() = default;
 
     std::string getName() const {
         return name_;
@@ -93,10 +93,10 @@ class CServo {
 
    private:
     std::string name_;
-    uint8_t serial_id_;
-    bool orientation_clockwise_;
-    double offset_degree_;
-    double adaptation_;
+    uint8_t serial_id_ = 0;
+    bool orientation_clockwise_ = true;
+    double offset_degree_ = 0.0;
+    double adaptation_ = 0.0;
     double voltage_ = 12.0;
     double angle_ = 0.0;
     int error_code_ = nikita_interfaces::msg::ServoStatus::NO_ERROR;

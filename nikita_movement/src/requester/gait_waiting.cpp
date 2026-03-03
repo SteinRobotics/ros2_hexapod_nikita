@@ -30,7 +30,6 @@ bool CWaitingGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const C
 
     const auto base_foot_pos = kinematics_->getLegsStandingPositions();
     auto body_target = CPose();
-    ;
 
     constexpr double kBodyLiftHeight = 0.05;                      // 5 cm body lift for visual effect
     body_target.position.z = kBodyLiftHeight * std::sin(phase_);  // Small body bounce for visual effect

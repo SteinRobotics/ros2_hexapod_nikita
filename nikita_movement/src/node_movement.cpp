@@ -22,8 +22,8 @@ int main(int argc, char** argv) {
         std::chrono::duration<double>(1.0 / REFRESH_RATE_HZ));
 
     while (rclcpp::ok()) {
-        requester->update(timeslice_ms);
         rclcpp::spin_some(node);
+        requester->update(timeslice_ms);
         loop_rate.sleep();
     }
     return 0;

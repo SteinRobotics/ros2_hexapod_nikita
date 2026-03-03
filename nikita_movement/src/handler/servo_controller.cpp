@@ -149,7 +149,9 @@ void CServoController::initServos() {
         initialAnglesCallback_(initial_leg_angles_deg);
     }
 
-    pubAngles_->publish(msg_angles);
+    if (pubAngles_) {
+        pubAngles_->publish(msg_angles);
+    }
 
     timer_ = node_->create_wall_timer(100ms, std::bind(&CServoController::onTimerStatus, this));
 }
@@ -168,10 +170,11 @@ int CServoController::angle_to_ticks(double angle, int idx) {
     if (!servos_.at(idx).isOrientationClockwise()) {
         angle = -angle;
     }
-    return static_cast<int>(((angle + 120.0) / 6.0) * 25.0);
+    return static_cast<int>(angle * 25.0 / 6.0 + 500.0);
 }
 
 void CServoController::onTimerStatus() {
+    if (servos_.empty()) return;
     // RCLCPP_INFO_STREAM(node_->get_logger(), "onTimerStatus: " << uint32_t(cycleCounter_));
     CServo& servo = servos_.at(cycleCounter_);
 
@@ -230,15 +233,20 @@ void CServoController::onTimerStatus() {
 void CServoController::requestAngles(const std::map<uint32_t, double>& targetAngles,
                                      const double duration_s) {
     for (const auto& [idx, targetAngle] : targetAngles) {
-        double diff = std::abs(servos_.at(idx).getAngle() - targetAngle);
+        auto it = servos_.find(idx);
+        if (it == servos_.end()) {
+            RCLCPP_WARN_ONCE(node_->get_logger(), "requestAngles: unknown servo index %u", idx);
+            continue;
+        }
+        double diff = std::abs(it->second.getAngle() - targetAngle);
         if (diff < 0.49) continue;
 
         // max speed is 3ms for 1° (0.18s for 60°)
         int duration = std::max(static_cast<int>(diff * 3), static_cast<int>(duration_s * 1000.0));
-        servos_.at(idx).setAngle(targetAngle);
+        it->second.setAngle(targetAngle);
 
         int ticks = angle_to_ticks(targetAngle, idx);
-        protocol_->setRegPos(servos_.at(idx).getSerialID(), ticks, duration);
+        protocol_->setRegPos(it->second.getSerialID(), ticks, duration);
     }
     protocol_->actionStart();
 }

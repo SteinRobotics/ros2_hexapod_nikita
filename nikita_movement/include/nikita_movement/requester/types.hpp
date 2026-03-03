@@ -38,7 +38,7 @@ class CPosition {
    public:
     CPosition() = default;
     CPosition(double x, double y, double z) : x(x), y(y), z(z) {};
-    virtual ~CPosition() = default;
+    ~CPosition() = default;
     CPosition operator+(const CPosition& rhs) const {
         return {x + rhs.x, y + rhs.y, z + rhs.z};
     }
@@ -76,7 +76,7 @@ class COrientation {
     COrientation(const nikita_interfaces::msg::Orientation& orientation)
         : roll_deg(orientation.roll), pitch_deg(orientation.pitch), yaw_deg(orientation.yaw) {};
 
-    virtual ~COrientation() = default;
+    ~COrientation() = default;
 
     bool operator==(const COrientation& rhs) const {
         return roll_deg == rhs.roll_deg && pitch_deg == rhs.pitch_deg && yaw_deg == rhs.yaw_deg;
@@ -108,7 +108,7 @@ class CPose {
         : position(pose.position.x, pose.position.y, pose.position.z),
           orientation(pose.orientation.roll, pose.orientation.pitch, pose.orientation.yaw) {};
 
-    virtual ~CPose() = default;
+    ~CPose() = default;
 
     bool operator==(const CPose& rhs) const {
         return position == rhs.position && orientation == rhs.orientation;
@@ -138,7 +138,7 @@ class CLegAngles {
     CLegAngles(double coxa_deg, double femur_deg, double tibia_deg)
         : coxa_deg(coxa_deg), femur_deg(femur_deg), tibia_deg(tibia_deg) {};
     CLegAngles() = default;
-    virtual ~CLegAngles() = default;
+    ~CLegAngles() = default;
 
     double coxa_deg = double(0);
     double femur_deg = double(0);

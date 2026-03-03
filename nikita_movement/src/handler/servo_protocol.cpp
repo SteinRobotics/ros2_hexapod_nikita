@@ -13,11 +13,11 @@
 #include <iostream>
 #include <string>
 
-#define SERIAL_DEBUG false
-
 namespace nikita_movement {
 
-CServoProtocol::CServoProtocol(std::shared_ptr<rclcpp::Node> node, std::string deviceName)
+static constexpr bool SERIAL_DEBUG = false;
+
+CServoProtocol::CServoProtocol(std::shared_ptr<rclcpp::Node> node, const std::string& deviceName)
     : node_(node), deviceName_(deviceName) {
 }
 
@@ -28,7 +28,7 @@ bool CServoProtocol::triggerConnection() {
 
     // Open device
     device_ = open(deviceName_.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
-    if (device_ == -1) return -2;
+    if (device_ == -1) return false;
 
     // Optional: switch to blocking mode
     fcntl(device_, F_SETFL, 0);
@@ -83,7 +83,8 @@ void CServoProtocol::closeConnection() {
 }
 
 bool CServoProtocol::writeToServo(uint8_t buf[], int numBytes) {
-    if (!write(device_, buf, numBytes)) {
+    ssize_t written = write(device_, buf, numBytes);
+    if (written < 0 || written != numBytes) {
         return false;
     }
     if (SERIAL_DEBUG) {
@@ -172,10 +173,10 @@ bool CServoProtocol::setPosition(uint8_t ID, uint16_t pos, uint16_t time) {
     buf[2] = ID;
     buf[3] = s_SERVO_MOVE_TIME_WRITE;
     buf[4] = SERVO_MOVE_TIME_WRITE;
-    buf[5] = GET_LOW_BYTE(pos);
-    buf[6] = GET_HIGH_BYTE(pos);
-    buf[7] = GET_LOW_BYTE(time);
-    buf[8] = GET_HIGH_BYTE(time);
+    buf[5] = getLowByte(pos);
+    buf[6] = getHighByte(pos);
+    buf[7] = getLowByte(time);
+    buf[8] = getHighByte(time);
     buf[9] = checksum(buf);
 
     return writeToServo(buf, sizeof(buf));
@@ -191,10 +192,10 @@ bool CServoProtocol::setRegPos(uint8_t ID, uint16_t pos, uint16_t time) {
     buf[2] = ID;
     buf[3] = s_SERVO_MOVE_TIME_WAIT_WRITE;
     buf[4] = SERVO_MOVE_TIME_WAIT_WRITE;
-    buf[5] = GET_LOW_BYTE(pos);
-    buf[6] = GET_HIGH_BYTE(pos);
-    buf[7] = GET_LOW_BYTE(time);
-    buf[8] = GET_HIGH_BYTE(time);
+    buf[5] = getLowByte(pos);
+    buf[6] = getHighByte(pos);
+    buf[7] = getLowByte(time);
+    buf[8] = getHighByte(time);
     buf[9] = checksum(buf);
 
     return writeToServo(buf, sizeof(buf));
@@ -229,11 +230,13 @@ bool CServoProtocol::getPositionOffset(uint8_t ID, int8_t& deviation) {
     uint8_t RX_buf[s_SERVO_ANGLE_OFFSET_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
     // The deviation is stored as an unsigned byte (0..255), but represents a signed value (-128..+127)
-    uint8_t raw = RX_buf[5];
-    if (raw > 127) {
-        deviation = static_cast<int8_t>(raw) - 127;
-    } else {
-        deviation = static_cast<int8_t>(raw);
+    if (syntax_check) {
+        uint8_t raw = RX_buf[5];
+        if (raw > 127) {
+            deviation = static_cast<int8_t>(raw) - 127;
+        } else {
+            deviation = static_cast<int8_t>(raw);
+        }
     }
     return syntax_check;
 }
@@ -275,8 +278,8 @@ bool CServoProtocol::getPositionLimits(uint8_t ID, uint16_t& min_position, uint1
     uint8_t RX_buf[s_SERVO_ANGLE_LIMITS_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
     if (syntax_check) {
-        min_position = BYTE_TO_HW(RX_buf[6], RX_buf[5]);
-        max_position = BYTE_TO_HW(RX_buf[8], RX_buf[7]);
+        min_position = byteToHW(RX_buf[6], RX_buf[5]);
+        max_position = byteToHW(RX_buf[8], RX_buf[7]);
     }
     return syntax_check;
 }
@@ -291,10 +294,10 @@ bool CServoProtocol::setPositionLimits(uint8_t ID, uint16_t min_position, uint16
     buf[2] = ID;
     buf[3] = s_SERVO_ANGLE_LIMITS_WRITE;
     buf[4] = SERVO_ANGLE_LIMITS_WRITE;
-    buf[5] = GET_LOW_BYTE(min_position);
-    buf[6] = GET_HIGH_BYTE(min_position);
-    buf[7] = GET_LOW_BYTE(max_position);
-    buf[8] = GET_HIGH_BYTE(max_position);
+    buf[5] = getLowByte(min_position);
+    buf[6] = getHighByte(min_position);
+    buf[7] = getLowByte(max_position);
+    buf[8] = getHighByte(max_position);
     buf[9] = checksum(buf);
 
     return writeToServo(buf, sizeof(buf));
@@ -321,7 +324,9 @@ bool CServoProtocol::getPosition(uint8_t ID, int16_t& pos) {
     uint8_t CMD_opcode = SERVO_POS_READ;
     uint8_t RX_buf[s_SERVO_POS_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
-    pos = BYTE_TO_HW(RX_buf[6], RX_buf[5]);
+    if (syntax_check) {
+        pos = byteToHW(RX_buf[6], RX_buf[5]);
+    }
     return syntax_check;
 }
 
@@ -329,7 +334,9 @@ bool CServoProtocol::getVoltage(uint8_t ID, uint16_t& vin) {
     uint8_t CMD_opcode = SERVO_VIN_READ;
     uint8_t RX_buf[s_SERVO_VIN_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
-    vin = BYTE_TO_HW(RX_buf[6], RX_buf[5]);
+    if (syntax_check) {
+        vin = byteToHW(RX_buf[6], RX_buf[5]);
+    }
     return syntax_check;
 }
 
@@ -338,8 +345,8 @@ bool CServoProtocol::getVoltageLimits(uint8_t ID, uint16_t& min_voltage, uint16_
     uint8_t RX_buf[s_SERVO_VIN_LIMITS_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
     if (syntax_check) {
-        min_voltage = BYTE_TO_HW(RX_buf[6], RX_buf[5]);
-        max_voltage = BYTE_TO_HW(RX_buf[8], RX_buf[7]);
+        min_voltage = byteToHW(RX_buf[6], RX_buf[5]);
+        max_voltage = byteToHW(RX_buf[8], RX_buf[7]);
     }
     return syntax_check;
 }
@@ -354,10 +361,10 @@ bool CServoProtocol::setVoltageLimits(uint8_t ID, uint16_t min_voltage, uint16_t
     buf[2] = ID;
     buf[3] = s_SERVO_VIN_LIMITS_WRITE;
     buf[4] = SERVO_VIN_LIMITS_WRITE;
-    buf[5] = GET_LOW_BYTE(min_voltage);
-    buf[6] = GET_HIGH_BYTE(min_voltage);
-    buf[7] = GET_LOW_BYTE(max_voltage);
-    buf[8] = GET_HIGH_BYTE(max_voltage);
+    buf[5] = getLowByte(min_voltage);
+    buf[6] = getHighByte(min_voltage);
+    buf[7] = getLowByte(max_voltage);
+    buf[8] = getHighByte(max_voltage);
     buf[9] = checksum(buf);
 
     return writeToServo(buf, sizeof(buf));
@@ -367,7 +374,9 @@ bool CServoProtocol::getTemperature(uint8_t ID, uint8_t& temp) {
     uint8_t CMD_opcode = SERVO_TEMP_READ;
     uint8_t RX_buf[s_SERVO_TEMP_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
-    temp = RX_buf[5];
+    if (syntax_check) {
+        temp = RX_buf[5];
+    }
     return syntax_check;
 }
 
@@ -375,7 +384,9 @@ bool CServoProtocol::getMaxTemperatureLimit(uint8_t ID, uint8_t& max_temperature
     uint8_t CMD_opcode = SERVO_TEMP_LIMIT_READ;
     uint8_t RX_buf[s_SERVO_TEMP_LIMIT_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
-    max_temperature = RX_buf[5];
+    if (syntax_check) {
+        max_temperature = RX_buf[5];
+    }
     return syntax_check;
 }
 
@@ -398,7 +409,9 @@ bool CServoProtocol::getLedErrcode(uint8_t ID, uint8_t& lederrcode) {
     uint8_t CMD_opcode = SERVO_LED_ERROR_READ;
     uint8_t RX_buf[s_SERVO_LED_ERROR_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
-    lederrcode = RX_buf[5];
+    if (syntax_check) {
+        lederrcode = RX_buf[5];
+    }
     return syntax_check;
 }
 
@@ -447,8 +460,8 @@ bool CServoProtocol::setMotorMode(uint8_t ID, int16_t speed) {
     buf[3] = s_SERVO_MODE_WRITE;
     buf[4] = SERVO_OR_MOTOR_MODE_WRITE;
     buf[5] = 1;  // Mode 1 for motor
-    buf[6] = GET_LOW_BYTE(speed);
-    buf[7] = GET_HIGH_BYTE(speed);
+    buf[6] = getLowByte(speed);
+    buf[7] = getHighByte(speed);
     buf[8] = checksum(buf);
 
     return writeToServo(buf, sizeof(buf));

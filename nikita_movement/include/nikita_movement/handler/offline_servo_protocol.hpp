@@ -15,7 +15,7 @@ namespace nikita_movement {
 
 class COfflineServoProtocol : public CServoProtocol {
    public:
-    COfflineServoProtocol(std::shared_ptr<rclcpp::Node> node, const std::string port)
+    COfflineServoProtocol(std::shared_ptr<rclcpp::Node> node, const std::string& port)
         : CServoProtocol(node, port) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "COfflineServoProtocol initialized (mock)");
         // initialize some sensible defaults for common servo ids

@@ -31,9 +31,6 @@ class CGaitWatch : public IGait {
     std::shared_ptr<CKinematics> kinematics_;
     Parameters::Watch params_;
 
-    double kHeadMaxYaw_ = double(0);
-    double kBodyMaxYaw_ = double(0);
-
     double amplitude_head_deg_ = 0.0;
     double amplitude_body_deg_ = 0.0;
     double delta_phase_ = 0.0;

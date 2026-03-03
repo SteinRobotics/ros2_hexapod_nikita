@@ -17,6 +17,7 @@ class RequesterTest : public ::testing::Test {
         }
         rclcpp::NodeOptions options;
         auto overrides = test_helpers::defaultRobotParameters();
+        overrides.emplace_back("SERVO_CONTROLLER_OFFLINE", true);
         overrides.emplace_back("STANDING_FOOT_POS_X",
                                std::vector<double>{0.092, 0.0, -0.092, 0.092, 0.0, -0.092});
         overrides.emplace_back("STANDING_FOOT_POS_Y",

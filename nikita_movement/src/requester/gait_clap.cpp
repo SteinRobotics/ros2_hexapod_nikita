@@ -147,7 +147,7 @@ bool CClapGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPos
 
     if (state_ == EGaitState::Stopping && phase_ != EPhase::ShiftingForward && phase_ != EPhase::Finished) {
         // Transition to return to initial position
-        if (phase_ < EPhase::LowerFrontLegs) {
+        if (phase_ >= EPhase::LiftFrontLegs && phase_ <= EPhase::ClapOpening) {
             // If front legs are up or in clap, lower them first
             phase_ = EPhase::LowerFrontLegs;
             phase_progress_ = 0.0;
@@ -212,9 +212,8 @@ void CClapGait::applyFrontLegsLift(double alpha) {
     kinematics_->setSingleFeet(ELegIndex::RightFront, right_front_pos);
 }
 
-void CClapGait::applyFrontLegsClap(double alpha, bool closing) {
+void CClapGait::applyFrontLegsClap(double alpha, [[maybe_unused]] bool closing) {
     alpha = std::clamp(alpha, 0.0, 1.0);
-    [[maybe_unused]] auto tmp = closing;  // Parameter kept for future enhancements
 
     // Get current leg angles
     auto left_front_angles = kinematics_->getAngles(ELegIndex::LeftFront);

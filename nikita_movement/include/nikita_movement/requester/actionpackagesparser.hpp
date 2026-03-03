@@ -34,7 +34,7 @@ class CActionPackagesParser {
     CActionPackagesParser(std::shared_ptr<rclcpp::Node> node);
     virtual ~CActionPackagesParser() = default;
 
-    std::vector<CActionPackage>& getRequests(const std::string& packageName);
+    const std::vector<CActionPackage>& getRequests(const std::string& packageName);
     std::map<ELegIndex, CPosition> getFootPositions(const std::string& name);
     std::map<ELegIndex, CLegAngles> getLegAngles(const std::string& name);
     COrientation getHead(const std::string& name);

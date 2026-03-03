@@ -18,10 +18,15 @@ namespace nikita_movement {
 constexpr uint8_t SERVO_FRAME_HEADER = 0x55;
 constexpr uint8_t SERVO_Broadcast_ID = 0xFE;
 
-#define GET_LOW_BYTE(A) (uint8_t)((A))        // Macro to extract lower 8 bits from A
-#define GET_HIGH_BYTE(A) (uint8_t)((A) >> 8)  // Macro to extract high 8 bits from A
-#define BYTE_TO_HW(A, B) \
-    ((((uint16_t)(A)) << 8) | (uint8_t)(B))  // Macro to combine A & B into uint16_t (little endian)
+inline constexpr uint8_t getLowByte(uint16_t value) {
+    return static_cast<uint8_t>(value & 0xFF);
+}
+inline constexpr uint8_t getHighByte(uint16_t value) {
+    return static_cast<uint8_t>(value >> 8);
+}
+inline constexpr uint16_t byteToHW(uint8_t high, uint8_t low) {
+    return static_cast<uint16_t>((static_cast<uint16_t>(high) << 8) | low);
+}
 
 // Instruction Op-Codes:
 constexpr uint8_t SERVO_MOVE_TIME_WRITE = 1;
@@ -89,7 +94,7 @@ constexpr uint8_t s_SERVO_LED_ERROR_READ = 4;
 
 class CServoProtocol {
    public:
-    CServoProtocol(std::shared_ptr<rclcpp::Node> node, const std::string deviceName);
+    CServoProtocol(std::shared_ptr<rclcpp::Node> node, const std::string& deviceName);
     virtual ~CServoProtocol() = default;
 
     // Connection

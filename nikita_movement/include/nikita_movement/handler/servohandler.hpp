@@ -20,14 +20,14 @@ class CRequest {
    public:
     CRequest() = default;
     CRequest(COrientation head, std::map<ELegIndex, CLegAngles> legAngles, double duration)
-        : head_(head), legAngles_(legAngles), duration_(duration) {};
+        : head_(head), legAngles_(std::move(legAngles)), duration_(duration) {};
 
-    virtual ~CRequest() = default;
+    ~CRequest() = default;
 
-    COrientation head() const {
+    const COrientation& head() const {
         return head_;
     }
-    std::map<ELegIndex, CLegAngles> legAngles() const {
+    const std::map<ELegIndex, CLegAngles>& legAngles() const {
         return legAngles_;
     }
     double duration() const {
