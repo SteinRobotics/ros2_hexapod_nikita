@@ -56,8 +56,6 @@ nikita_communication/tts_cache/
 nikita_communication/keys/
 nikita_communication/models/
 
-nikita_lidar/src/LIDARLite_RaspberryPi_Library/
-
 build/
 log/
 install/

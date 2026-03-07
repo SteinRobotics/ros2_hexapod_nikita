@@ -32,7 +32,7 @@ Nikita is an open-source, modular hexapod robot platform for makers, tinkerers, 
 1. **Install Dependencies**
    ```bash
    PIP_BREAK_SYSTEM_PACKAGES=1 rosdep install --from-paths ~/Workspace/colcon_nikita --ignore-src -r -y
-   git submodule update --init
+   git submodule update --init --recursive
    ```
 2. **Build the Workspace**
    ```bash
