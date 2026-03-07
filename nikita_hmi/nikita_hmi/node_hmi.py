@@ -110,10 +110,9 @@ class NodeHmi(Node):
     def get_ip_address(self):
         ip_address = "0.0.0.0"
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8",80))
-            ip_address = s.getsockname()[0]
-            s.close()
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.connect(("8.8.8.8",80))
+                ip_address = s.getsockname()[0]
             self.is_ip_address_identified = True
         except Exception as e:
             self.get_logger().warning('Could not get IP address, error: %s' % e)
@@ -168,6 +167,8 @@ class NodeHmi(Node):
 
     def update_bno055(self):
         (x,y,z) = self.__bno055.gravity
+        if x is None or y is None or z is None:
+            return
         self.text_bno055 = f"g: {z:.2f}m/s^2"
         # publish gravity
         msg = Vector3()
@@ -178,7 +179,10 @@ class NodeHmi(Node):
 
     def update_ina228(self):
         voltage = self.__ina228.bus_voltage
-        current = abs(self.__ina228.current)
+        current = self.__ina228.current
+        if voltage is None or current is None:
+            return
+        current = abs(current)
         self.text_supply_voltage_and_current = f"supply V: {voltage:.1f}V I: {current:.1f}A"
         # publish supply voltage
         msg = Float32()
@@ -212,7 +216,8 @@ class NodeHmi(Node):
 
     def callback_joystick_request(self, msg):
         if msg.button_select:
-            self.display.fill(0)
+            self.draw.rectangle((0, 0, self.display.width, self.display.height), fill=0)
+            self.display_old_values = ["" for _ in range(self.NUMBER_OF_LINES)]
             idx = self.page_orders.index(self.active_page_name)
             self.active_page_name = self.page_orders[(idx + 1) % len(self.page_orders)]
             self.update_active_page()
