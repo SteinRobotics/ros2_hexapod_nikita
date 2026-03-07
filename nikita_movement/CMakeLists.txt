@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(nikita_movement)
 
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD 23)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -44,6 +44,7 @@ set(SOURCES
   src/requester/gait_tripod.cpp
   src/requester/gait_waiting.cpp
   src/requester/gait_watch.cpp
+  src/requester/gait_wave.cpp
   src/requester/gaitcontroller.cpp
   src/requester/kinematics.cpp
   src/requester/requester.cpp

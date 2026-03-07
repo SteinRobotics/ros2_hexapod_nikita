@@ -1,25 +1,25 @@
-#include "requester/gait_ripple.hpp"
+#include "requester/gait_wave.hpp"
 
 namespace nikita_movement {
 
-constexpr double kRippleTimeToWaitBeforeStopSec = 3.0;
+constexpr double kWaveTimeToWaitBeforeStopSec = 3.0;
 
-CRippleGait::CRippleGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
-                         Parameters::Ripple& params)
+CWaveGait::CWaveGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
+                     Parameters::Wave& params)
     : node_(node), kinematics_(kinematics), params_(params) {
     no_velocity_timer_.stop();
     body_old_ = CPose();
     target_positions_ = kinematics_->getLegsStandingPositions();
 }
 
-void CRippleGait::start(double /*duration_s*/, uint8_t /*direction*/) {
+void CWaveGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     state_ = EGaitState::Starting;
     phase_ = 0.0;
     velocity_ = geometry_msgs::msg::Twist();
 }
 
-bool CRippleGait::update(const geometry_msgs::msg::Twist& velocity, const CPose& body,
-                         const COrientation& /*head*/) {
+bool CWaveGait::update(const geometry_msgs::msg::Twist& velocity, const CPose& body,
+                       const COrientation& /*head*/) {
     if (state_ == EGaitState::Stopped) {
         return false;
     }
@@ -34,7 +34,7 @@ bool CRippleGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
     if (utils::isTwistZero(velocity) && state_ == EGaitState::Running) {
         if (!no_velocity_timer_.isRunning()) {
             no_velocity_timer_.start();
-        } else if (no_velocity_timer_.haveSecondsElapsed(kRippleTimeToWaitBeforeStopSec)) {
+        } else if (no_velocity_timer_.haveSecondsElapsed(kWaveTimeToWaitBeforeStopSec)) {
             requestStop();
             no_velocity_timer_.stop();
         }
@@ -72,9 +72,8 @@ bool CRippleGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
     }
 
     // StopPending: wait for phase to be near a cycle boundary where all legs are in support
-    // In ripple gait, all legs touch ground briefly at phase boundaries (0, 2π/3, 4π/3)
     if (state_ == EGaitState::StopPending && utils::isSinValueNearZero(phase_, delta_phase)) {
-        RCLCPP_INFO(node_->get_logger(), "CRippleGait::update: Transitioning to Stopped state, phase_: %.2f",
+        RCLCPP_INFO(node_->get_logger(), "CWaveGait::update: Transitioning to Stopped state, phase_: %.2f",
                     phase_);
         phase_ = 0.0;
         state_ = EGaitState::Stopped;
@@ -83,8 +82,8 @@ bool CRippleGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
         return true;
     }
 
-    RCLCPP_INFO_STREAM(node_->get_logger(), "CRippleGait::update: state_: " << magic_enum::enum_name(state_));
-    RCLCPP_INFO(node_->get_logger(), "CRippleGait::update: phase_: %.2f, delta_phase: %.2f", phase_,
+    RCLCPP_INFO_STREAM(node_->get_logger(), "CWaveGait::update: state_: " << magic_enum::enum_name(state_));
+    RCLCPP_INFO(node_->get_logger(), "CWaveGait::update: phase_: %.2f, delta_phase: %.2f", phase_,
                 delta_phase);
 
     const auto standing_positions = kinematics_->getLegsStandingPositions();
@@ -147,13 +146,13 @@ bool CRippleGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
     return true;
 }
 
-void CRippleGait::requestStop() {
+void CWaveGait::requestStop() {
     if (state_ == EGaitState::Running) {
         state_ = EGaitState::StopPending;
     }
 }
 
-void CRippleGait::cancelStop() {
+void CWaveGait::cancelStop() {
     if (state_ == EGaitState::StopPending) {
         state_ = EGaitState::Running;
     }

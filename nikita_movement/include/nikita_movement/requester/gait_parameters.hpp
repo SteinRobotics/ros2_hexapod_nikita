@@ -26,7 +26,14 @@ struct Parameters {
         double leg_lift_height{0.0};
     };
 
-    struct Ripple {};
+    struct Ripple {
+        double head_amplitude_yaw_deg{0.0};
+        double factor_velocity_to_gait_cycle_time{0.0};
+        double gait_step_length{0.0};
+        double leg_lift_height{0.0};
+        double velocity_filter_alpha{0.01};
+        double rotation_weight{0.7};
+    };
 
     struct Look {
         double body_max_yaw_deg{0.0};
@@ -49,10 +56,21 @@ struct Parameters {
         double factor_velocity_to_gait_cycle_time{0.0};
         double gait_step_length{0.0};
         double leg_lift_height{0.0};
+        double velocity_filter_alpha{0.01};
+        double rotation_weight{0.7};
     };
 
     struct Waiting {
         double leg_lift_height{0.0};
+    };
+
+    struct Wave {
+        double head_amplitude_yaw_deg{0.0};
+        double factor_velocity_to_gait_cycle_time{0.0};
+        double gait_step_length{0.0};
+        double leg_lift_height{0.0};
+        double velocity_filter_alpha{0.01};
+        double rotation_weight{0.7};
     };
 
     struct Watch {
@@ -73,6 +91,7 @@ struct Parameters {
     TestLegs testLegs;
     Tripod tripod;
     Waiting waiting;
+    Wave wave;
     Watch watch;
 
     static Parameters declare(std::shared_ptr<rclcpp::Node> node);
@@ -102,6 +121,29 @@ inline Parameters Parameters::declare(std::shared_ptr<rclcpp::Node> node) {
         node->declare_parameter<double>("GAIT_TRIPOD_FACTOR_VELOCITY_TO_CYCLE_TIME");
     params.tripod.gait_step_length = step_length;
     params.tripod.leg_lift_height = leg_lift_height;
+    params.tripod.velocity_filter_alpha =
+        node->declare_parameter<double>("GAIT_TRIPOD_VELOCITY_FILTER_ALPHA", 0.01);
+    params.tripod.rotation_weight = node->declare_parameter<double>("GAIT_TRIPOD_ROTATION_WEIGHT", 0.7);
+
+    // Ripple
+    params.ripple.head_amplitude_yaw_deg = node->declare_parameter<double>("GAIT_RIPPLE_HEAD_MAX_YAW", 10.0);
+    params.ripple.factor_velocity_to_gait_cycle_time =
+        node->declare_parameter<double>("GAIT_RIPPLE_FACTOR_VELOCITY_TO_CYCLE_TIME", 40.0);
+    params.ripple.gait_step_length = step_length;
+    params.ripple.leg_lift_height = leg_lift_height;
+    params.ripple.velocity_filter_alpha =
+        node->declare_parameter<double>("GAIT_RIPPLE_VELOCITY_FILTER_ALPHA", 0.01);
+    params.ripple.rotation_weight = node->declare_parameter<double>("GAIT_RIPPLE_ROTATION_WEIGHT", 0.7);
+
+    // Wave
+    params.wave.head_amplitude_yaw_deg = node->declare_parameter<double>("GAIT_WAVE_HEAD_MAX_YAW", 8.0);
+    params.wave.factor_velocity_to_gait_cycle_time =
+        node->declare_parameter<double>("GAIT_WAVE_FACTOR_VELOCITY_TO_CYCLE_TIME", 40.0);
+    params.wave.gait_step_length = step_length;
+    params.wave.leg_lift_height = leg_lift_height;
+    params.wave.velocity_filter_alpha =
+        node->declare_parameter<double>("GAIT_WAVE_VELOCITY_FILTER_ALPHA", 0.01);
+    params.wave.rotation_weight = node->declare_parameter<double>("GAIT_WAVE_ROTATION_WEIGHT", 0.7);
 
     // Waiting
     params.waiting.leg_lift_height = leg_lift_height;

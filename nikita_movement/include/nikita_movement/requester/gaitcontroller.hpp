@@ -33,6 +33,7 @@
 #include "requester/gait_tripod.hpp"
 #include "requester/gait_waiting.hpp"
 #include "requester/gait_watch.hpp"
+#include "requester/gait_wave.hpp"
 #include "requester/igaits.hpp"
 #include "requester/kinematics.hpp"
 #include "requester/types.hpp"

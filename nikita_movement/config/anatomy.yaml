@@ -60,6 +60,20 @@ node_movement:
     #### GAIT TRIPOD PARAMETERS ####
     GAIT_TRIPOD_FACTOR_VELOCITY_TO_CYCLE_TIME: 40.0      # [s²/m] ??
     GAIT_TRIPOD_HEAD_MAX_YAW: 15.0 # deg
+    GAIT_TRIPOD_VELOCITY_FILTER_ALPHA: 0.01  # filtering strength (0.0 to 1.0)
+    GAIT_TRIPOD_ROTATION_WEIGHT: 0.7         # weight of angular velocity in combined magnitude
+
+    #### GAIT RIPPLE PARAMETERS ####
+    GAIT_RIPPLE_FACTOR_VELOCITY_TO_CYCLE_TIME: 40.0  # [s²/m]
+    GAIT_RIPPLE_HEAD_MAX_YAW: 10.0                   # deg
+    GAIT_RIPPLE_VELOCITY_FILTER_ALPHA: 0.01          # filtering strength (0.0 to 1.0)
+    GAIT_RIPPLE_ROTATION_WEIGHT: 0.7                 # weight of angular velocity in combined magnitude
+
+    #### GAIT WAVE PARAMETERS ####
+    GAIT_WAVE_FACTOR_VELOCITY_TO_CYCLE_TIME: 40.0    # [s²/m]
+    GAIT_WAVE_HEAD_MAX_YAW: 8.0                      # deg
+    GAIT_WAVE_VELOCITY_FILTER_ALPHA: 0.01            # filtering strength (0.0 to 1.0)
+    GAIT_WAVE_ROTATION_WEIGHT: 0.7                   # weight of angular velocity in combined magnitude
 
     #### GAIT LEG WAVE PARAMETERS ####
     GAIT_LEG_WAVE_LEG_LIFT_HEIGHT: 0.03 # m

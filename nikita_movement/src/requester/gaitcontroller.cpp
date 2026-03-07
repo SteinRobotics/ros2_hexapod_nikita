@@ -37,6 +37,7 @@ CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared
     gaits_[MovementRequest::LOOK] = std::make_shared<CGaitLook>(node_, kinematics_, params_.look);
     gaits_[MovementRequest::MOVE_RIPPLE] = std::make_shared<CRippleGait>(node_, kinematics_, params_.ripple);
     gaits_[MovementRequest::MOVE_TRIPOD] = std::make_shared<CTripodGait>(node_, kinematics_, params_.tripod);
+    gaits_[MovementRequest::MOVE_WAVE] = std::make_shared<CWaveGait>(node_, kinematics_, params_.wave);
     gaits_[MovementRequest::NEUTRAL] = std::make_shared<CNeutralGait>(node_, kinematics_);
     gaits_[MovementRequest::STAND_UP] = std::make_shared<CStandUpGait>(node_, kinematics_, params_.standUp);
     gaits_[MovementRequest::TESTLEGS] = std::make_shared<CTestLegsGait>(node_, kinematics_, params_.testLegs);

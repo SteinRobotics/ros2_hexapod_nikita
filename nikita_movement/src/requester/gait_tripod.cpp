@@ -15,6 +15,7 @@ CTripodGait::CTripodGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKi
 void CTripodGait::start(double /*duration_s*/, uint8_t /*direction*/) {
     state_ = EGaitState::Starting;
     phase_ = 0.0;
+    velocity_ = geometry_msgs::msg::Twist();
 }
 
 bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose& body,
@@ -41,10 +42,12 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
         return false;
     }
 
+    // Reset idle timer when velocity resumes
+    no_velocity_timer_.stop();
+
     // filter and store the last non-zero velocity, zero velocities will be ignored and the old velocity is kept
     if (!utils::isTwistZero(velocity)) {
-        const double alpha = 0.01;  // Adjust alpha for filtering strength (0.0 to 1.0)
-        velocity_ = utils::limitChangeRateUpTwist(velocity_, velocity, alpha);
+        velocity_ = utils::limitChangeRateUpTwist(velocity_, velocity, params_.velocity_filter_alpha);
     }
     // RCLCPP_INFO_STREAM(node_->get_logger(), "CGaitController::requestMove: filtered velocity: "
     //                                             << velocity_.linear.x << ", " << velocity_.linear.y << ", "
@@ -54,10 +57,8 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
     double linear_y = velocity_.linear.y;
     double angular_z = velocity_.angular.z;
 
-    constexpr double ROTATION_WEIGHT = 0.7;
-
-    double combined_mag =
-        std::sqrt((linear_x * linear_x) + (linear_y * linear_y) + (ROTATION_WEIGHT * angular_z * angular_z));
+    double combined_mag = std::sqrt((linear_x * linear_x) + (linear_y * linear_y) +
+                                    (params_.rotation_weight * angular_z * angular_z));
 
     // Avoid division by zero
     if (combined_mag < 1e-6) return false;
@@ -102,9 +103,10 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
     RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: phase_: %.2f, delta_phase: %.2f", phase_,
                 delta_phase);
 
+    const auto standing_positions = kinematics_->getLegsStandingPositions();
+
     for (auto& [index, leg] : kinematics_->getLegs()) {
-        bool is_first_tripod_active =
-            std::ranges::find(group_first_tripod_, index) != group_first_tripod_.end();
+        bool is_first_tripod_active = std::ranges::contains(group_first_tripod_, index);
 
         double phase_offset = is_first_tripod_active ? 0.0 : M_PI;
         double phase_with_offset = phase_ + phase_offset;
@@ -129,7 +131,7 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
             lift = lift_following_sin;
         }
 
-        const auto base_foot_pos = kinematics_->getLegsStandingPositions().at(index);
+        const auto base_foot_pos = standing_positions.at(index);
 
         // linear
         double delta_x = norm_x * step;
