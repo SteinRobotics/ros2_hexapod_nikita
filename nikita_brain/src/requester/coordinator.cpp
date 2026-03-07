@@ -5,7 +5,7 @@
 #include "requester/coordinator.hpp"
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
-#include <sstream>
+#include <format>
 
 using namespace nikita_interfaces::msg;
 using namespace std::chrono_literals;
@@ -67,10 +67,25 @@ void CCoordinator::executeBehavior(const Behavior& behavior, Prio prio) {
     }
 }
 
+void CCoordinator::cycleGaitMode() {
+    activeGaitIndex_ = (activeGaitIndex_ + 1) % gaitModes_.size();
+    auto gaitName = movementTypeToName.at(gaitModes_[activeGaitIndex_]);
+    RCLCPP_INFO(node_->get_logger(), "Gait mode switched to: %s", gaitName.c_str());
+    auto request = std::make_shared<RequestTalking>();
+    request->text = gaitName;
+    submitRequest(request, Prio::High);
+}
+
 void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     if (msg.button_long_select) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "Shutdown requested by joystick");
         requestShutdown(Prio::High);
+        return;
+    }
+
+    // Cycle gait mode on button_start
+    if (msg.button_start) {
+        cycleGaitMode();
         return;
     }
 
@@ -89,6 +104,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     double duration_s = 0.0;
     std::string comment = "";
     uint32_t newMovementType = MovementRequest::NO_REQUEST;
+    auto activeGait = gaitModes_[activeGaitIndex_];
     auto body = nikita_interfaces::msg::Pose();
     auto head = nikita_interfaces::msg::Orientation();
     auto velocity = geometry_msgs::msg::Twist();
@@ -132,18 +148,18 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     // float32 left_stick_vertical   # TOP  = -1.0, DOWN = 1.0,  hangs on 0.004 -> means 0.0
     if (std::abs(msg.left_stick_vertical) > kJoystickDeadzone_) {
         velocity.linear.x = msg.left_stick_vertical * kVelocityFactorLinear_;
-        newMovementType = MovementRequest::MOVE_TRIPOD;
+        newMovementType = activeGait;
     }
     // float32 left_stick_horizontal # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
     if (std::abs(msg.left_stick_horizontal) > kJoystickDeadzone_) {
         velocity.linear.y = msg.left_stick_horizontal * kVelocityFactorLinear_;
-        newMovementType = MovementRequest::MOVE_TRIPOD;
+        newMovementType = activeGait;
     }
     // RIGHT_STICK -> rotation
     // float32 right_stick_horizontal  # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
     if (std::abs(msg.right_stick_horizontal) > kJoystickDeadzone_) {
         velocity.angular.z = msg.right_stick_horizontal * kVelocityFactorRotation_;
-        newMovementType = MovementRequest::MOVE_TRIPOD;
+        newMovementType = activeGait;
     }
 
     // float32 right_stick_vertical    # TOP  = -1.0, DOWN = 1.0, hangs on 0.004 -> means 0.0
@@ -151,7 +167,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         utils::lowPassFilter(body.position.z, msg.right_stick_vertical * kBodyFactorHeight_, 0.02);
         body.position.z = msg.right_stick_vertical * kBodyFactorHeight_;
         body.position.z = std::clamp(body.position.z, kMinBodyHeight_, kMaxBodyHeight_);
-        newMovementType = MovementRequest::MOVE_TRIPOD;
+        newMovementType = activeGait;
     } else {
         body.position.z = 0.0;
     }
@@ -161,10 +177,11 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         return;
     }
 
-    if (actualMovementType_ == MovementRequest::MOVE_TRIPOD &&
+    if ((actualMovementType_ == MovementRequest::MOVE_TRIPOD ||
+         actualMovementType_ == MovementRequest::MOVE_RIPPLE ||
+         actualMovementType_ == MovementRequest::MOVE_WAVE) &&
         newMovementType == MovementRequest::NO_REQUEST) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "end move request");
-        // submit zero velocity request
         auto request = std::make_shared<RequestVelocity>();
         request->velocity = velocity;
         submitRequest(request, Prio::High);
@@ -342,8 +359,8 @@ void CCoordinator::requestMusikOn(Prio prio) {
 }
 
 void CCoordinator::requestMusikOff(Prio prio) {
-    auto request = std::make_shared<RequestListening>();
-    request->active = false;
+    auto request = std::make_shared<RequestMusic>();
+    request->song = "STOP";
     actionPlanner_->request({request}, prio);
 }
 
@@ -376,7 +393,9 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
         request_v.push_back(talkRequest);
     }
     // If we are not standing, we need to stand up first
-    if (!isStanding_ && movementType == MovementRequest::MOVE_TRIPOD) {
+    if (!isStanding_ &&
+        (movementType == MovementRequest::MOVE_TRIPOD || movementType == MovementRequest::MOVE_RIPPLE ||
+         movementType == MovementRequest::MOVE_WAVE)) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "standup before move request");
         isStanding_ = true;
         // recursive call to first stand up
@@ -411,7 +430,8 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
     actionPlanner_->request(request_v, prio);
 
     // Lock the new move request for the given duration except for MOVE_TRIPOD requests
-    if (MovementRequest::MOVE_TRIPOD == movementType || MovementRequest::MOVE_RIPPLE == movementType) {
+    if (MovementRequest::MOVE_TRIPOD == movementType || MovementRequest::MOVE_RIPPLE == movementType ||
+        MovementRequest::MOVE_WAVE == movementType) {
         return;
     }
     isNewMoveRequestLocked_ = true;
@@ -424,24 +444,24 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
 }
 
 void CCoordinator::requestTellSupplyVoltage(Prio prio) {
-    std::string text = "Die Versorgungsspannung ist aktuell " +
-                       to_string_with_precision(errorManagement_->getFilteredSupplyVoltage(), 1) + " Volt";
+    auto text = std::format("Die Versorgungsspannung ist aktuell {:.1f} Volt",
+                            errorManagement_->getFilteredSupplyVoltage());
     auto request = std::make_shared<RequestTalking>();
     request->text = text;
     submitRequest(request, prio);
 }
 
 void CCoordinator::requestTellServoVoltage(Prio prio) {
-    std::string text = "Die Servo Spannung ist aktuell " +
-                       to_string_with_precision(errorManagement_->getFilteredServoVoltage(), 1) + " Volt";
+    auto text = std::format("Die Servo Spannung ist aktuell {:.1f} Volt",
+                            errorManagement_->getFilteredServoVoltage());
     auto request = std::make_shared<RequestTalking>();
     request->text = text;
     submitRequest(request, prio);
 }
 
 void CCoordinator::requestTellServoTemperature(Prio prio) {
-    std::string text = "Die Servo Temperatur ist aktuell " +
-                       to_string_with_precision(errorManagement_->getFilteredServoTemperature(), 0) + " Grad";
+    auto text = std::format("Die Servo Temperatur ist aktuell {:.0f} Grad",
+                            errorManagement_->getFilteredServoTemperature());
     auto request = std::make_shared<RequestTalking>();
     request->text = text;
     submitRequest(request, prio);

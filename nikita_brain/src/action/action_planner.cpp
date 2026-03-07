@@ -4,6 +4,8 @@
 
 #include "action/action_planner.hpp"
 
+#include <utility>
+
 namespace brain {
 CActionPlanner::CActionPlanner(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     handler_system_ = std::make_shared<CSystem>(node);
@@ -16,7 +18,8 @@ CActionPlanner::CActionPlanner(std::shared_ptr<rclcpp::Node> node) : node_(node)
 }
 
 void CActionPlanner::request(std::vector<std::shared_ptr<RequestBase>> requests, Prio prio) {
-    RCLCPP_INFO_STREAM(node_->get_logger(), "CActionPlanner:: new requests with prio " << (int)prio);
+    RCLCPP_INFO_STREAM(node_->get_logger(),
+                       "CActionPlanner:: new requests with prio " << std::to_underlying(prio));
 
     // Priority handling:
     // - Highest: Interrupts everything, clears all queues, cancels running requests, and executes immediately.

@@ -49,7 +49,7 @@ void CTextInterpreter::readInterpretation() {
         for (const auto& [wordType, values] : value.items()) {
             std::vector<uint32_t> indicesForWordType;
             for (const auto& value : values) {
-                if (vocabulary_.find(value) != vocabulary_.end()) {
+                if (vocabulary_.contains(value)) {
                     indicesForWordType.push_back(vocabulary_[value].index);
                     continue;
                 }
@@ -111,7 +111,7 @@ std::vector<CWord> CTextInterpreter::parseText(std::string& text) {
         //     }
 
         // check if the word is in the vocabulary_
-        if (vocabulary_.find(singleWord) == vocabulary_.end()) {
+        if (!vocabulary_.contains(singleWord)) {
             RCLCPP_INFO_STREAM(node_->get_logger(), "word not found in vocabulary_: " << singleWord);
             continue;
         }
@@ -140,7 +140,7 @@ std::string CTextInterpreter::searchInterpretation(const std::vector<CWord>& ide
         for (const auto& [wordType, indices] : interpretation.wordType2WordIndices) {
             bool foundThisWordType = false;
             for (const auto& word : identifiedWords) {
-                if (isIndexIn(word.index, indices)) {
+                if (std::ranges::find(indices, word.index) != indices.end()) {
                     RCLCPP_INFO_STREAM(node_->get_logger(), "found word: |" << word.value
                                                                             << "| for wordType: " << wordType
                                                                             << " with index: " << word.index);
@@ -159,11 +159,6 @@ std::string CTextInterpreter::searchInterpretation(const std::vector<CWord>& ide
     return "notFound";
 }
 
-bool CTextInterpreter::isIndexIn(const uint32_t index, const std::vector<uint32_t>& list) {
-    auto it = std::find(list.begin(), list.end(), index);
-    return (it != list.end());
-}
-
 CWord CTextInterpreter::letters2Word(const std::string& letters) {
     if (vocabulary_.find(letters) != vocabulary_.end()) {
         return vocabulary_[letters];
@@ -172,7 +167,7 @@ CWord CTextInterpreter::letters2Word(const std::string& letters) {
 }
 
 bool CTextInterpreter::isWordIn(const CWord& word, const std::vector<CWord>& words) {
-    return std::any_of(words.begin(), words.end(), [&word](const CWord& w) { return w.index == word.index; });
+    return std::ranges::any_of(words, [&word](const CWord& w) { return w.index == word.index; });
 }
 
 bool CTextInterpreter::lettersIdentified(const std::string& letters, const std::vector<CWord>& words) {

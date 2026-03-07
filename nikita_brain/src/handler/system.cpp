@@ -25,9 +25,9 @@ void CSystem::run(std::shared_ptr<RequestSystem> request) {
     pubSystemShutdown_->publish(msgSystemShutdown);
     setDone(false);
 
-    // Servo relay
+    // Servo relay (invert: turnOffServoRelay=true means relay should be OFF)
     std_msgs::msg::Bool msgServoRelay;
-    msgServoRelay.data = request->turnOffServoRelay;
+    msgServoRelay.data = !request->turnOffServoRelay;
     pubServoRelay_->publish(msgServoRelay);
 
     setDone(false);

@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <algorithm>
 #include <map>
+#include <ranges>
 #include <string>
 #include <unordered_map>
 //
@@ -27,7 +29,6 @@ class CTextInterpreter {
    private:
     CWord letters2Word(const std::string& letters);
     bool isWordIn(const CWord& word, const std::vector<CWord>& words);
-    bool isIndexIn(const uint32_t index, const std::vector<uint32_t>& list);
     void readInterpretation();
     std::shared_ptr<rclcpp::Node> node_;
     std::unordered_map<std::string, CWord> vocabulary_;

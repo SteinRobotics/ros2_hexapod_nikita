@@ -7,6 +7,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <optional>
 #include <string>
 #include <vector>
@@ -96,84 +97,84 @@ class CBehaviorParser {
      * @param behaviorsJson JSON value containing behaviors array
      * @return true if parsing was successful
      */
-    bool parseBehaviors(const void* behaviorsJson);
+    bool parseBehaviors(const nlohmann::json& behaviorsJson);
 
     /**
      * @brief Parse a single behavior
      * @param behaviorJson JSON value containing a behavior object
      * @return true if parsing was successful
      */
-    bool parseSingleBehavior(const void* behaviorJson);
+    bool parseSingleBehavior(const nlohmann::json& behaviorJson);
 
     /**
      * @brief Parse a single action group
      * @param actionJson JSON value containing a single action object
      * @return Vector of Request objects for this action group
      */
-    std::vector<std::shared_ptr<RequestBase>> parseActionGroup(const void* actionJson);
+    std::vector<std::shared_ptr<RequestBase>> parseActionGroup(const nlohmann::json& actionJson);
 
     /**
      * @brief Create RequestTalking from JSON value
      * @param value JSON value (string or object)
      * @return Shared pointer to RequestTalking object, or nullptr if parsing failed
      */
-    std::shared_ptr<RequestTalking> createRequestTalking(const void* value);
+    std::shared_ptr<RequestTalking> createRequestTalking(const nlohmann::json& value);
 
     /**
      * @brief Create RequestChat from JSON value
      * @param value JSON value (string or object)
      * @return Shared pointer to RequestChat object, or nullptr if parsing failed
      */
-    std::shared_ptr<RequestChat> createRequestChat(const void* value);
+    std::shared_ptr<RequestChat> createRequestChat(const nlohmann::json& value);
 
     /**
      * @brief Create RequestMusic from JSON value
      * @param value JSON value (string or object)
      * @return Shared pointer to RequestMusic object, or nullptr if parsing failed
      */
-    std::shared_ptr<RequestMusic> createRequestMusic(const void* value);
+    std::shared_ptr<RequestMusic> createRequestMusic(const nlohmann::json& value);
 
     /**
      * @brief Create RequestListening from JSON value
      * @param value JSON value (boolean or object)
      * @return Shared pointer to RequestListening object, or nullptr if parsing failed
      */
-    std::shared_ptr<RequestListening> createRequestListening(const void* value);
+    std::shared_ptr<RequestListening> createRequestListening(const nlohmann::json& value);
 
     /**
      * @brief Create RequestSystem from JSON value
      * @param value JSON value (object)
      * @return Shared pointer to RequestSystem object, or nullptr if parsing failed
      */
-    std::shared_ptr<RequestSystem> createRequestSystem(const void* value);
+    std::shared_ptr<RequestSystem> createRequestSystem(const nlohmann::json& value);
 
     /**
      * @brief Create RequestMovementType from JSON value
      * @param value JSON value (object)
      * @return Shared pointer to RequestMovementType object, or nullptr if parsing failed
      */
-    std::shared_ptr<RequestMovementType> createRequestMovementType(const void* value);
+    std::shared_ptr<RequestMovementType> createRequestMovementType(const nlohmann::json& value);
 
     /**
      * @brief Create RequestSinglePose from JSON value
      * @param value JSON value (object)
      * @return Shared pointer to RequestSinglePose object, or nullptr if parsing failed
      */
-    std::shared_ptr<RequestSinglePose> createRequestMoveBody(const void* value);
+    std::shared_ptr<RequestSinglePose> createRequestMoveBody(const nlohmann::json& value);
 
     /**
      * @brief Create RequestHeadOrientation from JSON value
      * @param value JSON value (object)
      * @return Shared pointer to RequestHeadOrientation object, or nullptr if parsing failed
      */
-    std::shared_ptr<RequestHeadOrientation> createRequestHeadOrientation(const void* value);
+    std::shared_ptr<RequestHeadOrientation> createRequestHeadOrientation(const nlohmann::json& value);
 
     /**
      * @brief Create RequestVelocity from JSON value
      * @param value JSON value (object)
      * @return Shared pointer to RequestVelocity object, or nullptr if parsing failed
      */
-    std::shared_ptr<RequestVelocity> createRequestMoveVelocity(const void* value);
+    std::shared_ptr<RequestVelocity> createRequestMoveVelocity(const nlohmann::json& value);
 
     rclcpp::Node::SharedPtr node_;
     std::vector<Behavior> behaviors_;
