@@ -27,6 +27,8 @@ Nikita is an open-source, modular hexapod robot platform for makers, tinkerers, 
 - `nikita_bringup/`       — Launch and bringup scripts
 - `nikita_doc/`           — Documentation, diagrams, and hardware info
 - `nikita_utils/`         — Shared utilities, math helpers, and tests
+- `nikita_description/`   — URDF/XACRO robot model for visualization and simulation
+- `nikita_gazebo/`        — Gazebo Harmonic simulation (gz-sim 8.x)
 
 ## Quick Start (for Makers)
 1. **Install Dependencies**
@@ -71,6 +73,35 @@ Nikita is an open-source, modular hexapod robot platform for makers, tinkerers, 
      ```bash
      ros2 topic pub --once /joystick_request nikita_interfaces/msg/JoystickRequest "..."
      ```
+
+## Simulation & Visualization
+
+### Preview the Robot Model in RViz
+Visualize the URDF model with interactive joint sliders — no Gazebo or hardware needed:
+```bash
+source install/setup.bash
+ros2 launch nikita_description display.launch.py
+```
+
+### Gazebo Simulation
+Run the full hexapod simulation in Gazebo Harmonic:
+```bash
+# Install simulation dependencies (once)
+sudo apt-get install ros-jazzy-gz-ros2-control ros-jazzy-controller-manager \
+  ros-jazzy-joint-state-broadcaster ros-jazzy-forward-command-controller \
+  ros-jazzy-joint-state-publisher-gui
+
+# Build and launch
+colcon build --symlink-install --packages-select nikita_description nikita_gazebo
+source install/setup.bash
+ros2 launch nikita_gazebo gazebo.launch.py
+```
+
+Command joints in the simulation (all 20 joints, values in radians):
+```bash
+ros2 topic pub /forward_position_controller/commands std_msgs/msg/Float64MultiArray \
+  "{data: [0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0]}"
+```
 
 
 ## Raspberry Pi 5 Pin Layout

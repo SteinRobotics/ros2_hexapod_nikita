@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    Hexapod leg macro.
+
+    Coordinate convention (matches the robot's FK code):
+    - The mount joint is rotated by (psi - pi/2) so that the leg's local +Y
+      axis points radially outward from the body center.
+    - Coxa joint: axis (0, 0, -1) — positive angle matches the IK coxa_global directly.
+    - Femur joint: axis (1, 0, 0) — positive angle lifts the leg upward.
+    - Tibia joint: axis (1, 0, 0) with a -90° X rotation at the origin —
+      at zero angle the tibia hangs straight down; positive angle swings foot forward.
+
+    Parameters:
+      prefix     - joint/link name prefix (e.g. "right_front")
+      cx, cy     - coxa attachment position on body [m]
+      psi_deg    - coxa angle offset from anatomy.yaml [deg]
+  -->
+  <xacro:macro name="hexapod_leg" params="prefix cx cy psi_deg">
+
+    <!-- Derived values -->
+    <xacro:property name="mount_yaw" value="${psi_deg * pi / 180.0 - pi / 2.0}"/>
+
+    <!-- ================= COXA ================= -->
+    <joint name="${prefix}_coxa_joint" type="revolute">
+      <parent link="base_link"/>
+      <child link="${prefix}_coxa_link"/>
+      <origin xyz="${cx} ${cy} ${coxa_height}" rpy="0 0 ${mount_yaw}"/>
+      <axis xyz="0 0 -1"/>
+      <limit lower="${-60 * pi / 180}" upper="${60 * pi / 180}"
+             effort="3.0" velocity="6.0"/>
+      <dynamics damping="0.1" friction="0.05"/>
+    </joint>
+
+    <link name="${prefix}_coxa_link">
+      <visual>
+        <origin xyz="0 ${coxa_length / 2.0} 0" rpy="${-pi / 2.0} 0 0"/>
+        <geometry>
+          <cylinder radius="0.012" length="${coxa_length}"/>
+        </geometry>
+        <material name="orange"/>
+      </visual>
+      <collision>
+        <origin xyz="0 ${coxa_length / 2.0} 0" rpy="${-pi / 2.0} 0 0"/>
+        <geometry>
+          <cylinder radius="0.012" length="${coxa_length}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 ${coxa_length / 2.0} 0"/>
+        <mass value="0.025"/>
+        <inertia ixx="6.0e-06" ixy="0" ixz="0"
+                 iyy="1.8e-06" iyz="0"
+                 izz="6.0e-06"/>
+      </inertial>
+    </link>
+
+    <!-- ================= FEMUR ================= -->
+    <joint name="${prefix}_femur_joint" type="revolute">
+      <parent link="${prefix}_coxa_link"/>
+      <child link="${prefix}_femur_link"/>
+      <origin xyz="0 ${coxa_length} 0" rpy="0 0 0"/>
+      <axis xyz="1 0 0"/>
+      <limit lower="${-30 * pi / 180}" upper="${90 * pi / 180}"
+             effort="3.0" velocity="6.0"/>
+      <dynamics damping="0.1" friction="0.05"/>
+    </joint>
+
+    <link name="${prefix}_femur_link">
+      <visual>
+        <origin xyz="0 ${femur_length / 2.0} 0" rpy="${-pi / 2.0} 0 0"/>
+        <geometry>
+          <cylinder radius="0.010" length="${femur_length}"/>
+        </geometry>
+        <material name="dark_blue"/>
+      </visual>
+      <collision>
+        <origin xyz="0 ${femur_length / 2.0} 0" rpy="${-pi / 2.0} 0 0"/>
+        <geometry>
+          <cylinder radius="0.010" length="${femur_length}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 ${femur_length / 2.0} 0"/>
+        <mass value="0.025"/>
+        <inertia ixx="1.0e-05" ixy="0" ixz="0"
+                 iyy="1.5e-06" iyz="0"
+                 izz="1.0e-05"/>
+      </inertial>
+    </link>
+
+    <!-- ================= TIBIA ================= -->
+    <!--
+      The -pi/2 X-rotation makes the tibia hang straight down at joint angle 0.
+      This matches the FK formula: tibia contributes cos(-90 + femur + tibia) horizontal
+      and sin(-90 + femur + tibia) vertical.
+    -->
+    <joint name="${prefix}_tibia_joint" type="revolute">
+      <parent link="${prefix}_femur_link"/>
+      <child link="${prefix}_tibia_link"/>
+      <origin xyz="0 ${femur_length} 0" rpy="${-pi / 2.0} 0 0"/>
+      <axis xyz="1 0 0"/>
+      <limit lower="${-90 * pi / 180}" upper="${90 * pi / 180}"
+             effort="3.0" velocity="6.0"/>
+      <dynamics damping="0.1" friction="0.05"/>
+    </joint>
+
+    <link name="${prefix}_tibia_link">
+      <visual>
+        <origin xyz="0 ${tibia_length / 2.0} 0" rpy="${-pi / 2.0} 0 0"/>
+        <geometry>
+          <cylinder radius="0.008" length="${tibia_length}"/>
+        </geometry>
+        <material name="light_blue"/>
+      </visual>
+      <collision>
+        <origin xyz="0 ${tibia_length / 2.0} 0" rpy="${-pi / 2.0} 0 0"/>
+        <geometry>
+          <cylinder radius="0.008" length="${tibia_length}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 ${tibia_length / 2.0} 0"/>
+        <mass value="0.015"/>
+        <inertia ixx="1.3e-05" ixy="0" ixz="0"
+                 iyy="4.8e-07" iyz="0"
+                 izz="1.3e-05"/>
+      </inertial>
+    </link>
+
+    <!-- ================= FOOT (fixed) ================= -->
+    <joint name="${prefix}_foot_joint" type="fixed">
+      <parent link="${prefix}_tibia_link"/>
+      <child link="${prefix}_foot"/>
+      <origin xyz="0 ${tibia_length} 0" rpy="0 0 0"/>
+    </joint>
+
+    <link name="${prefix}_foot">
+      <visual>
+        <geometry>
+          <sphere radius="0.006"/>
+        </geometry>
+        <material name="black"/>
+      </visual>
+      <collision>
+        <geometry>
+          <sphere radius="0.006"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.005"/>
+        <inertia ixx="7.2e-08" ixy="0" ixz="0"
+                 iyy="7.2e-08" iyz="0"
+                 izz="7.2e-08"/>
+      </inertial>
+    </link>
+
+    <!-- Gazebo material colors -->
+    <gazebo reference="${prefix}_coxa_link">
+      <material>
+        <ambient>0.9 0.5 0.1 1</ambient>
+        <diffuse>0.9 0.5 0.1 1</diffuse>
+      </material>
+    </gazebo>
+    <gazebo reference="${prefix}_femur_link">
+      <material>
+        <ambient>0.1 0.2 0.5 1</ambient>
+        <diffuse>0.1 0.2 0.5 1</diffuse>
+      </material>
+    </gazebo>
+    <gazebo reference="${prefix}_tibia_link">
+      <material>
+        <ambient>0.3 0.5 0.8 1</ambient>
+        <diffuse>0.3 0.5 0.8 1</diffuse>
+      </material>
+    </gazebo>
+    <gazebo reference="${prefix}_foot">
+      <material>
+        <ambient>0.05 0.05 0.05 1</ambient>
+        <diffuse>0.05 0.05 0.05 1</diffuse>
+      </material>
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+    </gazebo>
+
+  </xacro:macro>
+</robot>

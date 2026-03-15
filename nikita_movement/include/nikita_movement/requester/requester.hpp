@@ -18,6 +18,7 @@
 #include "nikita_interfaces/msg/orientation.hpp"
 #include "nikita_interfaces/msg/pose.hpp"
 #include "nikita_interfaces/msg/servo_index.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
 //
 #include "gaitcontroller.hpp"
 #include "handler/servohandler.hpp"
@@ -55,5 +56,8 @@ class CRequester {
     geometry_msgs::msg::Twist velocity_;
     nikita_interfaces::msg::Pose pose_body_;
     nikita_interfaces::msg::Orientation orientation_head_;
+
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr pubJointStates_;
+    void publishJointStates(const std::map<ELegIndex, CLegAngles>& legs, const COrientation& head);
 };
 }  // namespace nikita_movement

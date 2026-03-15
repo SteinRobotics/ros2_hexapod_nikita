@@ -4,6 +4,10 @@
 
 #include "requester/requester.hpp"
 
+#include <cmath>
+
+#include "nikita_utils/geometry.hpp"
+
 using namespace nikita_interfaces::msg;
 using std::placeholders::_1;
 
@@ -41,12 +45,46 @@ CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServ
 
     subMovementHeadOrientationRequest_ = node_->create_subscription<nikita_interfaces::msg::Orientation>(
         "cmd_head_orientation", 10, std::bind(&CRequester::onMovementHeadOrientationRequest, this, _1));
+
+    pubJointStates_ = node_->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
 }
 
 void CRequester::sendServoRequest(const double duration_s) {
     auto head = kinematics_->getHead();
     auto legs = kinematics_->getLegsAngles();
     servo_handler_->run(CRequest(head, legs, duration_s));
+    publishJointStates(legs, head);
+}
+
+void CRequester::publishJointStates(const std::map<ELegIndex, CLegAngles>& legs, const COrientation& head) {
+    sensor_msgs::msg::JointState msg;
+    msg.header.stamp = node_->get_clock()->now();
+
+    // Joint names must match the URDF joint names in nikita_description
+    static const std::vector<std::pair<ELegIndex, std::string>> legOrder = {
+        {ELegIndex::RightFront, "right_front"}, {ELegIndex::RightMid, "right_mid"},
+        {ELegIndex::RightBack, "right_back"},   {ELegIndex::LeftFront, "left_front"},
+        {ELegIndex::LeftMid, "left_mid"},       {ELegIndex::LeftBack, "left_back"},
+    };
+
+    for (const auto& [legIdx, prefix] : legOrder) {
+        auto it = legs.find(legIdx);
+        if (it == legs.end()) continue;
+        const auto& a = it->second;
+        msg.name.push_back(prefix + "_coxa_joint");
+        msg.position.push_back(utils::deg2rad(a.coxa_deg));
+        msg.name.push_back(prefix + "_femur_joint");
+        msg.position.push_back(utils::deg2rad(a.femur_deg));
+        msg.name.push_back(prefix + "_tibia_joint");
+        msg.position.push_back(utils::deg2rad(a.tibia_deg));
+    }
+
+    msg.name.push_back("head_yaw_joint");
+    msg.position.push_back(utils::deg2rad(head.yaw_deg));
+    msg.name.push_back("head_pitch_joint");
+    msg.position.push_back(utils::deg2rad(head.pitch_deg));
+
+    pubJointStates_->publish(msg);
 }
 
 void CRequester::onMovementTypeRequest(const MovementRequest& msg) {
