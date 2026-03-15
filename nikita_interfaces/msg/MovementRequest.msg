@@ -19,6 +19,7 @@ uint8 STOMP = 15
 uint8 CLAP = 16
 uint8 SINGLE_POSE = 17
 uint8 TESTLEGS = 18
+uint8 MOVE = 19  # auto-selects WAVE/RIPPLE/TRIPOD based on velocity
 # the following types are not used for normal operation 
 uint8 NEUTRAL = 101  # set all servos position 0, used for calibration
 uint8 CALIBRATE = 102  # set all feets to kiss point ground, used for calibration

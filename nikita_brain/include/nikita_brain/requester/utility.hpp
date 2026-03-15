@@ -35,6 +35,7 @@ const std::map<const uint32_t, const std::string> movementTypeToName = {
     {nikita_interfaces::msg::MovementRequest::TESTLEGS, "TESTLEGS"},
     {nikita_interfaces::msg::MovementRequest::NEUTRAL, "NEUTRAL"},
     {nikita_interfaces::msg::MovementRequest::CALIBRATE, "CALIBRATE"},
+    {nikita_interfaces::msg::MovementRequest::MOVE, "MOVE"},
 };
 
 // Auto-generated reverse map from movementTypeToName

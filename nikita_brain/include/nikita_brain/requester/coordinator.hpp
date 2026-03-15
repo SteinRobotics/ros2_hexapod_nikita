@@ -63,6 +63,7 @@ class CCoordinator : public IRequester {
     void requestChat(std::string text, Prio prio = Prio::Normal);
     void requestWaiting(Prio prio = Prio::Normal);
     void cycleGaitMode();
+    uint32_t resolveMoveGait(double magnitude);
 
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CActionPlanner> actionPlanner_;
@@ -82,12 +83,17 @@ class CCoordinator : public IRequester {
 
     // Gait cycling: button_start iterates through these modes
     const std::vector<uint32_t> gaitModes_ = {
+        nikita_interfaces::msg::MovementRequest::MOVE,
         nikita_interfaces::msg::MovementRequest::MOVE_TRIPOD,
         nikita_interfaces::msg::MovementRequest::MOVE_RIPPLE,
         nikita_interfaces::msg::MovementRequest::MOVE_WAVE,
         nikita_interfaces::msg::MovementRequest::CONTINUOUS_POSE,
     };
     size_t activeGaitIndex_ = 0;
+
+    // MOVE mode: velocity-based automatic gait selection
+    double filteredMagnitude_ = 0.0;
+    uint32_t currentMoveSubGait_ = nikita_interfaces::msg::MovementRequest::MOVE_WAVE;
 
     double kVelocityFactorLinear_ = 0.0;
     double kVelocityFactorRotation_ = 0.0;
