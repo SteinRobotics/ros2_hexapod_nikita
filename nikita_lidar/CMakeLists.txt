@@ -25,9 +25,19 @@ add_executable(node_lidar
   src/node_lidar.cpp
   ${SOURCES}
 )
-ament_target_dependencies(node_lidar rclcpp std_msgs geometry_msgs std_srvs nikita_interfaces)
+target_link_libraries(node_lidar
+  rclcpp::rclcpp
+  std_msgs::std_msgs__rosidl_generator_cpp
+  std_msgs::std_msgs__rosidl_typesupport_cpp
+  geometry_msgs::geometry_msgs__rosidl_generator_cpp
+  geometry_msgs::geometry_msgs__rosidl_typesupport_cpp
+  std_srvs::std_srvs__rosidl_generator_cpp
+  std_srvs::std_srvs__rosidl_typesupport_cpp
+  nikita_interfaces::nikita_interfaces__rosidl_generator_cpp
+  nikita_interfaces::nikita_interfaces__rosidl_typesupport_cpp
+)
 
-include_directories(
+target_include_directories(node_lidar PRIVATE
   include/nikita_lidar/
   src/LIDARLite_RaspberryPi_Library/include/
 )
