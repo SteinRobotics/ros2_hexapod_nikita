@@ -13,11 +13,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 //
-#include "geometry_msgs/msg/twist.hpp"
 #include "nikita_interfaces/msg/movement_request.hpp"
-#include "nikita_interfaces/msg/orientation.hpp"
-#include "nikita_interfaces/msg/pose.hpp"
-#include "nikita_interfaces/msg/servo_index.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 //
 #include "gaitcontroller.hpp"
@@ -34,17 +30,10 @@ class CRequester {
 
     void update(std::chrono::milliseconds timeslice);
 
-    void onMovementTypeRequest(const nikita_interfaces::msg::MovementRequest& msg);
-    void onMovementVelocityRequest(const geometry_msgs::msg::Twist& msg);
-    void onMovementBodyPoseRequest(const nikita_interfaces::msg::Pose& msg);
-    void onMovementHeadOrientationRequest(const nikita_interfaces::msg::Orientation& msg);
+    void onMovementRequest(const nikita_interfaces::msg::MovementRequest& msg);
 
    private:
-    rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr m_subMovementRequest;
-    rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr subMovementTypeRequest_;
-    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subMovementVelocityRequest_;
-    rclcpp::Subscription<nikita_interfaces::msg::Pose>::SharedPtr subMovementBodyPoseRequest_;
-    rclcpp::Subscription<nikita_interfaces::msg::Orientation>::SharedPtr subMovementHeadOrientationRequest_;
+    rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr subMovementRequest_;
 
     void sendServoRequest(const double duration_s);
 

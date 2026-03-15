@@ -60,5 +60,5 @@ TEST_F(RequesterTest, HandleNoRequestMessage) {
     // MovementRequest uses the field 'type' to indicate the request kind
     msg.type = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
 
-    EXPECT_NO_THROW(requester_->onMovementTypeRequest(msg));
+    EXPECT_NO_THROW(requester_->onMovementRequest(msg));
 }

@@ -34,17 +34,8 @@ CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServ
             });
     }
 
-    subMovementTypeRequest_ = node_->create_subscription<MovementRequest>(
-        "cmd_movement_type", 10, std::bind(&CRequester::onMovementTypeRequest, this, _1));
-
-    subMovementVelocityRequest_ = node_->create_subscription<geometry_msgs::msg::Twist>(
-        "cmd_vel", 10, std::bind(&CRequester::onMovementVelocityRequest, this, _1));
-
-    subMovementBodyPoseRequest_ = node_->create_subscription<nikita_interfaces::msg::Pose>(
-        "cmd_body_pose", 10, std::bind(&CRequester::onMovementBodyPoseRequest, this, _1));
-
-    subMovementHeadOrientationRequest_ = node_->create_subscription<nikita_interfaces::msg::Orientation>(
-        "cmd_head_orientation", 10, std::bind(&CRequester::onMovementHeadOrientationRequest, this, _1));
+    subMovementRequest_ = node_->create_subscription<MovementRequest>(
+        "cmd_movement", 10, std::bind(&CRequester::onMovementRequest, this, _1));
 
     pubJointStates_ = node_->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
 }
@@ -87,21 +78,14 @@ void CRequester::publishJointStates(const std::map<ELegIndex, CLegAngles>& legs,
     pubJointStates_->publish(msg);
 }
 
-void CRequester::onMovementTypeRequest(const MovementRequest& msg) {
-    RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::onMovementRequest: " << msg.name);
-    gait_controller_->setGait(msg);
-}
-
-void CRequester::onMovementVelocityRequest(const geometry_msgs::msg::Twist& msg) {
-    velocity_ = msg;
-}
-
-void CRequester::onMovementBodyPoseRequest(const nikita_interfaces::msg::Pose& msg) {
-    pose_body_ = msg;
-}
-
-void CRequester::onMovementHeadOrientationRequest(const nikita_interfaces::msg::Orientation& msg) {
-    orientation_head_ = msg;
+void CRequester::onMovementRequest(const MovementRequest& msg) {
+    if (msg.type != gait_controller_->currentGait()) {
+        RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::onMovementRequest: " << msg.name);
+        gait_controller_->setGait(msg);
+    }
+    velocity_ = msg.velocity;
+    pose_body_ = msg.body_pose;
+    orientation_head_ = msg.head_orientation;
 }
 
 void CRequester::update(std::chrono::milliseconds timeslice) {

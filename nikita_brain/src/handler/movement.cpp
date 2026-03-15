@@ -11,29 +11,38 @@ namespace brain {
 
 CMovement::CMovement(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     callback_timer_ = std::make_unique<CCallbackTimer>();
-    pub_movement_type_ = node_->create_publisher<MovementRequest>("cmd_movement_type", 10);
-    pub_body_pose_ = node_->create_publisher<Pose>("cmd_body_pose", 10);
-    pub_head_orientation_ = node_->create_publisher<Orientation>("cmd_head_orientation", 10);
-    pub_cmd_vel_ = node_->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
+    pub_cmd_movement_ = node_->create_publisher<MovementRequest>("cmd_movement", 10);
+}
+
+void CMovement::publish() {
+    current_request_.header.stamp = node_->get_clock()->now();
+    pub_cmd_movement_->publish(current_request_);
 }
 
 void CMovement::run(std::shared_ptr<RequestMovementType> request) {
     setDone(false);
-    pub_movement_type_->publish(request->movementRequest);
+    current_request_.type = request->movementRequest.type;
+    current_request_.name = request->movementRequest.name;
+    current_request_.direction = request->movementRequest.direction;
+    current_request_.duration_s = request->movementRequest.duration_s;
+    publish();
     callback_timer_->waitSecondsNonBlocking(request->movementRequest.duration_s,
                                             std::bind(&CMovement::timerCallback, this));
 }
 
 void CMovement::run(std::shared_ptr<RequestSinglePose> request) {
-    pub_body_pose_->publish(request->pose);
+    current_request_.body_pose = request->pose;
+    publish();
 }
 
 void CMovement::run(std::shared_ptr<RequestHeadOrientation> request) {
-    pub_head_orientation_->publish(request->orientation);
+    current_request_.head_orientation = request->orientation;
+    publish();
 }
 
 void CMovement::run(std::shared_ptr<RequestVelocity> request) {
-    pub_cmd_vel_->publish(request->velocity);
+    current_request_.velocity = request->velocity;
+    publish();
 }
 
 void CMovement::timerCallback() {

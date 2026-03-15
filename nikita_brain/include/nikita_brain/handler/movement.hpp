@@ -6,7 +6,6 @@
 
 #include "rclcpp/rclcpp.hpp"
 //
-#include "geometry_msgs/msg/twist.hpp"
 #include "nikita_interfaces/msg/movement_request.hpp"
 //
 #include <nikita_utils/callback_timer.hpp>
@@ -31,12 +30,11 @@ class CMovement : public IHandler {
 
    private:
     void timerCallback();
+    void publish();
 
     std::shared_ptr<rclcpp::Node> node_;
-    rclcpp::Publisher<nikita_interfaces::msg::MovementRequest>::SharedPtr pub_movement_type_;
-    rclcpp::Publisher<nikita_interfaces::msg::Pose>::SharedPtr pub_body_pose_;
-    rclcpp::Publisher<nikita_interfaces::msg::Orientation>::SharedPtr pub_head_orientation_;
-    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_cmd_vel_;
+    rclcpp::Publisher<nikita_interfaces::msg::MovementRequest>::SharedPtr pub_cmd_movement_;
+    nikita_interfaces::msg::MovementRequest current_request_;
 
     std::shared_ptr<CCallbackTimer> callback_timer_;
 };

@@ -33,6 +33,10 @@ uint8 direction 0
 float64 duration_s 1.0   # duration of 1 cycle
 string name
 
+geometry_msgs/Twist velocity
+Pose body_pose
+Orientation head_orientation
+
 
 
 
