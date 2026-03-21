@@ -5,13 +5,13 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
-    DeclareLaunchArgument,
     IncludeLaunchDescription,
     RegisterEventHandler,
+    TimerAction,
 )
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 import xacro
@@ -43,7 +43,7 @@ def generate_launch_description():
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        parameters=[{'robot_description': robot_description}],
+        parameters=[{'robot_description': robot_description, 'use_sim_time': True}],
     )
 
     # --- Spawn the robot into Gazebo ---
@@ -93,6 +93,50 @@ def generate_launch_description():
         arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
     )
 
+    # --- Movement node (offline / no hardware) ---
+    # Remap its 'joint_states' output to 'target_joint_states' so it does not
+    # conflict with the joint_state_broadcaster published by Gazebo.
+    pkg_movement = get_package_share_directory('nikita_movement')
+    movement_config_dir = os.path.join(pkg_movement, 'config')
+    movement_node = Node(
+        package='nikita_movement',
+        name='node_movement',
+        executable='node_movement',
+        output='screen',
+        parameters=[
+            os.path.join(movement_config_dir, 'anatomy.yaml'),
+            os.path.join(movement_config_dir, 'servo_description.yaml'),
+            {'SERVO_CONTROLLER_OFFLINE': True, 'use_sim_time': True},
+        ],
+        remappings=[('joint_states', 'target_joint_states')],
+    )
+
+    # --- Bridge: JointState → Float64MultiArray for Gazebo controller ---
+    joint_state_bridge = Node(
+        package='nikita_gazebo',
+        executable='joint_state_bridge.py',
+        name='joint_state_bridge',
+        output='screen',
+        parameters=[{'use_sim_time': True}],
+    )
+
+    # --- Brain node (processes speech commands → cmd_movement) ---
+    pkg_brain = get_package_share_directory('nikita_brain')
+    brain_config = os.path.join(pkg_brain, 'config', 'parameter.yaml')
+    brain_node = Node(
+        package='nikita_brain',
+        name='node_brain',
+        executable='node_brain',
+        output='screen',
+        parameters=[brain_config, {'use_sim_time': True}],
+    )
+
+    # Delay brain + movement start until controllers are ready
+    delayed_nodes = TimerAction(
+        period=3.0,
+        actions=[movement_node, joint_state_bridge, brain_node],
+    )
+
     return LaunchDescription([
         gazebo,
         robot_state_publisher,
@@ -100,4 +144,5 @@ def generate_launch_description():
         activate_joint_state_broadcaster,
         activate_position_controller,
         gz_ros_bridge,
+        delayed_nodes,
     ])

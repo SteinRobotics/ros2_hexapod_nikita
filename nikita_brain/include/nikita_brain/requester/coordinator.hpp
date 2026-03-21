@@ -32,6 +32,7 @@ class CCoordinator : public IRequester {
     void update() override;
 
     void joystickRequestReceived(const nikita_interfaces::msg::JoystickRequest& msg);
+    void cmdVelReceived(const geometry_msgs::msg::Twist& msg);
     void speechRecognized(std::string text);
     void supplyVoltageReceived(float voltage);
     void servoStatusReceived(const nikita_interfaces::msg::ServoStatus& msg);

@@ -11,6 +11,7 @@
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/string.hpp"
 //
+#include "geometry_msgs/msg/twist.hpp"
 #include "nikita_interfaces/msg/joystick_request.hpp"
 #include "nikita_interfaces/msg/movement_request.hpp"
 #include "nikita_interfaces/msg/servo_status.hpp"
@@ -28,6 +29,7 @@ class CRecognition {
     void onSupplyVoltage(const std_msgs::msg::Float32& msg) const;
     void onSpeechRecognition(const std_msgs::msg::String& msg) const;
     void onJoystickRequest(const nikita_interfaces::msg::JoystickRequest& msg) const;
+    void onCmdVel(const geometry_msgs::msg::Twist& msg) const;
     void onServoStatus(const nikita_interfaces::msg::ServoStatus& msg) const;
     void onMovementTypeActual(const nikita_interfaces::msg::MovementRequest& msg) const;
 
@@ -35,6 +37,7 @@ class CRecognition {
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr subSpeechRecognition_;
     rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr subSupplyVoltage_;
     rclcpp::Subscription<nikita_interfaces::msg::JoystickRequest>::SharedPtr subJoystick_;
+    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subCmdVel_;
     rclcpp::Subscription<nikita_interfaces::msg::ServoStatus>::SharedPtr subServoStatus_;
     rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr subMovementTypeActual_;
 

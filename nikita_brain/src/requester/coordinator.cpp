@@ -124,6 +124,13 @@ uint32_t CCoordinator::resolveMoveGait(double magnitude) {
     return currentMoveSubGait_;
 }
 
+void CCoordinator::cmdVelReceived(const geometry_msgs::msg::Twist& msg) {
+    double magnitude =
+        std::sqrt(msg.linear.x * msg.linear.x + msg.linear.y * msg.linear.y + msg.angular.z * msg.angular.z);
+    auto gait = resolveMoveGait(magnitude);
+    submitRequestMove(gait, 0.0, "", Prio::High, std::nullopt, std::nullopt, msg);
+}
+
 void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     if (msg.button_long_select) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "Shutdown requested by joystick");

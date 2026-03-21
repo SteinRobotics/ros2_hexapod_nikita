@@ -70,11 +70,13 @@ CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node)
     const auto foot_positions_standing =
         loadFootPositionsFromParameters("footPositions_standing", leg_parameter_keys);
     initializeLegs(foot_positions_standing, body_, legsStanding_);
-    initializeLegs(foot_positions_standing, body_, legs_);
 
     const auto foot_positions_laydown =
         loadFootPositionsFromParameters("footPositions_laydown", leg_parameter_keys);
     initializeLegs(foot_positions_laydown, body_, legsLayDown_);
+
+    // Initialize current leg positions to laydown (robot starts laying down)
+    initializeLegs(foot_positions_laydown, body_, legs_);
 }
 
 void CKinematics::logLegsPositions(std::map<ELegIndex, CLeg>& legs) {

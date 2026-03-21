@@ -8,6 +8,17 @@ from launch_ros.actions import Node
 import xacro
 
 
+# Snap-based VS Code sets GTK/GIO env vars that crash RViz2 and other GUI
+# processes (symbol lookup error in snap's libpthread).  Clear them so that
+# the system-installed libraries are used instead.
+_SNAP_GUI_OVERRIDES = {
+    k: '' for k in (
+        'GTK_PATH', 'GTK_EXE_PREFIX', 'GTK_IM_MODULE_FILE',
+        'GIO_MODULE_DIR', 'GSETTINGS_SCHEMA_DIR',
+    ) if k in os.environ
+}
+
+
 def generate_launch_description():
     pkg_description = get_package_share_directory('nikita_description')
 
@@ -23,6 +34,7 @@ def generate_launch_description():
     joint_state_publisher_gui = Node(
         package='joint_state_publisher_gui',
         executable='joint_state_publisher_gui',
+        additional_env=_SNAP_GUI_OVERRIDES,
     )
 
     rviz_config = os.path.join(pkg_description, 'rviz', 'model.rviz')
@@ -30,6 +42,7 @@ def generate_launch_description():
         package='rviz2',
         executable='rviz2',
         arguments=['-d', rviz_config],
+        additional_env=_SNAP_GUI_OVERRIDES,
     )
 
     return LaunchDescription([

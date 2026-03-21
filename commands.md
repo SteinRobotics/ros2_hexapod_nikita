@@ -61,6 +61,17 @@ button_r2: false
 button_select: false
 button_start: false
 button_home: false
+button_long_a: false
+button_long_b: false
+button_long_x: false
+button_long_y: false
+button_long_l1: false
+button_long_l2: false
+button_long_r1: false
+button_long_r2: false
+button_long_select: false
+button_long_start: false
+button_long_home: false
 dpad_vertical: 0
 dpad_horizontal: 0
 left_stick_vertical: 0.10
@@ -69,15 +80,48 @@ right_stick_horizontal: 0.0
 right_stick_vertical: 0.0"
 ---
 
+ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.5, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.3}}"
+---
+
 ros2 topic pub --once /cmd_movement nikita_interfaces/msg/MovementRequest "header:
   stamp:
     sec: 0
     nanosec: 0
   frame_id: ''
-type: 12
-duration_s: 2000
+type: 13
+direction: 0
+duration_s: 2.0
 name: 'BODY_ROLL'
+velocity:
+  linear: {x: 0.0, y: 0.0, z: 0.0}
+  angular: {x: 0.0, y: 0.0, z: 0.0}
+body_pose:
+  position: {x: 0.0, y: 0.0, z: 0.0}
+  orientation: {roll: 0.0, pitch: 0.0, yaw: 0.0}
+head_orientation: {roll: 0.0, pitch: 0.0, yaw: 0.0}
 "
+---
+
+ros2 topic pub --once /cmd_movement nikita_interfaces/msg/MovementRequest "header:
+  stamp:
+    sec: 0
+    nanosec: 0
+  frame_id: ''
+type: 4
+direction: 0
+duration_s: 1.0
+name: ''
+velocity:
+  linear: {x: 0.5, y: 0.0, z: 0.0}
+  angular: {x: 0.0, y: 0.0, z: 0.0}
+body_pose:
+  position: {x: 0.0, y: 0.0, z: 0.0}
+  orientation: {roll: 0.0, pitch: 0.0, yaw: 0.0}
+head_orientation: {roll: 0.0, pitch: 0.0, yaw: 0.0}
+"
+---
+
+ros2 topic echo --once /movement_type_actual
 ---
 
 ros2 topic pub --once /servo_status nikita_interfaces/msg/ServoStatus "header:

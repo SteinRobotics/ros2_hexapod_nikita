@@ -19,6 +19,9 @@ CRecognition::CRecognition(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     subJoystick_ = node_->create_subscription<nikita_interfaces::msg::JoystickRequest>(
         "joystick_request", 10, std::bind(&CRecognition::onJoystickRequest, this, _1));
 
+    subCmdVel_ = node_->create_subscription<geometry_msgs::msg::Twist>(
+        "cmd_vel", 10, std::bind(&CRecognition::onCmdVel, this, _1));
+
     subServoStatus_ = node_->create_subscription<nikita_interfaces::msg::ServoStatus>(
         "servo_status", 10, std::bind(&CRecognition::onServoStatus, this, _1));
 
@@ -36,6 +39,10 @@ void CRecognition::onSpeechRecognition(const std_msgs::msg::String& msg) const {
 
 void CRecognition::onJoystickRequest(const nikita_interfaces::msg::JoystickRequest& msg) const {
     coordinator_->joystickRequestReceived(msg);
+}
+
+void CRecognition::onCmdVel(const geometry_msgs::msg::Twist& msg) const {
+    coordinator_->cmdVelReceived(msg);
 }
 
 void CRecognition::onServoStatus(const nikita_interfaces::msg::ServoStatus& msg) const {
