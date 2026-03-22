@@ -35,6 +35,7 @@ void CCommunication::run(std::shared_ptr<RequestListening> request) {
     msg.data = request->active;
     m_pubListening->publish(msg);
     setDone(false);
+    request_time_ = std::chrono::steady_clock::now();
 }
 
 void CCommunication::run(std::shared_ptr<RequestTalking> request) {
@@ -43,6 +44,7 @@ void CCommunication::run(std::shared_ptr<RequestTalking> request) {
     msg.data = request->text;
     m_pubTalking->publish(msg);
     setDone(false);
+    request_time_ = std::chrono::steady_clock::now();
 }
 
 void CCommunication::run(std::shared_ptr<RequestChat> request) {
@@ -51,6 +53,7 @@ void CCommunication::run(std::shared_ptr<RequestChat> request) {
     msg.data = request->text;
     m_pubChat->publish(msg);
     setDone(false);
+    request_time_ = std::chrono::steady_clock::now();
 }
 
 void CCommunication::run(std::shared_ptr<RequestMusic> request) {
@@ -59,6 +62,7 @@ void CCommunication::run(std::shared_ptr<RequestMusic> request) {
     msg.data = request->song;
     m_pubMusic->publish(msg);
     setDone(false);
+    request_time_ = std::chrono::steady_clock::now();
 }
 
 void CCommunication::cancel() {
@@ -75,6 +79,10 @@ void CCommunication::cancel() {
 }
 
 void CCommunication::update() {
+    if (!done() && std::chrono::steady_clock::now() - request_time_ > kTimeout) {
+        RCLCPP_WARN(node_->get_logger(), "CCommunication: no status received within timeout, marking done");
+        setDone(true);
+    }
 }
 
 }  // namespace brain

@@ -48,17 +48,15 @@ CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared
     gaits_[MovementRequest::WAITING] = std::make_shared<CWaitingGait>(node_, kinematics_, params_.waiting);
     gaits_[MovementRequest::WATCH] = std::make_shared<CGaitWatch>(node_, kinematics_, params_.watch);
 
-    // Default active gait
-    active_gait_ = gaits_[MovementRequest::STAND_UP];
-    active_request_ = createMsg("STAND_UP", MovementRequest::STAND_UP);
+    // Default active gait (robot starts laying down)
+    active_gait_ = gaits_[MovementRequest::LAYDOWN];
+    active_request_ = createMsg("LAYDOWN", MovementRequest::LAYDOWN);
     pending_request_ = createMsg("NO_REQUEST", MovementRequest::NO_REQUEST);
 }
 
 CGaitController::~CGaitController() = default;
 
 void CGaitController::setGait(nikita_interfaces::msg::MovementRequest request) {
-    RCLCPP_INFO(node_->get_logger(), "CGaitController::setGait to request %s", request.name.c_str());
-
     pending_request_ = createMsg("NO_REQUEST", MovementRequest::NO_REQUEST);
 
     if (request.type == MovementRequest::NO_REQUEST) {
@@ -70,6 +68,7 @@ void CGaitController::setGait(nikita_interfaces::msg::MovementRequest request) {
     // transient states (Stopped -> start, Stopping -> cancelStop) and return.
     if (request.type == active_request_.type) {
         if (active_gait_->state() == EGaitState::Stopped) {
+            RCLCPP_INFO(node_->get_logger(), "CGaitController::setGait starting %s", request.name.c_str());
             active_gait_->start(request.duration_s, request.direction);
         }
         if (active_gait_->state() == EGaitState::Stopping) {
@@ -90,7 +89,8 @@ void CGaitController::setGait(nikita_interfaces::msg::MovementRequest request) {
 }
 
 void CGaitController::switchGait(nikita_interfaces::msg::MovementRequest request) {
-    RCLCPP_INFO_STREAM(node_->get_logger(), "CGaitController: switching to request " << request.name);
+    RCLCPP_INFO_STREAM(node_->get_logger(),
+                       "CGaitController: switching to " << request.name << " (type=" << +request.type << ")");
     pending_request_ = createMsg("NO_REQUEST", MovementRequest::NO_REQUEST);
     active_request_ = request;
 

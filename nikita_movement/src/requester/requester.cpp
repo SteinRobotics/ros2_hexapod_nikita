@@ -81,8 +81,8 @@ void CRequester::publishJointStates(const std::map<ELegIndex, CLegAngles>& legs,
 void CRequester::onMovementRequest(const MovementRequest& msg) {
     if (msg.type != gait_controller_->currentGait()) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::onMovementRequest: " << msg.name);
-        gait_controller_->setGait(msg);
     }
+    gait_controller_->setGait(msg);
     velocity_ = msg.velocity;
     pose_body_ = msg.body_pose;
     orientation_head_ = msg.head_orientation;

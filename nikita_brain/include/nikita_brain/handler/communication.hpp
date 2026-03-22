@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <chrono>
+
 #include "ihandler.hpp"
 #include "nikita_interfaces/msg/communication_status.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -41,6 +43,9 @@ class CCommunication : public IHandler {
 
     nikita_interfaces::msg::CommunicationStatus m_communication =
         nikita_interfaces::msg::CommunicationStatus();
+
+    static constexpr std::chrono::seconds kTimeout{5};
+    std::chrono::steady_clock::time_point request_time_{};
 };
 
 }  // namespace brain

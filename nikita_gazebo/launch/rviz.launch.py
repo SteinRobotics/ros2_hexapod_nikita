@@ -4,8 +4,11 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import TimerAction
+from launch.actions import IncludeLaunchDescription, TimerAction
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 import xacro
 
 
@@ -69,6 +72,16 @@ def generate_launch_description():
         output='screen',
         parameters=[brain_config],
     )
+    
+    communication_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([
+                FindPackageShare('nikita_communication'),
+                'launch',
+                'communication_launch.py',
+            ])
+        ),
+    )
 
     # --- RViz ---
     rviz_config = os.path.join(pkg_description, 'rviz', 'model.rviz')
@@ -96,6 +109,7 @@ def generate_launch_description():
     return LaunchDescription([
         robot_state_publisher,
         joint_state_publisher,
+        communication_launch,
         rviz,
         delayed_nodes,
     ])

@@ -66,17 +66,17 @@ class GaitControllerTest : public ::testing::Test {
     std::unique_ptr<CGaitController> controller_;
 };
 
-// Test: Verify default gait is STAND_UP
-TEST_F(GaitControllerTest, DefaultGaitIsStandUp) {
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::STAND_UP);
+// Test: Verify default gait is LAYDOWN (robot starts laying down)
+TEST_F(GaitControllerTest, DefaultGaitIsLaydown) {
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::LAYDOWN);
 }
 
-// Test: Switch from STAND_UP to WAITING
-TEST_F(GaitControllerTest, SwitchFromStandUpToWaiting) {
+// Test: Switch from LAYDOWN to WAITING
+TEST_F(GaitControllerTest, SwitchFromLaydownToWaiting) {
     auto vel = createZeroVelocity();
 
-    // Verify we start with STAND_UP
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::STAND_UP);
+    // Verify we start with LAYDOWN
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::LAYDOWN);
 
     // Request stop and wait for it to complete
     controller_->requestStopSelectedGait();
@@ -153,7 +153,7 @@ TEST_F(GaitControllerTest, SwitchToBodyRoll) {
 TEST_F(GaitControllerTest, SwitchFromBodyRollToStandUp) {
     auto vel = createZeroVelocity();
 
-    // First stop current gait (TRIPOD)
+    // First stop current gait (LAYDOWN)
     controller_->requestStopSelectedGait();
     for (int i = 0; i < kMaxIterations; ++i) {
         controller_->updateSelectedGait(vel);
@@ -248,8 +248,8 @@ TEST_F(GaitControllerTest, RequestSameGaitTwice) {
 TEST_F(GaitControllerTest, SwitchWhileRunning) {
     auto vel = createForwardVelocity();
 
-    // Start with STAND_UP running
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::STAND_UP);
+    // Start with LAYDOWN (default)
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::LAYDOWN);
 
     // Run a few iterations to ensure gait is active
     for (int i = 0; i < 5; ++i) {

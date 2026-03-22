@@ -131,6 +131,16 @@ def generate_launch_description():
         parameters=[brain_config, {'use_sim_time': True}],
     )
 
+    communication_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([
+                FindPackageShare('nikita_communication'),
+                'launch',
+                'communication_launch.py',
+            ])
+        ),
+    )
+
     # Delay brain + movement start until controllers are ready
     delayed_nodes = TimerAction(
         period=3.0,
@@ -144,5 +154,6 @@ def generate_launch_description():
         activate_joint_state_broadcaster,
         activate_position_controller,
         gz_ros_bridge,
+        communication_launch,
         delayed_nodes,
     ])
