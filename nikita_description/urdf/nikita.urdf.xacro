@@ -70,6 +70,42 @@
     </material>
   </gazebo>
 
+  <!-- BNO055 IMU mounted on bottom plate, X-axis aligned with robot X -->
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="0 0 0.0075" rpy="0 0 0"/>
+  </joint>
+
+  <link name="imu_link">
+    <visual>
+      <geometry>
+        <box size="0.020 0.027 0.004"/>
+      </geometry>
+      <material name="dark_grey">
+        <color rgba="0.15 0.15 0.15 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.020 0.027 0.004"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.003"/>
+      <inertia ixx="1.0e-07" ixy="0" ixz="0"
+               iyy="1.0e-07" iyz="0"
+               izz="1.0e-07"/>
+    </inertial>
+  </link>
+
+  <gazebo reference="imu_link">
+    <material>
+      <ambient>0.15 0.15 0.15 1</ambient>
+      <diffuse>0.15 0.15 0.15 1</diffuse>
+    </material>
+  </gazebo>
+
   <!-- ================================================================
        LEGS (6 legs, dimensions from anatomy.yaml leg_offsets)
        ================================================================ -->
@@ -158,6 +194,45 @@
                izz="5.0e-06"/>
     </inertial>
   </link>
+
+  <!-- Garmin LIDAR Lite v2 mounted on head, pointing forward (+X) -->
+  <joint name="lidar_joint" type="fixed">
+    <parent link="head_pitch_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0.030 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="lidar_link">
+    <visual>
+      <origin xyz="0.020 0 0"/>
+      <geometry>
+        <box size="0.040 0.048 0.020"/>
+      </geometry>
+      <material name="dark_grey">
+        <color rgba="0.2 0.2 0.2 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.020 0 0"/>
+      <geometry>
+        <box size="0.040 0.048 0.020"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.020 0 0"/>
+      <mass value="0.022"/>
+      <inertia ixx="2.0e-06" ixy="0" ixz="0"
+               iyy="1.5e-06" iyz="0"
+               izz="2.5e-06"/>
+    </inertial>
+  </link>
+
+  <gazebo reference="lidar_link">
+    <material>
+      <ambient>0.2 0.2 0.2 1</ambient>
+      <diffuse>0.2 0.2 0.2 1</diffuse>
+    </material>
+  </gazebo>
 
   <gazebo reference="head_yaw_link">
     <material>

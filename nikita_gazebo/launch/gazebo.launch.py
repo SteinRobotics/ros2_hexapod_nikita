@@ -15,6 +15,7 @@ from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 import xacro
+import yaml
 
 
 def generate_launch_description():
@@ -112,12 +113,16 @@ def generate_launch_description():
     )
 
     # --- Bridge: JointState → Float64MultiArray for Gazebo controller ---
+    controllers_yaml = os.path.join(pkg_gazebo, 'config', 'joint_controllers.yaml')
+    with open(controllers_yaml) as f:
+        controllers_config = yaml.safe_load(f)
+    joint_names = controllers_config['forward_position_controller']['ros__parameters']['joints']
     joint_state_bridge = Node(
         package='nikita_gazebo',
         executable='joint_state_bridge.py',
         name='joint_state_bridge',
         output='screen',
-        parameters=[{'use_sim_time': True}],
+        parameters=[{'joint_names': joint_names, 'use_sim_time': True}],
     )
 
     # --- Brain node (processes speech commands → cmd_movement) ---

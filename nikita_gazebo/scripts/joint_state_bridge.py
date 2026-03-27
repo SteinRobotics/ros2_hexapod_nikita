@@ -12,34 +12,14 @@ from rclpy.node import Node
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64MultiArray
 
-# Joint order must match nikita_gazebo/config/joint_controllers.yaml
-CONTROLLER_JOINT_ORDER = [
-    'right_front_coxa_joint',
-    'right_front_femur_joint',
-    'right_front_tibia_joint',
-    'right_mid_coxa_joint',
-    'right_mid_femur_joint',
-    'right_mid_tibia_joint',
-    'right_back_coxa_joint',
-    'right_back_femur_joint',
-    'right_back_tibia_joint',
-    'left_front_coxa_joint',
-    'left_front_femur_joint',
-    'left_front_tibia_joint',
-    'left_mid_coxa_joint',
-    'left_mid_femur_joint',
-    'left_mid_tibia_joint',
-    'left_back_coxa_joint',
-    'left_back_femur_joint',
-    'left_back_tibia_joint',
-    'head_yaw_joint',
-    'head_pitch_joint',
-]
-
 
 class JointStateBridge(Node):
     def __init__(self):
         super().__init__('joint_state_bridge')
+        self.declare_parameter('joint_names', rclpy.Parameter.Type.STRING_ARRAY)
+        self.joint_names_ = self.get_parameter('joint_names').get_parameter_value().string_array_value
+        if not self.joint_names_:
+            raise RuntimeError('Parameter "joint_names" must not be empty')
         self.sub_ = self.create_subscription(
             JointState, 'target_joint_states', self.on_joint_states, 10
         )
@@ -50,7 +30,7 @@ class JointStateBridge(Node):
     def on_joint_states(self, msg: JointState):
         name_to_pos = dict(zip(msg.name, msg.position))
         out = Float64MultiArray()
-        out.data = [name_to_pos.get(j, 0.0) for j in CONTROLLER_JOINT_ORDER]
+        out.data = [name_to_pos.get(j, 0.0) for j in self.joint_names_]
         self.pub_.publish(out)
 
 

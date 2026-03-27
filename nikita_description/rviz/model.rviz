@@ -66,6 +66,16 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        lidar_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         left_back_coxa_link:
           Alpha: 1
           Show Axes: false
@@ -207,6 +217,10 @@ Visualization Manager:
           Value: true
         head_yaw_link:
           Value: true
+        imu_link:
+          Value: true
+        lidar_link:
+          Value: true
         left_back_coxa_link:
           Value: true
         left_back_femur_link:
@@ -264,7 +278,10 @@ Visualization Manager:
         base_link:
           head_yaw_link:
             head_pitch_link:
-              {}
+              lidar_link:
+                {}
+          imu_link:
+            {}
           left_back_coxa_link:
             left_back_femur_link:
               left_back_tibia_link:
