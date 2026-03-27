@@ -2,7 +2,6 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="nikita">
 
   <!-- Include sub-files -->
-  <xacro:include filename="$(find nikita_description)/urdf/inertia.xacro"/>
   <xacro:include filename="$(find nikita_description)/urdf/materials.xacro"/>
   <xacro:include filename="$(find nikita_description)/urdf/leg.xacro"/>
   <xacro:include filename="$(find nikita_description)/urdf/ros2_control.xacro"/>

@@ -19,10 +19,9 @@ CCoordinator::CCoordinator(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     errorManagement_ = std::make_shared<CErrorManagement>(node_);
     behaviorParser_ = std::make_shared<CBehaviorParser>(node_);
 
-    kVelocityFactorLinear_ =
-        node->declare_parameter<double>("velocity_factor_linear", rclcpp::PARAMETER_DOUBLE);
-    kVelocityFactorRotation_ =
-        node->declare_parameter<double>("velocity_factor_rotation", rclcpp::PARAMETER_DOUBLE);
+    kMaxVelocityLinear_ = node->declare_parameter<double>("max_velocity_linear", rclcpp::PARAMETER_DOUBLE);
+    kMaxVelocityRotation_ =
+        node->declare_parameter<double>("max_velocity_rotation", rclcpp::PARAMETER_DOUBLE);
     kBodyFactorHeight_ = node->declare_parameter<double>("body_factor_height", rclcpp::PARAMETER_DOUBLE);
     kJoystickDeadzone_ = node->declare_parameter<double>("joystick_deadzone", rclcpp::PARAMETER_DOUBLE);
     kMinBodyHeight_ =
@@ -58,6 +57,12 @@ void CCoordinator::loadBehaviors() {
 void CCoordinator::executeBehavior(const Behavior& behavior, Prio prio) {
     RCLCPP_INFO(node_->get_logger(), "Executing behavior: %s", behavior.name.c_str());
 
+    if (behavior.name == "standup") {
+        isStanding_ = true;
+    } else if (behavior.name == "laydown") {
+        isStanding_ = false;
+    }
+
     // Submit all action groups from the behavior
     for (const auto& actionGroup : behavior.actionGroups) {
         std::vector<std::shared_ptr<RequestBase>> requests;
@@ -81,13 +86,19 @@ void CCoordinator::cycleGaitMode() {
 }
 
 uint32_t CCoordinator::resolveMoveGait(double magnitude) {
-    constexpr double kFilterAlpha = 0.05;
+    constexpr double kFilterAlpha = 0.4;
     constexpr double kHysteresis = 0.05;
+
     constexpr double kThresholdLow = 1.0 / 3.0;
     constexpr double kThresholdHigh = 2.0 / 3.0;
 
+    // Normalize magnitude to [0, 1] based on max possible velocity
+    const double maxMagnitude = std::sqrt(2.0 * kMaxVelocityLinear_ * kMaxVelocityLinear_ +
+                                          kMaxVelocityRotation_ * kMaxVelocityRotation_);
+    double normalizedMagnitude = (maxMagnitude > 0.0) ? magnitude / maxMagnitude : 0.0;
+
     // Low-pass filter for smooth gait selection
-    filteredMagnitude_ += kFilterAlpha * (magnitude - filteredMagnitude_);
+    filteredMagnitude_ = utils::lowPassFilter(filteredMagnitude_, normalizedMagnitude, kFilterAlpha);
 
     auto previousGait = currentMoveSubGait_;
 
@@ -147,11 +158,6 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     // Check if joystick request matches a behavior from JSON
     auto behavior = behaviorParser_->getBehaviorForJoystickRequest(msg);
     if (behavior) {
-        if (behavior->get().name == "standup") {
-            isStanding_ = true;
-        } else if (behavior->get().name == "laydown") {
-            isStanding_ = false;
-        }
         executeBehavior(behavior->get(), Prio::High);
         return;
     }
@@ -165,16 +171,20 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     auto velocity = geometry_msgs::msg::Twist();
     std::optional<uint8_t> direction = std::nullopt;
 
-    // For MOVE mode, resolve to sub-gait based on joystick velocity magnitude
+    // For MOVE mode, resolve to sub-gait based on real velocity magnitude
     if (activeGait == MovementRequest::MOVE) {
-        double magnitude = std::sqrt(msg.left_stick_vertical * msg.left_stick_vertical +
-                                     msg.left_stick_horizontal * msg.left_stick_horizontal +
-                                     msg.right_stick_horizontal * msg.right_stick_horizontal);
-        if (magnitude > kJoystickDeadzone_) {
+        double rawMagnitude = std::sqrt(msg.left_stick_vertical * msg.left_stick_vertical +
+                                        msg.left_stick_horizontal * msg.left_stick_horizontal +
+                                        msg.right_stick_horizontal * msg.right_stick_horizontal);
+        double vx = msg.left_stick_vertical * kMaxVelocityLinear_;
+        double vy = msg.left_stick_horizontal * kMaxVelocityLinear_;
+        double wz = msg.right_stick_horizontal * kMaxVelocityRotation_;
+        double magnitude = std::sqrt(vx * vx + vy * vy + wz * wz);
+        if (rawMagnitude > kJoystickDeadzone_) {
             activeGait = resolveMoveGait(magnitude);
         } else {
             // Decay filtered magnitude when joystick is idle
-            filteredMagnitude_ *= (1.0 - 0.05);
+            filteredMagnitude_ = utils::lowPassFilter(filteredMagnitude_, 0.0, 0.05);
             activeGait = currentMoveSubGait_;
         }
     }
@@ -216,26 +226,25 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     // LEFT_STICK -> linear movement
     // float32 left_stick_vertical   # TOP  = -1.0, DOWN = 1.0,  hangs on 0.004 -> means 0.0
     if (std::abs(msg.left_stick_vertical) > kJoystickDeadzone_) {
-        velocity.linear.x = msg.left_stick_vertical * kVelocityFactorLinear_;
+        velocity.linear.x = msg.left_stick_vertical * kMaxVelocityLinear_;
         newMovementType = activeGait;
     }
     // float32 left_stick_horizontal # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
     if (std::abs(msg.left_stick_horizontal) > kJoystickDeadzone_) {
-        velocity.linear.y = msg.left_stick_horizontal * kVelocityFactorLinear_;
+        velocity.linear.y = msg.left_stick_horizontal * kMaxVelocityLinear_;
         newMovementType = activeGait;
     }
     // RIGHT_STICK -> rotation
     // float32 right_stick_horizontal  # LEFT = -1.0, RIGHT = 1.0, hangs on 0.004 -> means 0.0
     if (std::abs(msg.right_stick_horizontal) > kJoystickDeadzone_) {
-        velocity.angular.z = msg.right_stick_horizontal * kVelocityFactorRotation_;
+        velocity.angular.z = msg.right_stick_horizontal * kMaxVelocityRotation_;
         newMovementType = activeGait;
     }
 
     // float32 right_stick_vertical    # TOP  = -1.0, DOWN = 1.0, hangs on 0.004 -> means 0.0
     if (std::abs(msg.right_stick_vertical) > kJoystickDeadzone_) {
-        utils::lowPassFilter(body.position.z, msg.right_stick_vertical * kBodyFactorHeight_, 0.02);
-        body.position.z = msg.right_stick_vertical * kBodyFactorHeight_;
-        body.position.z = std::clamp(body.position.z, kMinBodyHeight_, kMaxBodyHeight_);
+        body.position.z =
+            std::clamp(msg.right_stick_vertical * kBodyFactorHeight_, kMinBodyHeight_, kMaxBodyHeight_);
         newMovementType = activeGait;
     } else {
         body.position.z = 0.0;
@@ -273,11 +282,6 @@ void CCoordinator::speechRecognized(std::string text) {
     // Check if command matches a behavior from JSON
     auto behavior = behaviorParser_->getBehaviorForVoiceRequest(command);
     if (behavior) {
-        if (behavior->get().name == "standup") {
-            isStanding_ = true;
-        } else if (behavior->get().name == "laydown") {
-            isStanding_ = false;
-        }
         executeBehavior(behavior->get(), Prio::High);
         return;
     }

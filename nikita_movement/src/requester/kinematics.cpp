@@ -15,8 +15,8 @@ using namespace utils;
 
 namespace nikita_movement {
 
-#define LOG_KINEMATICS_LEG_ACTIVE true
-#define LOG_KINEMATICS_HEAD_ACTIVE true
+#define LOG_KINEMATICS_LEG_ACTIVE false
+#define LOG_KINEMATICS_HEAD_ACTIVE false
 
 CKinematics::CKinematics(std::shared_ptr<rclcpp::Node> node)
     : node_(node),

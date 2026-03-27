@@ -99,9 +99,9 @@ bool CTripodGait::update(const geometry_msgs::msg::Twist& velocity, const CPose&
         return true;
     }
 
-    RCLCPP_INFO_STREAM(node_->get_logger(), "CTripodGait::update: state_: " << magic_enum::enum_name(state_));
-    RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: phase_: %.2f, delta_phase: %.2f", phase_,
-                delta_phase);
+    // RCLCPP_INFO_STREAM(node_->get_logger(), "CTripodGait::update: state_: " << magic_enum::enum_name(state_));
+    // RCLCPP_INFO(node_->get_logger(), "CTripodGait::update: phase_: %.2f, delta_phase: %.2f", phase_,
+    //             delta_phase);
 
     const auto standing_positions = kinematics_->getLegsStandingPositions();
 

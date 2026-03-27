@@ -96,8 +96,8 @@ class CCoordinator : public IRequester {
     double filteredMagnitude_ = 0.0;
     uint32_t currentMoveSubGait_ = nikita_interfaces::msg::MovementRequest::MOVE_WAVE;
 
-    double kVelocityFactorLinear_ = 0.0;
-    double kVelocityFactorRotation_ = 0.0;
+    double kMaxVelocityLinear_ = 0.0;
+    double kMaxVelocityRotation_ = 0.0;
     double kBodyFactorHeight_ = 0.0;
     double kMinBodyHeight_ = 0.0;
     double kMaxBodyHeight_ = 0.0;
