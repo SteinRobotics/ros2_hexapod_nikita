@@ -76,7 +76,6 @@ void CCoordinator::executeBehavior(const Behavior& behavior, Prio prio) {
 void CCoordinator::cycleGaitMode() {
     activeGaitIndex_ = (activeGaitIndex_ + 1) % gaitModes_.size();
     // Reset MOVE state for clean start
-    filteredMagnitude_ = 0.0;
     currentMoveSubGait_ = MovementRequest::MOVE_WAVE;
     auto gaitName = movementTypeToName.at(gaitModes_[activeGaitIndex_]);
     RCLCPP_INFO(node_->get_logger(), "Gait mode switched to: %s", gaitName.c_str());
@@ -86,7 +85,6 @@ void CCoordinator::cycleGaitMode() {
 }
 
 uint32_t CCoordinator::resolveMoveGait(double magnitude) {
-    constexpr double kFilterAlpha = 0.4;
     constexpr double kHysteresis = 0.05;
 
     constexpr double kThresholdLow = 1.0 / 3.0;
@@ -97,27 +95,24 @@ uint32_t CCoordinator::resolveMoveGait(double magnitude) {
                                           kMaxVelocityRotation_ * kMaxVelocityRotation_);
     double normalizedMagnitude = (maxMagnitude > 0.0) ? magnitude / maxMagnitude : 0.0;
 
-    // Low-pass filter for smooth gait selection
-    filteredMagnitude_ = utils::lowPassFilter(filteredMagnitude_, normalizedMagnitude, kFilterAlpha);
-
     auto previousGait = currentMoveSubGait_;
 
     // Hysteresis-based gait selection
     switch (currentMoveSubGait_) {
         case MovementRequest::MOVE_WAVE:
-            if (filteredMagnitude_ > kThresholdLow + kHysteresis) {
+            if (normalizedMagnitude > kThresholdLow + kHysteresis) {
                 currentMoveSubGait_ = MovementRequest::MOVE_RIPPLE;
             }
             break;
         case MovementRequest::MOVE_RIPPLE:
-            if (filteredMagnitude_ > kThresholdHigh + kHysteresis) {
+            if (normalizedMagnitude > kThresholdHigh + kHysteresis) {
                 currentMoveSubGait_ = MovementRequest::MOVE_TRIPOD;
-            } else if (filteredMagnitude_ < kThresholdLow - kHysteresis) {
+            } else if (normalizedMagnitude < kThresholdLow - kHysteresis) {
                 currentMoveSubGait_ = MovementRequest::MOVE_WAVE;
             }
             break;
         case MovementRequest::MOVE_TRIPOD:
-            if (filteredMagnitude_ < kThresholdHigh - kHysteresis) {
+            if (normalizedMagnitude < kThresholdHigh - kHysteresis) {
                 currentMoveSubGait_ = MovementRequest::MOVE_RIPPLE;
             }
             break;
@@ -129,7 +124,7 @@ uint32_t CCoordinator::resolveMoveGait(double magnitude) {
     if (currentMoveSubGait_ != previousGait) {
         RCLCPP_INFO(node_->get_logger(), "MOVE gait transition: %s -> %s (magnitude: %.3f)",
                     movementTypeToName.at(previousGait).c_str(),
-                    movementTypeToName.at(currentMoveSubGait_).c_str(), filteredMagnitude_);
+                    movementTypeToName.at(currentMoveSubGait_).c_str(), normalizedMagnitude);
     }
 
     return currentMoveSubGait_;
@@ -183,8 +178,6 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         if (rawMagnitude > kJoystickDeadzone_) {
             activeGait = resolveMoveGait(magnitude);
         } else {
-            // Decay filtered magnitude when joystick is idle
-            filteredMagnitude_ = utils::lowPassFilter(filteredMagnitude_, 0.0, 0.05);
             activeGait = currentMoveSubGait_;
         }
     }

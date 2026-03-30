@@ -93,7 +93,6 @@ class CCoordinator : public IRequester {
     size_t activeGaitIndex_ = 0;
 
     // MOVE mode: velocity-based automatic gait selection
-    double filteredMagnitude_ = 0.0;
     uint32_t currentMoveSubGait_ = nikita_interfaces::msg::MovementRequest::MOVE_WAVE;
 
     double kMaxVelocityLinear_ = 0.0;
