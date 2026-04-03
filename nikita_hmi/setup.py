@@ -17,7 +17,7 @@ setup(
     zip_safe=True,
     maintainer='christian',
     maintainer_email='stein.robotics@gmail.com',
-    description='TODO: Package description',
+    description='Human-machine interface (OLED display, relay control, power monitoring) for the Nikita hexapod',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={

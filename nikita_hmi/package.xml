@@ -3,12 +3,13 @@
 <package format="3">
   <name>nikita_hmi</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Human-machine interface (OLED display, relay control, power monitoring) for the Nikita hexapod</description>
   <maintainer email="stein.robotics@gmail.com">christian</maintainer>
   <license>MIT</license>
 
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
 
   <depend>nikita_interfaces</depend>
 

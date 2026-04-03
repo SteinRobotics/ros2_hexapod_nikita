@@ -3,7 +3,7 @@
 <package format="3">
   <name>nikita_communication</name>
   <version>0.0.1</version>
-  <description>TODO: Package description</description>
+  <description>Speech recognition, TTS, chatbot, and audio I/O for the Nikita hexapod</description>
   <maintainer email="stein.robotics@gmail.com">christian</maintainer>
   <license>MIT</license>
 

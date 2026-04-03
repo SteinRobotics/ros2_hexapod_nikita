@@ -7,7 +7,7 @@
 ## Code Guidelines
 
 - Use **references** (`&` / `const&`) over raw pointers. When pointers are necessary, use smart pointers (`std::shared_ptr`, `std::unique_ptr`).
-- Prefer **C++20** features where useful (e.g., `std::format`, concepts, ranges, designated initializers, `std::span`).
+- Prefer **C++23** features where useful (e.g., `std::format`, concepts, ranges, designated initializers, `std::span`).
 
 ## Build Instructions
 

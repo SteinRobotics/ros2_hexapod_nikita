@@ -23,7 +23,7 @@ setup(
     zip_safe=True,
     maintainer='Christian Stein',
     maintainer_email='stein.robotics@gmail.com',
-    description='TODO: Package description',
+    description='Speech recognition, TTS, chatbot, and audio I/O for the Nikita hexapod',
     license='MIT',
     tests_require=['pytest'],
     entry_points={

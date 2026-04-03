@@ -3,13 +3,21 @@
 <package format="3">
   <name>nikita_bringup</name>
   <version>0.0.1</version>
-  <description>TODO: Package description</description>
+  <description>Launch files and bringup configuration for the Nikita hexapod</description>
   <maintainer email="stein.robotics@gmail.com">christian</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend>ros2launch</exec_depend>
+  <exec_depend>bno055</exec_depend>
+  <exec_depend>nikita_brain</exec_depend>
+  <exec_depend>nikita_communication</exec_depend>
+  <exec_depend>nikita_hmi</exec_depend>
+  <exec_depend>nikita_lidar</exec_depend>
+  <exec_depend>nikita_movement</exec_depend>
+  <exec_depend>nikita_navigation</exec_depend>
+  <exec_depend>nikita_teleop</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

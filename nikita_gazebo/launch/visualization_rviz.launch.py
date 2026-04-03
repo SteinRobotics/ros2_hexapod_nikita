@@ -4,9 +4,10 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, TimerAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 import xacro
@@ -83,6 +84,23 @@ def generate_launch_description():
         ),
     )
 
+    enable_lidar = LaunchConfiguration('enable_lidar')
+    declare_enable_lidar = DeclareLaunchArgument(
+        'enable_lidar',
+        default_value='false',
+        description='Start nikita_lidar node and publish scan_1d for RViz Range display.',
+    )
+    lidar_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([
+                FindPackageShare('nikita_lidar'),
+                'launch',
+                'lidar_launch.py',
+            ])
+        ),
+        condition=IfCondition(enable_lidar),
+    )
+
     # --- RViz ---
     rviz_config = os.path.join(pkg_description, 'rviz', 'model.rviz')
     rviz = Node(
@@ -107,9 +125,11 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        declare_enable_lidar,
         robot_state_publisher,
         joint_state_publisher,
         communication_launch,
+        lidar_launch,
         rviz,
         delayed_nodes,
     ])

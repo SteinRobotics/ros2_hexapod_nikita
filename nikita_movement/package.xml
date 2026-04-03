@@ -3,7 +3,7 @@
 <package format="3">
   <name>nikita_movement</name>
   <version>0.0.1</version>
-  <description>TODO: Package description</description>
+  <description>Gait controller, kinematics, and movement primitives for the Nikita hexapod</description>
   <maintainer email="stein.robotics@gmail.com">christian</maintainer>
   <license>MIT</license>
 

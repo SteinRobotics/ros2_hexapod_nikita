@@ -9,7 +9,7 @@
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/float32.hpp"
+#include "sensor_msgs/msg/range.hpp"
 
 using namespace std::chrono_literals;
 
@@ -21,7 +21,7 @@ class NodeLidar : public rclcpp::Node {
         // Optionally configure LIDAR-Lite
         lidarLite_.configure(0);
 
-        publisher_ = this->create_publisher<std_msgs::msg::Float32>("distance", 10);
+        publisher_ = this->create_publisher<sensor_msgs::msg::Range>("scan_1d", 10);
         auto timer_callback = [this]() -> void {
             auto busyFlag = lidarLite_.getBusyFlag();
 
@@ -31,9 +31,16 @@ class NodeLidar : public rclcpp::Node {
                 // This method will result in faster I2C rep rates.
                 lidarLite_.takeRange();
                 auto distance = lidarLite_.readDistance();
-                auto message = std_msgs::msg::Float32();
-                message.data = float(distance) / 100.0;  // convert cm to m
-                // RCLCPP_INFO_STREAM(this->get_logger(), "Distance: : " << message.data);
+                const auto distance_m = static_cast<float>(distance) / 100.0F;  // convert cm to m
+
+                auto message = sensor_msgs::msg::Range();
+                message.header.stamp = this->get_clock()->now();
+                message.header.frame_id = "lidar_link";
+                message.radiation_type = sensor_msgs::msg::Range::INFRARED;
+                message.field_of_view = 0.00436332313F;  // 0.25 deg in rad
+                message.min_range = 0.05F;
+                message.max_range = 40.0F;
+                message.range = distance_m;
                 this->publisher_->publish(message);
             }
         };
@@ -43,7 +50,7 @@ class NodeLidar : public rclcpp::Node {
    private:
     LIDARLite_v3 lidarLite_;
     rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr publisher_;
+    rclcpp::Publisher<sensor_msgs::msg::Range>::SharedPtr publisher_;
 };
 
 int main(int argc, char* argv[]) {

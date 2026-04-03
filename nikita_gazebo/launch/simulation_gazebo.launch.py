@@ -5,13 +5,15 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
+    DeclareLaunchArgument,
     IncludeLaunchDescription,
     RegisterEventHandler,
     TimerAction,
 )
+from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 import xacro
@@ -28,6 +30,14 @@ def generate_launch_description():
 
     world_file = os.path.join(pkg_gazebo, 'worlds', 'empty.sdf')
 
+    world_arg = DeclareLaunchArgument(
+        'world', default_value=world_file,
+        description='Full path to the Gazebo world SDF file')
+
+    enable_nav_arg = DeclareLaunchArgument(
+        'enable_navigation', default_value='false',
+        description='Launch nikita_navigation (head-sweep scan + reactive nav)')
+
     # --- Launch Gazebo Harmonic ---
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -37,7 +47,7 @@ def generate_launch_description():
                 'gz_sim.launch.py',
             ])
         ),
-        launch_arguments={'gz_args': ['-r ', world_file]}.items(),
+        launch_arguments={'gz_args': ['-r ', LaunchConfiguration('world')]}.items(),
     )
 
     # --- Robot State Publisher ---
@@ -87,11 +97,14 @@ def generate_launch_description():
         )
     )
 
-    # --- Bridge: forward /clock from Gazebo to ROS ---
+    # --- Bridge: forward /clock and /lidar_scan from Gazebo to ROS ---
     gz_ros_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+        arguments=[
+            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+            '/lidar_scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
+        ],
     )
 
     # --- Movement node (offline / no hardware) ---
@@ -152,7 +165,21 @@ def generate_launch_description():
         actions=[movement_node, joint_state_bridge, brain_node],
     )
 
+    navigation_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([
+                FindPackageShare('nikita_navigation'),
+                'launch',
+                'navigation_launch.py',
+            ])
+        ),
+        launch_arguments={'enable_map': 'true'}.items(),
+        condition=IfCondition(LaunchConfiguration('enable_navigation')),
+    )
+
     return LaunchDescription([
+        world_arg,
+        enable_nav_arg,
         gazebo,
         robot_state_publisher,
         spawn_entity,
@@ -161,4 +188,5 @@ def generate_launch_description():
         gz_ros_bridge,
         communication_launch,
         delayed_nodes,
+        navigation_launch,
     ])

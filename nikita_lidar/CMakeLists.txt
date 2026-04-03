@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(nikita_lidar)
 
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD 23)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -11,8 +11,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(nikita_interfaces REQUIRED)
 
@@ -27,10 +26,8 @@ add_executable(node_lidar
 )
 target_link_libraries(node_lidar
   rclcpp::rclcpp
-  std_msgs::std_msgs__rosidl_generator_cpp
-  std_msgs::std_msgs__rosidl_typesupport_cpp
-  geometry_msgs::geometry_msgs__rosidl_generator_cpp
-  geometry_msgs::geometry_msgs__rosidl_typesupport_cpp
+  sensor_msgs::sensor_msgs__rosidl_generator_cpp
+  sensor_msgs::sensor_msgs__rosidl_typesupport_cpp
   std_srvs::std_srvs__rosidl_generator_cpp
   std_srvs::std_srvs__rosidl_typesupport_cpp
   nikita_interfaces::nikita_interfaces__rosidl_generator_cpp

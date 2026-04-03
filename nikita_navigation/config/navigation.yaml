@@ -1,0 +1,17 @@
+node_head_scan:
+  ros__parameters:
+    sweep_min_deg: -25.0          # rightmost sweep angle (head yaw)
+    sweep_max_deg: 25.0           # leftmost sweep angle
+    sweep_step_deg: 2.0           # angular resolution per sample
+    angle_tolerance_deg: 1.5      # servo must be within this of target
+
+node_navigation:
+  ros__parameters:
+    goal_tolerance_m: 0.10        # position arrival threshold
+    heading_tolerance_rad: 0.15   # rotate-in-place threshold (~8.6°)
+    obstacle_distance_m: 0.20     # stop if range below this
+    forward_sector_deg: 15.0      # half-width of obstacle check sector
+    max_linear_vel: 0.01          # m/s  – conservative for hw safety; increase for sim (e.g. 0.05)
+    max_angular_vel: 0.01         # rad/s – conservative for hw safety; increase for sim (e.g. 0.10)
+    tilt_threshold_deg: 30.0      # IMU safety – stop if tilted more
+    goal_timeout_s: 120.0         # abort goal after this many seconds (0 = no timeout)

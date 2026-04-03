@@ -10,9 +10,8 @@ import socket
 
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float32
-from std_msgs.msg import Bool
-from geometry_msgs.msg import Vector3
+from std_msgs.msg import Bool, Float32
+from sensor_msgs.msg import Imu, Range
 from nikita_interfaces.msg import MovementRequest
 from nikita_interfaces.msg import ServoStatus
 from nikita_interfaces.msg import JoystickRequest
@@ -22,7 +21,6 @@ from PIL import Image, ImageDraw, ImageFont
 import board
 from digitalio import DigitalInOut
 import adafruit_ssd1306
-import adafruit_bno055
 import adafruit_ina228
 
 
@@ -69,22 +67,19 @@ class NodeHmi(Node):
         self.draw = ImageDraw.Draw(self.image)
         self.font = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 12)
 
-        self.__bno055 = adafruit_bno055.BNO055_I2C(self.i2c)
-        time.sleep(0.5)
-
         self.__ina228 = adafruit_ina228.INA228(self.i2c)
         time.sleep(0.5)
 
         # turn relay on
         self.relay_pin.value = True
 
-        self.create_subscription(Float32, 'distance', self.callback_lidar, 10)
+        self.create_subscription(Range, 'scan_1d', self.callback_lidar, 10)
         self.create_subscription(Bool, 'request_servo_relay', self.callback_servo_relay, 10)
         self.create_subscription(Bool, 'request_system_shutdown', self.callback_system_shutdown, 10)
         self.create_subscription(MovementRequest, 'movement_type_actual', self.callback_movement_type, 10)
         self.create_subscription(ServoStatus, 'servo_status', self.callback_servo_status, 10)
         self.create_subscription(JoystickRequest, 'joystick_request', self.callback_joystick_request, 10)
-        self.pub_gravity = self.create_publisher(Vector3, 'gravity', 10)
+        self.create_subscription(Imu, 'bno055/imu', self.callback_imu, 10)
         self.pub_supply_voltage = self.create_publisher(Float32, 'supply_voltage', 10)
 
         # TODO TEST easier like this self.font_height = 10 + 2
@@ -94,8 +89,6 @@ class NodeHmi(Node):
 
         timer_period = 1.0  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
-
-        # TODO: for faster publishing the gravity topic an additional timer is needed.
 
     def update_display(self, text, line_number=0):
         # first overwrite the old text with the same text in black
@@ -165,17 +158,9 @@ class NodeHmi(Node):
             ip_address = self.get_ip_address()
             self.text_ip_address  = "IP: " + ip_address
 
-    def update_bno055(self):
-        (x,y,z) = self.__bno055.gravity
-        if x is None or y is None or z is None:
-            return
-        self.text_bno055 = f"g: {z:.2f}m/s^2"
-        # publish gravity
-        msg = Vector3()
-        msg.x = x
-        msg.y = y
-        msg.z = z
-        self.pub_gravity.publish(msg)
+    def callback_imu(self, msg):
+        gz = msg.linear_acceleration.z
+        self.text_bno055 = f"g: {gz:.2f}m/s^2"
 
     def update_ina228(self):
         voltage = self.__ina228.bus_voltage
@@ -192,11 +177,10 @@ class NodeHmi(Node):
     def timer_callback(self):
         self.update_ip_address()
         self.update_ina228()
-        self.update_bno055()
         self.update_active_page()
 
     def callback_lidar(self, msg):
-        self.text_lidar = f"d: {msg.data:>5.2f}m"   # right justified, 5 characters wide, 2 decimal places
+        self.text_lidar = f"d: {msg.range:>5.2f}m"   # right justified, 5 characters wide, 2 decimal places
 
     def callback_movement_type(self, msg):
         self.text_movement_request = msg.name.lower()

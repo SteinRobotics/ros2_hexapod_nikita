@@ -20,9 +20,10 @@ Nikita is an open-source, modular hexapod robot platform for makers, tinkerers, 
 - `nikita_brain/`         — High-level behavior, action planning, and coordination
 - `nikita_movement/`      — Gait, kinematics, and movement primitives
 - `nikita_communication/` — Speech recognition, TTS, chatbot, and audio I/O
-- `nikita_hmi/`           — Human-machine interface (OLED, IMU, relay control)
+- `nikita_hmi/`           — Human-machine interface (OLED, relay control)
 - `nikita_teleop/`        — Teleoperation (joystick, remote)
 - `nikita_lidar/`         — LIDAR sensor integration
+- `nikita_navigation/`    — 1D-lidar head-sweep navigation with obstacle avoidance
 - `nikita_interfaces/`    — Custom ROS2 message and service definitions
 - `nikita_bringup/`       — Launch and bringup scripts
 - `nikita_doc/`           — Documentation, diagrams, and hardware info
@@ -44,6 +45,8 @@ Nikita is an open-source, modular hexapod robot platform for makers, tinkerers, 
 3. **Launch the Robot**
    ```bash
    ros2 launch nikita_bringup target_launch.py
+   # with navigation enabled
+   ros2 launch nikita_bringup target_launch.py enable_navigation:=true
    # or for testing
    ros2 launch nikita_bringup test_launch.py
    ```
@@ -54,6 +57,9 @@ Nikita is an open-source, modular hexapod robot platform for makers, tinkerers, 
    ros2 launch nikita_movement movement_launch.py
    ros2 launch nikita_teleop teleop_launch.py
    ros2 launch nikita_lidar lidar_launch.yaml
+   ros2 launch nikita_navigation navigation_launch.py
+   # with map server
+   ros2 launch nikita_navigation navigation_launch.py enable_map:=true
    ```
 5. **Interact & Hack**
    - Send movement commands:
@@ -91,10 +97,18 @@ sudo apt-get install ros-jazzy-gz-ros2-control ros-jazzy-controller-manager \
   ros-jazzy-joint-state-broadcaster ros-jazzy-forward-command-controller \
   ros-jazzy-joint-state-publisher-gui
 
+# Navigation dependencies (optional)
+sudo apt-get install ros-jazzy-nav2-map-server ros-jazzy-nav2-lifecycle-manager
+
 # Build and launch
 colcon build --symlink-install --packages-select nikita_description nikita_gazebo
 source install/setup.bash
 ros2 launch nikita_gazebo gazebo.launch.py
+
+# Launch with the simple room world and navigation
+ros2 launch nikita_gazebo simulation_gazebo.launch.py \
+  world:=$(ros2 pkg prefix nikita_gazebo)/share/nikita_gazebo/worlds/simple_room.sdf \
+  enable_navigation:=true
 ```
 
 Command joints in the simulation (all 20 joints, values in radians):

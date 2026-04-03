@@ -3,7 +3,7 @@
 <package format="3">
   <name>nikita_brain</name>
   <version>0.0.1</version>
-  <description>TODO: Package description</description>
+  <description>High-level behavior, action planning, and coordination for the Nikita hexapod</description>
   <maintainer email="stein.robotics@gmail.com">christian</maintainer>
   <license>MIT</license>
 
