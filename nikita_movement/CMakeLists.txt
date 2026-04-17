@@ -29,22 +29,18 @@ set(SOURCES
   src/handler/servo_protocol.cpp
   src/handler/servohandler.cpp
   src/requester/gait_bodyroll.cpp
-  src/requester/gait_calibrate.cpp
   src/requester/gait_clap.cpp
   src/requester/gait_continuouspose.cpp
   src/requester/gait_highfive.cpp
   src/requester/gait_laydown.cpp
   src/requester/gait_legwave.cpp
   src/requester/gait_look.cpp
-  src/requester/gait_neutral.cpp
-  src/requester/gait_ripple.cpp
+  src/requester/gait_move_combined.cpp
   src/requester/gait_standup.cpp
   src/requester/gait_singlepose.cpp
   src/requester/gait_testlegs.cpp
-  src/requester/gait_tripod.cpp
   src/requester/gait_waiting.cpp
   src/requester/gait_watch.cpp
-  src/requester/gait_wave.cpp
   src/requester/gaitcontroller.cpp
   src/requester/kinematics.cpp
   src/requester/requester.cpp

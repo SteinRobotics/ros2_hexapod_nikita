@@ -74,7 +74,7 @@ button_long_start: false
 button_long_home: false
 dpad_vertical: 0
 dpad_horizontal: 0
-left_stick_vertical: 0.10
+left_stick_vertical: 2.90
 left_stick_horizontal: 0.0
 right_stick_horizontal: 0.0
 right_stick_vertical: 0.0"

@@ -307,14 +307,14 @@ TEST_F(GaitControllerTest, MultipleConsecutiveSwitches) {
     controller_->setGait(request);
     EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::LEGS_WAVE);
 
-    // Switch 4: LEGS_WAVE -> TRIPOD (back to original)
+    // Switch 4: LEGS_WAVE -> MOVE (back to original)
     controller_->requestStopSelectedGait();
     for (int i = 0; i < kMaxIterations; ++i) {
         controller_->updateSelectedGait(vel);
     }
-    request.type = MovementRequestMsg::MOVE_TRIPOD;
+    request.type = MovementRequestMsg::MOVE;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::MOVE_TRIPOD);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::MOVE);
 }
 
 // Test: Update gait after switch
@@ -338,8 +338,8 @@ TEST_F(GaitControllerTest, UpdateAfterSwitch) {
     EXPECT_TRUE(update_result || !update_result);  // Just verify it executes
 }
 
-// Test: Switch back to TRIPOD with velocity
-TEST_F(GaitControllerTest, SwitchBackToTripodWithVelocity) {
+// Test: Switch back to MOVE with velocity
+TEST_F(GaitControllerTest, SwitchBackToMoveWithVelocity) {
     auto vel = createZeroVelocity();
     auto forward_vel = createForwardVelocity();
 
@@ -353,14 +353,14 @@ TEST_F(GaitControllerTest, SwitchBackToTripodWithVelocity) {
     controller_->setGait(request);
     EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::WAITING);
 
-    // Switch back to TRIPOD
+    // Switch back to MOVE
     controller_->requestStopSelectedGait();
     for (int i = 0; i < kMaxIterations; ++i) {
         controller_->updateSelectedGait(vel);
     }
-    request.type = MovementRequestMsg::MOVE_TRIPOD;
+    request.type = MovementRequestMsg::MOVE;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::MOVE_TRIPOD);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::MOVE);
 
     // Update with forward velocity - should work
     EXPECT_NO_THROW({

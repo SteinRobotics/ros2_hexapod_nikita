@@ -59,9 +59,6 @@ class CKinematics {
     void calcLegForwardKinematics(const CLegAngles target, CLeg& leg);
     CPosition rotate(const CPosition& point, const COrientation& rot);
 
-    // Publish the current joint angles (coxa/femur/tibia for each leg) as a JointState
-    // void publishJointStates();
-
     std::shared_ptr<rclcpp::Node> node_;
 
     // Parameters

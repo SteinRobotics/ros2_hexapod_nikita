@@ -78,6 +78,15 @@ struct Parameters {
         double head_max_yaw_deg{0.0};
     };
 
+    struct MoveCombined {
+        double velocity_threshold_wave_ripple{0.3};
+        double velocity_threshold_ripple_tripod{0.6};
+        double hysteresis_margin{0.05};
+        double transition_phase_length{M_PI};
+        double velocity_filter_alpha{0.01};
+        double rotation_weight{0.7};
+    };
+
     BodyRoll bodyRoll;
     Clap clap;
     ContinuousPose continuousPose;
@@ -93,6 +102,7 @@ struct Parameters {
     Waiting waiting;
     Wave wave;
     Watch watch;
+    MoveCombined moveCombined;
 
     static Parameters declare(std::shared_ptr<rclcpp::Node> node);
 };
@@ -103,10 +113,9 @@ inline Parameters Parameters::declare(std::shared_ptr<rclcpp::Node> node) {
     // Generic Parameters
     const double body_max_roll_deg = node->declare_parameter<double>("GENERIC_BODY_MAX_ROLL");
     const double body_max_pitch_deg = node->declare_parameter<double>("GENERIC_BODY_MAX_PITCH");
-    [[maybe_unused]] const double body_max_yaw_deg = node->declare_parameter<double>("GENERIC_BODY_MAX_YAW");
+    node->declare_parameter<double>("GENERIC_BODY_MAX_YAW");
     const double head_max_yaw_deg = node->declare_parameter<double>("GENERIC_HEAD_MAX_YAW");
-    [[maybe_unused]] const double head_max_pitch_deg =
-        node->declare_parameter<double>("GENERIC_HEAD_MAX_PITCH");
+    const double head_max_pitch_deg = node->declare_parameter<double>("GENERIC_HEAD_MAX_PITCH");
 
     const double leg_lift_height = node->declare_parameter<double>("GENERIC_LEG_LIFT_HEIGHT");
     const double step_length = node->declare_parameter<double>("GENERIC_STEP_LENGTH");
@@ -163,6 +172,20 @@ inline Parameters Parameters::declare(std::shared_ptr<rclcpp::Node> node) {
     // Watch
     params.watch.body_max_yaw_deg = node->declare_parameter<double>("GAIT_WATCH_BODY_MAX_YAW");
     params.watch.head_max_yaw_deg = head_max_yaw_deg;
+
+    // MoveCombined
+    params.moveCombined.velocity_threshold_wave_ripple =
+        node->declare_parameter<double>("GAIT_MOVE_COMBINED_THRESHOLD_WAVE_RIPPLE", 0.3);
+    params.moveCombined.velocity_threshold_ripple_tripod =
+        node->declare_parameter<double>("GAIT_MOVE_COMBINED_THRESHOLD_RIPPLE_TRIPOD", 0.6);
+    params.moveCombined.hysteresis_margin =
+        node->declare_parameter<double>("GAIT_MOVE_COMBINED_HYSTERESIS_MARGIN", 0.05);
+    params.moveCombined.transition_phase_length =
+        node->declare_parameter<double>("GAIT_MOVE_COMBINED_TRANSITION_PHASE_LENGTH", M_PI);
+    params.moveCombined.velocity_filter_alpha =
+        node->declare_parameter<double>("GAIT_MOVE_COMBINED_VELOCITY_FILTER_ALPHA", 0.01);
+    params.moveCombined.rotation_weight =
+        node->declare_parameter<double>("GAIT_MOVE_COMBINED_ROTATION_WEIGHT", 0.7);
 
     // Test Legs
     params.testLegs.coxa_delta_deg = node->declare_parameter<double>("TESTLEGS_COXA_DELTA_DEG");

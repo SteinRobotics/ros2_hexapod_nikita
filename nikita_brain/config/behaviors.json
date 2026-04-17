@@ -281,6 +281,40 @@
                     "RequestMusic": "STOP"
                 }
             ]
+        },
+        {
+            "name": "calibrate",
+            "trigger":
+            {
+                "voice": "commandCalibrate"
+            },
+            "actions": [
+                {
+                    "RequestMovementType": { "name": "CALIBRATE", "duration_s": 1.5 },
+                    "RequestSinglePose": {
+                        "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+                        "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }
+                    },
+                    "RequestHeadOrientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }
+                }
+            ]
+        },
+        {
+            "name": "neutral",
+            "trigger":
+            {
+                "voice": "commandNeutral"
+            },
+            "actions": [
+                {
+                    "RequestMovementType": { "name": "NEUTRAL", "duration_s": 1.5 },
+                    "RequestSinglePose": {
+                        "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+                        "orientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }
+                    },
+                    "RequestHeadOrientation": { "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }
+                }
+            ]
         }
     ]
 }

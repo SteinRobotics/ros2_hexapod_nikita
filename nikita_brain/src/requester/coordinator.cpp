@@ -75,8 +75,6 @@ void CCoordinator::executeBehavior(const Behavior& behavior, Prio prio) {
 
 void CCoordinator::cycleGaitMode() {
     activeGaitIndex_ = (activeGaitIndex_ + 1) % gaitModes_.size();
-    // Reset MOVE state for clean start
-    currentMoveSubGait_ = MovementRequest::MOVE_WAVE;
     auto gaitName = movementTypeToName.at(gaitModes_[activeGaitIndex_]);
     RCLCPP_INFO(node_->get_logger(), "Gait mode switched to: %s", gaitName.c_str());
     auto request = std::make_shared<RequestTalking>();
@@ -84,57 +82,8 @@ void CCoordinator::cycleGaitMode() {
     submitRequest(request, Prio::High);
 }
 
-uint32_t CCoordinator::resolveMoveGait(double magnitude) {
-    constexpr double kHysteresis = 0.05;
-
-    constexpr double kThresholdLow = 1.0 / 3.0;
-    constexpr double kThresholdHigh = 2.0 / 3.0;
-
-    // Normalize magnitude to [0, 1] based on max possible velocity
-    const double maxMagnitude = std::sqrt(2.0 * kMaxVelocityLinear_ * kMaxVelocityLinear_ +
-                                          kMaxVelocityRotation_ * kMaxVelocityRotation_);
-    double normalizedMagnitude = (maxMagnitude > 0.0) ? magnitude / maxMagnitude : 0.0;
-
-    auto previousGait = currentMoveSubGait_;
-
-    // Hysteresis-based gait selection
-    switch (currentMoveSubGait_) {
-        case MovementRequest::MOVE_WAVE:
-            if (normalizedMagnitude > kThresholdLow + kHysteresis) {
-                currentMoveSubGait_ = MovementRequest::MOVE_RIPPLE;
-            }
-            break;
-        case MovementRequest::MOVE_RIPPLE:
-            if (normalizedMagnitude > kThresholdHigh + kHysteresis) {
-                currentMoveSubGait_ = MovementRequest::MOVE_TRIPOD;
-            } else if (normalizedMagnitude < kThresholdLow - kHysteresis) {
-                currentMoveSubGait_ = MovementRequest::MOVE_WAVE;
-            }
-            break;
-        case MovementRequest::MOVE_TRIPOD:
-            if (normalizedMagnitude < kThresholdHigh - kHysteresis) {
-                currentMoveSubGait_ = MovementRequest::MOVE_RIPPLE;
-            }
-            break;
-        default:
-            currentMoveSubGait_ = MovementRequest::MOVE_WAVE;
-            break;
-    }
-
-    if (currentMoveSubGait_ != previousGait) {
-        RCLCPP_INFO(node_->get_logger(), "MOVE gait transition: %s -> %s (magnitude: %.3f)",
-                    movementTypeToName.at(previousGait).c_str(),
-                    movementTypeToName.at(currentMoveSubGait_).c_str(), normalizedMagnitude);
-    }
-
-    return currentMoveSubGait_;
-}
-
 void CCoordinator::cmdVelReceived(const geometry_msgs::msg::Twist& msg) {
-    double magnitude =
-        std::sqrt(msg.linear.x * msg.linear.x + msg.linear.y * msg.linear.y + msg.angular.z * msg.angular.z);
-    auto gait = resolveMoveGait(magnitude);
-    submitRequestMove(gait, 0.0, "", Prio::High, std::nullopt, std::nullopt, msg);
+    submitRequestMove(MovementRequest::MOVE, 0.0, "", Prio::High, std::nullopt, std::nullopt, msg);
 }
 
 void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
@@ -166,21 +115,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
     auto velocity = geometry_msgs::msg::Twist();
     std::optional<uint8_t> direction = std::nullopt;
 
-    // For MOVE mode, resolve to sub-gait based on real velocity magnitude
-    if (activeGait == MovementRequest::MOVE) {
-        double rawMagnitude = std::sqrt(msg.left_stick_vertical * msg.left_stick_vertical +
-                                        msg.left_stick_horizontal * msg.left_stick_horizontal +
-                                        msg.right_stick_horizontal * msg.right_stick_horizontal);
-        double vx = msg.left_stick_vertical * kMaxVelocityLinear_;
-        double vy = msg.left_stick_horizontal * kMaxVelocityLinear_;
-        double wz = msg.right_stick_horizontal * kMaxVelocityRotation_;
-        double magnitude = std::sqrt(vx * vx + vy * vy + wz * wz);
-        if (rawMagnitude > kJoystickDeadzone_) {
-            activeGait = resolveMoveGait(magnitude);
-        } else {
-            activeGait = currentMoveSubGait_;
-        }
-    }
+    // MOVE mode: the combined gait handles velocity-based sub-gait selection internally
 
     if (gaitModes_[activeGaitIndex_] == MovementRequest::CONTINUOUS_POSE) {
         // LEFT_STICK -> linear movement
@@ -248,10 +183,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         return;
     }
 
-    if ((actualMovementType_ == MovementRequest::MOVE_TRIPOD ||
-         actualMovementType_ == MovementRequest::MOVE_RIPPLE ||
-         actualMovementType_ == MovementRequest::MOVE_WAVE) &&
-        newMovementType == MovementRequest::NO_REQUEST) {
+    if ((actualMovementType_ == MovementRequest::MOVE) && newMovementType == MovementRequest::NO_REQUEST) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "end move request");
         auto request = std::make_shared<RequestVelocity>();
         request->velocity = velocity;
@@ -293,14 +225,14 @@ void CCoordinator::speechRecognized(std::string text) {
         } else if (textInterpreter_->lettersIdentified("rechts", identifiedWords)) {
             velocity.linear.y = -kVelocityLinear_;
         }
-        RCLCPP_INFO_STREAM(node_->get_logger(), "submit move tripod request");
-        submitRequestMove(MovementRequest::MOVE_TRIPOD, 0, "ich laufe los", Prio::High, std::nullopt,
-                          std::nullopt, velocity);
+        RCLCPP_INFO_STREAM(node_->get_logger(), "submit move request");
+        submitRequestMove(MovementRequest::MOVE, 0, "ich laufe los", Prio::High, std::nullopt, std::nullopt,
+                          velocity);
     } else if (command == "commandStopMove") {
-        RCLCPP_INFO_STREAM(node_->get_logger(), "submit stop move tripod request");
+        RCLCPP_INFO_STREAM(node_->get_logger(), "submit stop move request");
         geometry_msgs::msg::Twist velocity;
-        submitRequestMove(MovementRequest::MOVE_TRIPOD, 0, "ich halte an", Prio::High, std::nullopt,
-                          std::nullopt, velocity);
+        submitRequestMove(MovementRequest::MOVE, 0, "ich halte an", Prio::High, std::nullopt, std::nullopt,
+                          velocity);
 
     } else if (command == "tellMeSupplyVoltage") {
         requestTellSupplyVoltage(Prio::High);
@@ -459,9 +391,7 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
         request_v.push_back(talkRequest);
     }
     // If we are not standing, we need to stand up first
-    if (!isStanding_ &&
-        (movementType == MovementRequest::MOVE_TRIPOD || movementType == MovementRequest::MOVE_RIPPLE ||
-         movementType == MovementRequest::MOVE_WAVE)) {
+    if (!isStanding_ && movementType == MovementRequest::MOVE) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "standup before move request");
         isStanding_ = true;
         // recursive call to first stand up
@@ -495,9 +425,8 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
     }
     actionPlanner_->request(request_v, prio);
 
-    // Lock the new move request for the given duration except for MOVE_TRIPOD requests
-    if (MovementRequest::MOVE_TRIPOD == movementType || MovementRequest::MOVE_RIPPLE == movementType ||
-        MovementRequest::MOVE_WAVE == movementType) {
+    // Lock the new move request for the given duration except for move gait requests
+    if (MovementRequest::MOVE == movementType) {
         return;
     }
     isNewMoveRequestLocked_ = true;

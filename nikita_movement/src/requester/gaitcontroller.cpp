@@ -28,17 +28,18 @@ CGaitController::CGaitController(std::shared_ptr<rclcpp::Node> node, std::shared
     // Create all gait instances
     gaits_[MovementRequest::BODY_ROLL] =
         std::make_shared<CGaitBodyRoll>(node_, kinematics_, params_.bodyRoll);
-    gaits_[MovementRequest::CALIBRATE] = std::make_shared<CCalibrateGait>(node_, kinematics_);
+    gaits_[MovementRequest::CALIBRATE] =
+        std::make_shared<CGaitSinglePose>(node_, kinematics_, params_.singlePose);
     gaits_[MovementRequest::CLAP] = std::make_shared<CClapGait>(node_, kinematics_, params_.clap);
     gaits_[MovementRequest::HIGH_FIVE] =
         std::make_shared<CHighFiveGait>(node_, kinematics_, params_.highFive);
     gaits_[MovementRequest::LAYDOWN] = std::make_shared<CLayDownGait>(node_, kinematics_, params_.layDown);
     gaits_[MovementRequest::LEGS_WAVE] = std::make_shared<CGaitLegWave>(node_, kinematics_, params_.legWave);
     gaits_[MovementRequest::LOOK] = std::make_shared<CGaitLook>(node_, kinematics_, params_.look);
-    gaits_[MovementRequest::MOVE_RIPPLE] = std::make_shared<CRippleGait>(node_, kinematics_, params_.ripple);
-    gaits_[MovementRequest::MOVE_TRIPOD] = std::make_shared<CTripodGait>(node_, kinematics_, params_.tripod);
-    gaits_[MovementRequest::MOVE_WAVE] = std::make_shared<CWaveGait>(node_, kinematics_, params_.wave);
-    gaits_[MovementRequest::NEUTRAL] = std::make_shared<CNeutralGait>(node_, kinematics_);
+    gaits_[MovementRequest::MOVE] = std::make_shared<CMoveCombinedGait>(
+        node_, kinematics_, params_.wave, params_.ripple, params_.tripod, params_.moveCombined);
+    gaits_[MovementRequest::NEUTRAL] =
+        std::make_shared<CGaitSinglePose>(node_, kinematics_, params_.singlePose);
     gaits_[MovementRequest::STAND_UP] = std::make_shared<CStandUpGait>(node_, kinematics_, params_.standUp);
     gaits_[MovementRequest::TESTLEGS] = std::make_shared<CTestLegsGait>(node_, kinematics_, params_.testLegs);
     gaits_[MovementRequest::SINGLE_POSE] =

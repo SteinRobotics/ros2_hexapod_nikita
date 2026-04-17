@@ -64,7 +64,6 @@ class CCoordinator : public IRequester {
     void requestChat(std::string text, Prio prio = Prio::Normal);
     void requestWaiting(Prio prio = Prio::Normal);
     void cycleGaitMode();
-    uint32_t resolveMoveGait(double magnitude);
 
     std::shared_ptr<rclcpp::Node> node_;
     std::shared_ptr<CActionPlanner> actionPlanner_;
@@ -78,22 +77,15 @@ class CCoordinator : public IRequester {
     std::atomic<bool> isNewMoveRequestLocked_{false};
 
     uint32_t actualMovementType_ = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
-    // uint32_t requested_movement_type_ = nikita_interfaces::msg::MovementRequest::NO_REQUEST;
     bool isStanding_ = false;
     bool isServoRelayOn_ = true;
 
     // Gait cycling: button_start iterates through these modes
     const std::vector<uint32_t> gaitModes_ = {
         nikita_interfaces::msg::MovementRequest::MOVE,
-        nikita_interfaces::msg::MovementRequest::MOVE_TRIPOD,
-        nikita_interfaces::msg::MovementRequest::MOVE_RIPPLE,
-        nikita_interfaces::msg::MovementRequest::MOVE_WAVE,
         nikita_interfaces::msg::MovementRequest::CONTINUOUS_POSE,
     };
     size_t activeGaitIndex_ = 0;
-
-    // MOVE mode: velocity-based automatic gait selection
-    uint32_t currentMoveSubGait_ = nikita_interfaces::msg::MovementRequest::MOVE_WAVE;
 
     double kMaxVelocityLinear_ = 0.0;
     double kMaxVelocityRotation_ = 0.0;
