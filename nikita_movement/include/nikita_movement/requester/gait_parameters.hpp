@@ -85,6 +85,8 @@ struct Parameters {
         double transition_phase_length{M_PI};
         double velocity_filter_alpha{0.01};
         double rotation_weight{0.7};
+        double max_velocity_linear{0.01};
+        double max_velocity_rotation{0.01};
     };
 
     BodyRoll bodyRoll;
@@ -183,9 +185,13 @@ inline Parameters Parameters::declare(std::shared_ptr<rclcpp::Node> node) {
     params.moveCombined.transition_phase_length =
         node->declare_parameter<double>("GAIT_MOVE_COMBINED_TRANSITION_PHASE_LENGTH", M_PI);
     params.moveCombined.velocity_filter_alpha =
-        node->declare_parameter<double>("GAIT_MOVE_COMBINED_VELOCITY_FILTER_ALPHA", 0.01);
+        node->declare_parameter<double>("GAIT_MOVE_COMBINED_VELOCITY_FILTER_ALPHA", 0.1);
     params.moveCombined.rotation_weight =
         node->declare_parameter<double>("GAIT_MOVE_COMBINED_ROTATION_WEIGHT", 0.7);
+    params.moveCombined.max_velocity_linear =
+        node->declare_parameter<double>("GAIT_MOVE_COMBINED_MAX_VELOCITY_LINEAR", 0.01);
+    params.moveCombined.max_velocity_rotation =
+        node->declare_parameter<double>("GAIT_MOVE_COMBINED_MAX_VELOCITY_ROTATION", 0.01);
 
     // Test Legs
     params.testLegs.coxa_delta_deg = node->declare_parameter<double>("TESTLEGS_COXA_DELTA_DEG");

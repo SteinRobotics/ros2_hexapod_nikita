@@ -75,6 +75,13 @@ node_movement:
     GAIT_WAVE_VELOCITY_FILTER_ALPHA: 0.01            # filtering strength (0.0 to 1.0)
     GAIT_WAVE_ROTATION_WEIGHT: 0.7                   # weight of angular velocity in combined magnitude
 
+    #### GAIT MOVE COMBINED PARAMETERS ####
+    GAIT_MOVE_COMBINED_THRESHOLD_WAVE_RIPPLE: 0.3
+    GAIT_MOVE_COMBINED_THRESHOLD_RIPPLE_TRIPOD: 0.6
+    GAIT_MOVE_COMBINED_HYSTERESIS_MARGIN: 0.05
+    GAIT_MOVE_COMBINED_MAX_VELOCITY_LINEAR: 0.01   # must match brain max_velocity_linear
+    GAIT_MOVE_COMBINED_MAX_VELOCITY_ROTATION: 0.01 # must match brain max_velocity_rotation
+
     #### GAIT LEG WAVE PARAMETERS ####
     GAIT_LEG_WAVE_LEG_LIFT_HEIGHT: 0.03 # m
 

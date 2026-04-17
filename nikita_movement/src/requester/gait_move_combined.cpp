@@ -195,14 +195,23 @@ bool CMoveCombinedGait::update(const geometry_msgs::msg::Twist& velocity, const 
     double norm_y = linear_y / combined_mag;
     double norm_rot = angular_z / combined_mag;
 
+    // Normalize combined_mag to 0-1 range for gait selection (thresholds are in normalized units)
+    double max_combined_mag =
+        std::sqrt((combined_params_.max_velocity_linear * combined_params_.max_velocity_linear) * 2.0 +
+                  combined_params_.rotation_weight *
+                      (combined_params_.max_velocity_rotation * combined_params_.max_velocity_rotation));
+    double normalized_mag =
+        (max_combined_mag > 1e-6) ? std::clamp(combined_mag / max_combined_mag, 0.0, 1.0) : 0.0;
+
     // Select gait based on velocity with hysteresis (only when running, not during stop sequence)
     if (state_ == EGaitState::Running) {
-        EMoveCombinedGaitType new_gait = selectGait(combined_mag);
+        EMoveCombinedGaitType new_gait = selectGait(normalized_mag);
         if (new_gait != active_gait_type_) {
-            RCLCPP_INFO(node_->get_logger(),
-                        "CMoveCombinedGait::update: Switching from %s to %s (velocity: %.3f)",
-                        magic_enum::enum_name(active_gait_type_).data(),
-                        magic_enum::enum_name(new_gait).data(), combined_mag);
+            RCLCPP_INFO(
+                node_->get_logger(),
+                "CMoveCombinedGait::update: Switching from %s to %s (normalized: %.3f, velocity: %.4f)",
+                magic_enum::enum_name(active_gait_type_).data(), magic_enum::enum_name(new_gait).data(),
+                normalized_mag, combined_mag);
 
             // Capture current positions and head for smooth blending
             blend_start_positions_ = target_positions_;
