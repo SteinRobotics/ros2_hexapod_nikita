@@ -11,14 +11,14 @@ CGaitLegWave::CGaitLegWave(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<C
     : node_(node), kinematics_(kinematics), params_(params) {
 }
 
-void CGaitLegWave::start(double /*duration_s*/, uint8_t /*direction*/) {
+void CGaitLegWave::start(double /*duration_s*/, uint8_t direction) {
     state_ = EGaitState::Running;
     phase_ = 0.0;
+    direction_ = direction;
     active_leg_index_ = ELegIndex::RightFront;
 }
 
-bool CGaitLegWave::update(const geometry_msgs::msg::Twist& velocity, const CPose& /*body*/,
-                          const COrientation& /*head*/) {
+bool CGaitLegWave::update() {
     if (state_ == EGaitState::Stopped) {
         return false;
     }
@@ -43,7 +43,7 @@ bool CGaitLegWave::update(const geometry_msgs::msg::Twist& velocity, const CPose
 
         // advance to the next leg
         size_t step = 1;
-        if (velocity.linear.x < 0.0) {
+        if (direction_ != 0) {
             step = leg_order_.size() - 1;
         }
         active_leg_index_ = leg_order_[(std::find(leg_order_.begin(), leg_order_.end(), active_leg_index_) -

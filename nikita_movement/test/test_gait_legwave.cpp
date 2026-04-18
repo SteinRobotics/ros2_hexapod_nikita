@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <geometry_msgs/msg/twist.hpp>
-
 #include "rclcpp/rclcpp.hpp"
 #include "requester/gait_legwave.hpp"
 #include "requester/kinematics.hpp"
@@ -48,12 +46,11 @@ TEST_F(LegWaveGaitTest, LiftOccursDuringRun) {
     const auto standing = kinematics_->getLegsStandingPositions();
 
     gait.start(3.0, 0);
-    geometry_msgs::msg::Twist twist;
 
     bool seen_lift = false;
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose(), COrientation());
+        gait.update();
         const auto pos = kinematics_->getLegsPositions();
         for (const auto& kv : standing) {
             const auto& idx = kv.first;
@@ -76,17 +73,16 @@ TEST_F(LegWaveGaitTest, StopRequestReturnsToNeutral) {
     const auto standing = kinematics_->getLegsStandingPositions();
 
     gait.start(3.0, 0);
-    geometry_msgs::msg::Twist twist;
 
     for (int i = 0; i < 3; ++i) {
-        gait.update(twist, CPose(), COrientation());
+        gait.update();
     }
 
     gait.requestStop();
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose(), COrientation());
+        gait.update();
     }
 
     EXPECT_LT(iterations, kMaxIterations);

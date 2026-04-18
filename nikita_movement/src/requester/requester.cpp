@@ -37,6 +37,9 @@ CRequester::CRequester(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CServ
     subMovementRequest_ = node_->create_subscription<MovementRequest>(
         "cmd_movement", 10, std::bind(&CRequester::onMovementRequest, this, _1));
 
+    subContinuousMovementUpdate_ = node_->create_subscription<ContinuousMovementUpdate>(
+        "cmd_movement_update", 10, std::bind(&CRequester::onContinuousMovementUpdate, this, _1));
+
     pubJointStates_ = node_->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
 }
 
@@ -83,6 +86,9 @@ void CRequester::onMovementRequest(const MovementRequest& msg) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "CRequester::onMovementRequest: " << msg.name);
     }
     gait_controller_->setGait(msg);
+}
+
+void CRequester::onContinuousMovementUpdate(const ContinuousMovementUpdate& msg) {
     velocity_ = msg.velocity;
     pose_body_ = msg.body_pose;
     orientation_head_ = msg.head_orientation;

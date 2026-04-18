@@ -4,9 +4,6 @@ uint8 NO_REQUEST = 0
 uint8 LAYDOWN = 1
 uint8 STAND_UP = 2
 uint8 WAITING = 3
-uint8 MOVE_TRIPOD = 4
-uint8 MOVE_RIPPLE = 5
-uint8 MOVE_WAVE = 6
 uint8 CONTINUOUS_POSE = 7
 uint8 WATCH = 8
 uint8 LOOK = 9
@@ -32,10 +29,6 @@ uint8 type 0
 uint8 direction 0
 float64 duration_s 1.0   # duration of 1 cycle
 string name
-
-geometry_msgs/Twist velocity
-Pose body_pose
-Orientation head_orientation
 
 
 

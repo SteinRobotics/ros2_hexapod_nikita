@@ -2,7 +2,6 @@
 
 #include <memory>
 
-#include "geometry_msgs/msg/twist.hpp"
 #include "nikita_interfaces/msg/movement_request.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "requester/gait_parameters.hpp"
@@ -11,15 +10,14 @@
 
 namespace nikita_movement {
 
-class CGaitWatch : public IGait {
+class CGaitWatch : public ISequenceGait {
    public:
     CGaitWatch(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
                Parameters::Watch& params);
     ~CGaitWatch() override = default;
 
     void start(double duration_s, uint8_t direction) override;
-    bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body,
-                const COrientation& head) override;
+    bool update() override;
     void requestStop() override;
     void cancelStop() override;
     EGaitState state() const override {

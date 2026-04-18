@@ -14,15 +14,14 @@
 
 namespace nikita_movement {
 
-class CTestLegsGait : public IGait {
+class CTestLegsGait : public ISequenceGait {
    public:
     CTestLegsGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
                   Parameters::TestLegs& params);
     ~CTestLegsGait() override = default;
 
     void start(double duration_s, uint8_t direction) override;
-    bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body,
-                const COrientation& head) override;
+    bool update() override;
     void requestStop() override;
     void cancelStop() override;
     [[nodiscard]] EGaitState state() const override {

@@ -108,7 +108,14 @@ bool CGaitController::updateSelectedGait(const geometry_msgs::msg::Twist& veloci
         active_gait_->state() == EGaitState::Stopped) {
         switchGait(pending_request_);
     }
-    return active_gait_->update(velocity, body, head);
+
+    if (auto continuous = std::dynamic_pointer_cast<IContinuousGait>(active_gait_)) {
+        return continuous->update(velocity, body, head);
+    }
+    if (auto sequence = std::dynamic_pointer_cast<ISequenceGait>(active_gait_)) {
+        return sequence->update();
+    }
+    return false;
 }
 
 void CGaitController::requestStopSelectedGait() {

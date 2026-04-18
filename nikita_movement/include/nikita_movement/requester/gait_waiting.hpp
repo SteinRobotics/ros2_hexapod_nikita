@@ -1,6 +1,5 @@
 #pragma once
 
-#include <geometry_msgs/msg/twist.hpp>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 
@@ -14,15 +13,14 @@ namespace nikita_movement {
 
 // A simple gait that keeps the robot in a waiting (standing) posture while optionally cycling a single leg.
 // Initially copied from CLegRollGait and renamed. Behavior can be specialized later.
-class CWaitingGait : public IGait {
+class CWaitingGait : public ISequenceGait {
    public:
     CWaitingGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
                  Parameters::Waiting& params);
     ~CWaitingGait() override = default;
 
     void start(double duration_s, uint8_t direction) override;
-    bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body,
-                const COrientation& head) override;
+    bool update() override;
     void requestStop() override;
     void cancelStop() override;
     EGaitState state() const override {

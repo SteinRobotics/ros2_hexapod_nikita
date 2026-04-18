@@ -35,8 +35,7 @@ void CStandUpGait::start(double duration_s, uint8_t /*direction*/) {
     state_ = EGaitState::Running;
 }
 
-bool CStandUpGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/,
-                          const COrientation& /*head*/) {
+bool CStandUpGait::update() {
     if (state_ == EGaitState::Stopped) {
         return false;
     }

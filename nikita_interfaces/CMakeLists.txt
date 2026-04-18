@@ -14,6 +14,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 set(msg_files
   "msg/CommunicationStatus.msg"
+  "msg/ContinuousMovementUpdate.msg"
   "msg/MovementRequest.msg"
   "msg/ServoDirectRequest.msg"
   "msg/ServoIndex.msg"

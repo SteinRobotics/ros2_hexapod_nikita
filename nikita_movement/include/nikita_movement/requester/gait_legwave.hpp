@@ -1,6 +1,5 @@
 #pragma once
 
-#include <geometry_msgs/msg/twist.hpp>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 
@@ -12,15 +11,14 @@
 
 namespace nikita_movement {
 
-class CGaitLegWave : public IGait {
+class CGaitLegWave : public ISequenceGait {
    public:
     CGaitLegWave(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
                  Parameters::LegWave& params);
     ~CGaitLegWave() override = default;
 
     void start(double duration_s, uint8_t direction) override;
-    bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body,
-                const COrientation& head) override;
+    bool update() override;
     void requestStop() override;
     void cancelStop() override;
     EGaitState state() const override {
@@ -32,6 +30,7 @@ class CGaitLegWave : public IGait {
     std::shared_ptr<CKinematics> kinematics_;
     Parameters::LegWave params_;
     EGaitState state_ = EGaitState::Stopped;
+    uint8_t direction_ = 0;
 
     double phase_ = double(0);
     ELegIndex active_leg_index_ = ELegIndex::RightFront;

@@ -48,9 +48,8 @@ TEST_F(BodyRollGaitTest, StateTransitionsCoverAllStates) {
     // update until Running
     int max_iters = 1000;
     int iters = 0;
-    geometry_msgs::msg::Twist vel;
     while (gait_->state() != EGaitState::Running && ++iters < max_iters) {
-        gait_->update(vel, CPose(), COrientation());
+        gait_->update();
     }
     EXPECT_EQ(gait_->state(), EGaitState::Running);
     EXPECT_LT(iters, max_iters);
@@ -70,7 +69,7 @@ TEST_F(BodyRollGaitTest, StateTransitionsCoverAllStates) {
     // advance until Stopping
     iters = 0;
     while (gait_->state() != EGaitState::Stopping && ++iters < max_iters) {
-        gait_->update(vel, CPose(), COrientation());
+        gait_->update();
     }
     EXPECT_EQ(gait_->state(), EGaitState::Stopping);
     EXPECT_LT(iters, max_iters);
@@ -78,7 +77,7 @@ TEST_F(BodyRollGaitTest, StateTransitionsCoverAllStates) {
     // advance until final Stopped
     iters = 0;
     while (gait_->state() != EGaitState::Stopped && ++iters < max_iters) {
-        gait_->update(vel, CPose(), COrientation());
+        gait_->update();
     }
     EXPECT_EQ(gait_->state(), EGaitState::Stopped);
     EXPECT_LT(iters, max_iters);

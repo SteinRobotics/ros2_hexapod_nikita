@@ -12,11 +12,17 @@ namespace brain {
 CMovement::CMovement(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     callback_timer_ = std::make_unique<CCallbackTimer>();
     pub_cmd_movement_ = node_->create_publisher<MovementRequest>("cmd_movement", 10);
+    pub_cmd_movement_update_ = node_->create_publisher<ContinuousMovementUpdate>("cmd_movement_update", 10);
 }
 
-void CMovement::publish() {
+void CMovement::publishMovementRequest() {
     current_request_.header.stamp = node_->get_clock()->now();
     pub_cmd_movement_->publish(current_request_);
+}
+
+void CMovement::publishContinuousUpdate() {
+    current_continuous_update_.header.stamp = node_->get_clock()->now();
+    pub_cmd_movement_update_->publish(current_continuous_update_);
 }
 
 void CMovement::run(std::shared_ptr<RequestMovementType> request) {
@@ -25,24 +31,24 @@ void CMovement::run(std::shared_ptr<RequestMovementType> request) {
     current_request_.name = request->movementRequest.name;
     current_request_.direction = request->movementRequest.direction;
     current_request_.duration_s = request->movementRequest.duration_s;
-    publish();
+    publishMovementRequest();
     callback_timer_->waitSecondsNonBlocking(request->movementRequest.duration_s,
                                             std::bind(&CMovement::timerCallback, this));
 }
 
 void CMovement::run(std::shared_ptr<RequestSinglePose> request) {
-    current_request_.body_pose = request->pose;
-    publish();
+    current_continuous_update_.body_pose = request->pose;
+    publishContinuousUpdate();
 }
 
 void CMovement::run(std::shared_ptr<RequestHeadOrientation> request) {
-    current_request_.head_orientation = request->orientation;
-    publish();
+    current_continuous_update_.head_orientation = request->orientation;
+    publishContinuousUpdate();
 }
 
 void CMovement::run(std::shared_ptr<RequestVelocity> request) {
-    current_request_.velocity = request->velocity;
-    publish();
+    current_continuous_update_.velocity = request->velocity;
+    publishContinuousUpdate();
 }
 
 void CMovement::timerCallback() {

@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <geometry_msgs/msg/twist.hpp>
-
 #include "rclcpp/rclcpp.hpp"
 #include "requester/gait_highfive.hpp"
 #include "requester/kinematics.hpp"
@@ -50,12 +48,11 @@ TEST_F(HighFiveGaitTest, RaisesRightFrontLegAndReturns) {
     const auto initialHead = kinematics_->getHead();
 
     gait.start(5.0, 0);
-    geometry_msgs::msg::Twist twist;
 
     bool raised = false;
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose(), COrientation());
+        gait.update();
         const auto currentAngles = kinematics_->getAngles(ELegIndex::RightFront);
         if (currentAngles.femur_deg >= initialAngles.femur_deg + kLiftThresholdDegrees) {
             raised = true;
@@ -80,18 +77,17 @@ TEST_F(HighFiveGaitTest, RequestStopReturnsToNeutralQuickly) {
     const auto initialAngles = kinematics_->getAngles(ELegIndex::RightFront);
 
     gait.start(5.0, 0);
-    geometry_msgs::msg::Twist twist;
 
     // Begin the raise phase for a few iterations.
     for (int i = 0; i < 3; ++i) {
-        gait.update(twist, CPose(), COrientation());
+        gait.update();
     }
 
     gait.requestStop();
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose(), COrientation());
+        gait.update();
     }
 
     EXPECT_LT(iterations, kMaxIterations);

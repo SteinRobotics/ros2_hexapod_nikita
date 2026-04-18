@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <geometry_msgs/msg/twist.hpp>
-
 #include "rclcpp/rclcpp.hpp"
 #include "requester/gait_laydown.hpp"
 #include "requester/gait_standup.hpp"
@@ -53,11 +51,10 @@ TEST_F(GaitLayDownTest, LayDownStopsAtLaydownHeight) {
     EXPECT_EQ(gait.state(), EGaitState::Stopped);
 
     gait.start(3.0, 0);
-    geometry_msgs::msg::Twist twist;
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose(), COrientation());
+        gait.update();
     }
 
     EXPECT_EQ(gait.state(), EGaitState::Stopped);

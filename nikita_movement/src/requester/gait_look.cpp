@@ -24,8 +24,7 @@ void CGaitLook::start(double duration_s, uint8_t direction) {
     delta_phase_ = (M_PI) / (duration_s / 0.1);
 }
 
-bool CGaitLook::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/,
-                       const COrientation& /*head*/) {
+bool CGaitLook::update() {
     if (state_ == EGaitState::Stopped) return false;
 
     // set head yaw using sinusoidal oscillation

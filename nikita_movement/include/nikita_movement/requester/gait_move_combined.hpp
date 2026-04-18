@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <geometry_msgs/msg/twist.hpp>
 #include <magic_enum.hpp>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
@@ -19,7 +18,7 @@ namespace nikita_movement {
 
 enum class EMoveCombinedGaitType { Wave, Ripple, Tripod };
 
-class CMoveCombinedGait : public IGait {
+class CMoveCombinedGait : public IContinuousGait {
    public:
     CMoveCombinedGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
                       Parameters::Wave& wave_params, Parameters::Ripple& ripple_params,

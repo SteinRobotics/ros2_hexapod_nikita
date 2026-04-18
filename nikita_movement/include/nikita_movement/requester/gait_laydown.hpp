@@ -1,6 +1,5 @@
 #pragma once
 
-#include <geometry_msgs/msg/twist.hpp>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 
@@ -12,15 +11,14 @@
 
 namespace nikita_movement {
 
-class CLayDownGait : public IGait {
+class CLayDownGait : public ISequenceGait {
    public:
     CLayDownGait(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
                  Parameters::LayDown& params);
     ~CLayDownGait() override = default;
 
     void start(double duration_s, uint8_t direction) override;
-    bool update(const geometry_msgs::msg::Twist& velocity, const CPose& body,
-                const COrientation& head) override;
+    bool update() override;
     void requestStop() override;
     void cancelStop() override;
     EGaitState state() const override {

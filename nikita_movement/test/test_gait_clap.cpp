@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <geometry_msgs/msg/twist.hpp>
-
 #include "rclcpp/rclcpp.hpp"
 #include "requester/gait_clap.hpp"
 #include "requester/kinematics.hpp"
@@ -49,11 +47,10 @@ TEST_F(ClapGaitTest, CompletesCycleAndReturnsToInitialPose) {
     const auto initialPositions = kinematics_->getLegsPositions();
 
     gait.start(3.0, 0);
-    geometry_msgs::msg::Twist twist;
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose(), COrientation());
+        gait.update();
     }
 
     EXPECT_LT(iterations, kMaxIterations) << "Gait should complete within max iterations";
@@ -71,14 +68,13 @@ TEST_F(ClapGaitTest, BackLegsLiftDuringSequence) {
     const auto initialPositions = kinematics_->getLegsPositions();
 
     gait.start(3.0, 0);
-    geometry_msgs::msg::Twist twist;
 
     bool rightBackLifted = false;
     bool leftBackLifted = false;
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose(), COrientation());
+        gait.update();
 
         const auto currentPositions = kinematics_->getLegsPositions();
 
@@ -104,13 +100,12 @@ TEST_F(ClapGaitTest, FrontLegsPerformClapMovement) {
     const auto initialRightAngles = kinematics_->getAngles(ELegIndex::RightFront);
 
     gait.start(3.0, 0);
-    geometry_msgs::msg::Twist twist;
 
     bool frontLegsMovedForClap = false;
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose(), COrientation());
+        gait.update();
 
         const auto currentLeftAngles = kinematics_->getAngles(ELegIndex::LeftFront);
         const auto currentRightAngles = kinematics_->getAngles(ELegIndex::RightFront);
@@ -132,11 +127,10 @@ TEST_F(ClapGaitTest, RequestStopReturnsToInitialState) {
     const auto initialBody = kinematics_->getBody();
 
     gait.start(3.0, 0);
-    geometry_msgs::msg::Twist twist;
 
     // Run for a few iterations
     for (int i = 0; i < 10; ++i) {
-        gait.update(twist, CPose(), COrientation());
+        gait.update();
     }
 
     // Request stop
@@ -144,7 +138,7 @@ TEST_F(ClapGaitTest, RequestStopReturnsToInitialState) {
 
     int iterations = 0;
     while (gait.state() != EGaitState::Stopped && iterations++ < kMaxIterations) {
-        gait.update(twist, CPose(), COrientation());
+        gait.update();
     }
 
     EXPECT_LT(iterations, kMaxIterations) << "Gait should stop within max iterations";

@@ -13,6 +13,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 //
+#include "nikita_interfaces/msg/continuous_movement_update.hpp"
 #include "nikita_interfaces/msg/movement_request.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 //
@@ -31,9 +32,12 @@ class CRequester {
     void update(std::chrono::milliseconds timeslice);
 
     void onMovementRequest(const nikita_interfaces::msg::MovementRequest& msg);
+    void onContinuousMovementUpdate(const nikita_interfaces::msg::ContinuousMovementUpdate& msg);
 
    private:
     rclcpp::Subscription<nikita_interfaces::msg::MovementRequest>::SharedPtr subMovementRequest_;
+    rclcpp::Subscription<nikita_interfaces::msg::ContinuousMovementUpdate>::SharedPtr
+        subContinuousMovementUpdate_;
 
     void sendServoRequest(const double duration_s);
 

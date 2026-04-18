@@ -35,8 +35,7 @@ void CLayDownGait::start(double duration_s, uint8_t /*direction*/) {
     state_ = EGaitState::Running;
 }
 
-bool CLayDownGait::update(const geometry_msgs::msg::Twist& /*velocity*/, const CPose& /*body*/,
-                          const COrientation& /*head*/) {
+bool CLayDownGait::update() {
     if (state_ == EGaitState::Stopped) {
         return false;
     }

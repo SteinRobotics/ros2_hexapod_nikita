@@ -92,13 +92,6 @@ type: 13
 direction: 0
 duration_s: 2.0
 name: 'BODY_ROLL'
-velocity:
-  linear: {x: 0.0, y: 0.0, z: 0.0}
-  angular: {x: 0.0, y: 0.0, z: 0.0}
-body_pose:
-  position: {x: 0.0, y: 0.0, z: 0.0}
-  orientation: {roll: 0.0, pitch: 0.0, yaw: 0.0}
-head_orientation: {roll: 0.0, pitch: 0.0, yaw: 0.0}
 "
 ---
 
@@ -111,6 +104,13 @@ type: 4
 direction: 0
 duration_s: 1.0
 name: ''
+"
+
+ros2 topic pub --once /cmd_movement_update nikita_interfaces/msg/ContinuousMovementUpdate "header:
+  stamp:
+    sec: 0
+    nanosec: 0
+  frame_id: ''
 velocity:
   linear: {x: 0.5, y: 0.0, z: 0.0}
   angular: {x: 0.0, y: 0.0, z: 0.0}

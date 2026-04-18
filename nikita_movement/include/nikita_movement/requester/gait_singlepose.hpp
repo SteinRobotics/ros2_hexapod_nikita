@@ -1,6 +1,5 @@
 #pragma once
 
-#include <geometry_msgs/msg/twist.hpp>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 
@@ -12,7 +11,7 @@
 
 namespace nikita_movement {
 
-class CGaitSinglePose : public IGait {
+class CGaitSinglePose : public IContinuousGait {
    public:
     CGaitSinglePose(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<CKinematics> kinematics,
                     Parameters::SinglePose& params);

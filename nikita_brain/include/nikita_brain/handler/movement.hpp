@@ -6,6 +6,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 //
+#include "nikita_interfaces/msg/continuous_movement_update.hpp"
 #include "nikita_interfaces/msg/movement_request.hpp"
 //
 #include <nikita_utils/callback_timer.hpp>
@@ -30,11 +31,14 @@ class CMovement : public IHandler {
 
    private:
     void timerCallback();
-    void publish();
+    void publishMovementRequest();
+    void publishContinuousUpdate();
 
     std::shared_ptr<rclcpp::Node> node_;
     rclcpp::Publisher<nikita_interfaces::msg::MovementRequest>::SharedPtr pub_cmd_movement_;
+    rclcpp::Publisher<nikita_interfaces::msg::ContinuousMovementUpdate>::SharedPtr pub_cmd_movement_update_;
     nikita_interfaces::msg::MovementRequest current_request_;
+    nikita_interfaces::msg::ContinuousMovementUpdate current_continuous_update_;
 
     std::shared_ptr<CCallbackTimer> callback_timer_;
 };
