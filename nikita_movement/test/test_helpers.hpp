@@ -60,21 +60,21 @@ inline std::vector<rclcpp::Parameter> defaultKinematicsParameters() {
 inline std::vector<rclcpp::Parameter> defaultGaitParameters() {
     return {rclcpp::Parameter("GENERIC_BODY_MAX_ROLL", 12.0),
             rclcpp::Parameter("GENERIC_BODY_MAX_PITCH", 12.0),
-            rclcpp::Parameter("GENERIC_BODY_MAX_YAW", 20.0),
             rclcpp::Parameter("GENERIC_HEAD_MAX_YAW", 30.0),
             rclcpp::Parameter("GENERIC_HEAD_MAX_PITCH", 20.0),
             rclcpp::Parameter("GENERIC_LEG_LIFT_HEIGHT", 0.025),
             rclcpp::Parameter("GENERIC_STEP_LENGTH", 0.03),
             rclcpp::Parameter("GAIT_TRIPOD_HEAD_MAX_YAW", 15.0),
             rclcpp::Parameter("GAIT_TRIPOD_FACTOR_VELOCITY_TO_CYCLE_TIME", 40.0),
+            rclcpp::Parameter("GAIT_RUNNING_FACTOR_VELOCITY_TO_CYCLE_TIME", 60.0),
+            rclcpp::Parameter("GAIT_RUNNING_HEAD_MAX_YAW", 5.0),
             rclcpp::Parameter("GAIT_LEG_WAVE_LEG_LIFT_HEIGHT", 0.03),
             rclcpp::Parameter("GAIT_LOOK_BODY_MAX_YAW", 20.0),
             rclcpp::Parameter("GAIT_LOOK_HEAD_MAX_YAW", 25.0),
             rclcpp::Parameter("GAIT_WATCH_BODY_MAX_YAW", 10.0),
             rclcpp::Parameter("TESTLEGS_COXA_DELTA_DEG", 10.0),
             rclcpp::Parameter("TESTLEGS_FEMUR_DELTA_DEG", 15.0),
-            rclcpp::Parameter("TESTLEGS_TIBIA_DELTA_DEG", 20.0),
-            rclcpp::Parameter("TESTLEGS_HOLD_TIME_PER_LEG", 1.0)};
+            rclcpp::Parameter("TESTLEGS_TIBIA_DELTA_DEG", 20.0)};
 }
 
 inline std::vector<rclcpp::Parameter> defaultRobotParameters() {

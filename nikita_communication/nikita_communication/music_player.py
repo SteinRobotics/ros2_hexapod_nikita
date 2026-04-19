@@ -3,19 +3,22 @@
 __copyright__ = "Copyright (C) 2025 Christian Stein"
 __license__ = "MIT"
 
+import logging
 import os
 # Hide the pygame support prompt
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 import time
+
 import pygame.mixer as mixer
-import pathlib
+
+from nikita_communication import package_resource_path
 
 
 class MusicPlayer():
-    def __init__(self):
-        # TODO is there an ROS alternative? Do we need to copy the model to the install folder?
-        self.sound_dir = pathlib.Path(__file__).parent.joinpath('../soundfiles/').resolve()
+    def __init__(self, logger=None):
+        self.logger = logger or logging.getLogger(__name__)
+        self.sound_dir = package_resource_path('soundfiles')
         mixer.init()
         mixer.music.set_volume(0.5)  #between 0.0 and 1.0
         self.channel = None
@@ -26,16 +29,23 @@ class MusicPlayer():
         ext = ext.lower() if dot else ""
         suffix = f".{ext}" if ext else ""
         if ext not in ("wav", "mp3"):
-            print(f"Unsupported audio format: {suffix or 'unknown'}")
+            self.logger.warning(f"Unsupported audio format: {suffix or 'unknown'}")
             return
 
         file_plus_path = self.sound_dir / ext / filename
         if not file_plus_path.exists():
-            print(f"File {file_plus_path} does not exist!")
+            self.logger.warning(f"File {file_plus_path} does not exist!")
             return
 
         self.play_soundfile(file_plus_path)
 
+        if cb:
+            cb()
+
+    def play_file(self, filepath, volume=0.5, cb=None):
+        """Play a sound file from an absolute or arbitrary path."""
+        mixer.music.set_volume(volume)
+        self.play_soundfile(filepath)
         if cb:
             cb()
 

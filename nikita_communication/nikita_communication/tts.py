@@ -8,38 +8,38 @@
 # https://wiki.ubuntuusers.de/eSpeak_NG/
 # sudo apt-get install espeak-ng espeak-ng-espeak mbrola
 
-from gtts import gTTS
-import subprocess
-import os.path
+import logging
 import re
-import pathlib
+import subprocess
+
+from gtts import gTTS
+
+from nikita_communication import package_resource_path
 from nikita_communication.music_player import MusicPlayer
 
 class TextToSpeech():
-    def __init__(self, music_player, language):
+    def __init__(self, music_player, language, logger=None):
         self.language = language
         self.music_player = music_player
-
-        # TODO is there an ROS alternative? Do we need to copy the model to the install folder?
-        self.tts_cache = pathlib.Path(__file__).parent.joinpath('../tts_cache/').resolve()
+        self.logger = logger or logging.getLogger(__name__)
+        self.tts_cache = package_resource_path('tts_cache')
 
     def run(self, text, cb=None):
-        # print("run tts: " + text)
         text_shorten = re.sub("[^a-zA-Z0-9]+", "", text)[:60]
         text_file = text_shorten.lower() + ".mp3"
         filename = self.tts_cache / text_file
 
         try:
-            if not os.path.exists(filename):
+            if not filename.exists():
                 tts = gTTS(text=text, lang=self.language)
                 tts.save(str(filename))
 
-            self.music_player.play(str(filename))
+            self.music_player.play_file(str(filename))
 
         except Exception as e:
-            print(e)
-            print("offline tts")
-            subprocess.call(["espeak-ng","-v" + self.language + "+f3", text], stderr=subprocess.STDOUT)
+            self.logger.error(str(e))
+            self.logger.info("Falling back to offline TTS (espeak-ng)")
+            subprocess.call(["espeak-ng", "-v" + self.language + "+f3", text], stderr=subprocess.STDOUT)
 
         if cb:
             cb()

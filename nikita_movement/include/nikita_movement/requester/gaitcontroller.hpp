@@ -25,6 +25,7 @@
 #include "requester/gait_look.hpp"
 #include "requester/gait_move_combined.hpp"
 #include "requester/gait_parameters.hpp"
+#include "requester/gait_running.hpp"
 #include "requester/gait_singlepose.hpp"
 #include "requester/gait_standup.hpp"
 #include "requester/gait_testlegs.hpp"

@@ -68,7 +68,7 @@ class GaitControllerTest : public ::testing::Test {
 
 // Test: Verify default gait is LAYDOWN (robot starts laying down)
 TEST_F(GaitControllerTest, DefaultGaitIsLaydown) {
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::LAYDOWN);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_LAYDOWN);
 }
 
 // Test: Switch from LAYDOWN to WAITING
@@ -76,7 +76,7 @@ TEST_F(GaitControllerTest, SwitchFromLaydownToWaiting) {
     auto vel = createZeroVelocity();
 
     // Verify we start with LAYDOWN
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::LAYDOWN);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_LAYDOWN);
 
     // Request stop and wait for it to complete
     controller_->requestStopSelectedGait();
@@ -86,9 +86,9 @@ TEST_F(GaitControllerTest, SwitchFromLaydownToWaiting) {
 
     // Switch to WAITING
     nikita_interfaces::msg::MovementRequest request;
-    request.type = MovementRequestMsg::WAITING;
+    request.type = MovementRequestMsg::SEQUENCE_WAITING;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::WAITING);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_WAITING);
 }
 
 // Test: Switch from TRIPOD to LEGS_WAVE
@@ -103,9 +103,9 @@ TEST_F(GaitControllerTest, SwitchFromTripodToLegWave) {
 
     // Switch to LEGS_WAVE
     nikita_interfaces::msg::MovementRequest request;
-    request.type = MovementRequestMsg::LEGS_WAVE;
+    request.type = MovementRequestMsg::SEQUENCE_LEGS_WAVE;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::LEGS_WAVE);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_LEGS_WAVE);
 }
 
 // Test: Switch from WAITING to WATCH
@@ -118,9 +118,9 @@ TEST_F(GaitControllerTest, SwitchFromWaitingToWatch) {
         controller_->updateSelectedGait(vel);
     }
     nikita_interfaces::msg::MovementRequest request;
-    request.type = MovementRequestMsg::WAITING;
+    request.type = MovementRequestMsg::SEQUENCE_WAITING;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::WAITING);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_WAITING);
 
     // Stop WAITING
     controller_->requestStopSelectedGait();
@@ -129,9 +129,9 @@ TEST_F(GaitControllerTest, SwitchFromWaitingToWatch) {
     }
 
     // Switch to WATCH
-    request.type = MovementRequestMsg::WATCH;
+    request.type = MovementRequestMsg::SEQUENCE_WATCH;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::WATCH);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_WATCH);
 }
 
 // Test: Switch to BODY_ROLL
@@ -144,9 +144,9 @@ TEST_F(GaitControllerTest, SwitchToBodyRoll) {
     }
 
     nikita_interfaces::msg::MovementRequest request;
-    request.type = MovementRequestMsg::BODY_ROLL;
+    request.type = MovementRequestMsg::SEQUENCE_BODY_ROLL;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::BODY_ROLL);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_BODY_ROLL);
 }
 
 // Test: Switch from BODY_ROLL to STAND_UP
@@ -161,9 +161,9 @@ TEST_F(GaitControllerTest, SwitchFromBodyRollToStandUp) {
 
     // Switch to BODY_ROLL
     nikita_interfaces::msg::MovementRequest request;
-    request.type = MovementRequestMsg::BODY_ROLL;
+    request.type = MovementRequestMsg::SEQUENCE_BODY_ROLL;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::BODY_ROLL);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_BODY_ROLL);
 
     // Stop BODY_ROLL before switching
     controller_->requestStopSelectedGait();
@@ -172,12 +172,12 @@ TEST_F(GaitControllerTest, SwitchFromBodyRollToStandUp) {
     }
 
     // Switch to STAND_UP and allow the switch to process
-    request.type = MovementRequestMsg::STAND_UP;
+    request.type = MovementRequestMsg::SEQUENCE_STAND_UP;
     controller_->setGait(request);
     for (int i = 0; i < kMaxIterations; ++i) {
         controller_->updateSelectedGait(vel);
     }
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::STAND_UP);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_STAND_UP);
 }
 
 // Test: Switch to STAND_UP
@@ -190,9 +190,9 @@ TEST_F(GaitControllerTest, SwitchToStandUp) {
     }
 
     nikita_interfaces::msg::MovementRequest request;
-    request.type = MovementRequestMsg::STAND_UP;
+    request.type = MovementRequestMsg::SEQUENCE_STAND_UP;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::STAND_UP);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_STAND_UP);
 }
 
 // Test: Switch to LAYDOWN
@@ -205,9 +205,9 @@ TEST_F(GaitControllerTest, SwitchToLaydown) {
     }
 
     nikita_interfaces::msg::MovementRequest request;
-    request.type = MovementRequestMsg::LAYDOWN;
+    request.type = MovementRequestMsg::SEQUENCE_LAYDOWN;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::LAYDOWN);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_LAYDOWN);
 }
 
 // Test: Switch to HIGH_FIVE
@@ -220,9 +220,9 @@ TEST_F(GaitControllerTest, SwitchToHighFive) {
     }
 
     nikita_interfaces::msg::MovementRequest request;
-    request.type = MovementRequestMsg::HIGH_FIVE;
+    request.type = MovementRequestMsg::SEQUENCE_HIGH_FIVE;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::HIGH_FIVE);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_HIGH_FIVE);
 }
 
 // Test: Request same gait twice (should not switch)
@@ -235,13 +235,13 @@ TEST_F(GaitControllerTest, RequestSameGaitTwice) {
         controller_->updateSelectedGait(vel);
     }
     nikita_interfaces::msg::MovementRequest request;
-    request.type = MovementRequestMsg::WAITING;
+    request.type = MovementRequestMsg::SEQUENCE_WAITING;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::WAITING);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_WAITING);
 
     // Request WAITING again (should remain WAITING, may restart if stopped)
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::WAITING);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_WAITING);
 }
 
 // Test: Switching while gait is running (pending switch)
@@ -249,7 +249,7 @@ TEST_F(GaitControllerTest, SwitchWhileRunning) {
     auto vel = createForwardVelocity();
 
     // Start with LAYDOWN (default)
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::LAYDOWN);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_LAYDOWN);
 
     // Run a few iterations to ensure gait is active
     for (int i = 0; i < 5; ++i) {
@@ -258,7 +258,7 @@ TEST_F(GaitControllerTest, SwitchWhileRunning) {
 
     // Request switch to WAITING while running
     nikita_interfaces::msg::MovementRequest request;
-    request.type = MovementRequestMsg::WAITING;
+    request.type = MovementRequestMsg::SEQUENCE_WAITING;
     controller_->setGait(request);
 
     // The switch should be pending until gait stops
@@ -266,13 +266,13 @@ TEST_F(GaitControllerTest, SwitchWhileRunning) {
     auto zero_vel = createZeroVelocity();
     for (int i = 0; i < kMaxIterations; ++i) {
         controller_->updateSelectedGait(zero_vel);
-        if (controller_->currentGait() == MovementRequestMsg::WAITING) {
+        if (controller_->currentGait() == MovementRequestMsg::SEQUENCE_WAITING) {
             break;
         }
     }
 
     // Verify switch completed
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::WAITING);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_WAITING);
 }
 
 // Test: Multiple consecutive switches
@@ -285,36 +285,36 @@ TEST_F(GaitControllerTest, MultipleConsecutiveSwitches) {
         controller_->updateSelectedGait(vel);
     }
     nikita_interfaces::msg::MovementRequest request;
-    request.type = MovementRequestMsg::WAITING;
+    request.type = MovementRequestMsg::SEQUENCE_WAITING;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::WAITING);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_WAITING);
 
     // Switch 2: WAITING -> WATCH
     controller_->requestStopSelectedGait();
     for (int i = 0; i < kMaxIterations; ++i) {
         controller_->updateSelectedGait(vel);
     }
-    request.type = MovementRequestMsg::WATCH;
+    request.type = MovementRequestMsg::SEQUENCE_WATCH;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::WATCH);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_WATCH);
 
     // Switch 3: WATCH -> LEGS_WAVE
     controller_->requestStopSelectedGait();
     for (int i = 0; i < kMaxIterations; ++i) {
         controller_->updateSelectedGait(vel);
     }
-    request.type = MovementRequestMsg::LEGS_WAVE;
+    request.type = MovementRequestMsg::SEQUENCE_LEGS_WAVE;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::LEGS_WAVE);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_LEGS_WAVE);
 
     // Switch 4: LEGS_WAVE -> MOVE (back to original)
     controller_->requestStopSelectedGait();
     for (int i = 0; i < kMaxIterations; ++i) {
         controller_->updateSelectedGait(vel);
     }
-    request.type = MovementRequestMsg::MOVE;
+    request.type = MovementRequestMsg::CONTINUOUS_MOVE;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::MOVE);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::CONTINUOUS_MOVE);
 }
 
 // Test: Update gait after switch
@@ -327,7 +327,7 @@ TEST_F(GaitControllerTest, UpdateAfterSwitch) {
         controller_->updateSelectedGait(vel);
     }
     nikita_interfaces::msg::MovementRequest request;
-    request.type = MovementRequestMsg::WAITING;
+    request.type = MovementRequestMsg::SEQUENCE_WAITING;
     controller_->setGait(request);
 
     // Update the new gait - should not crash
@@ -349,18 +349,18 @@ TEST_F(GaitControllerTest, SwitchBackToMoveWithVelocity) {
         controller_->updateSelectedGait(vel);
     }
     nikita_interfaces::msg::MovementRequest request;
-    request.type = MovementRequestMsg::WAITING;
+    request.type = MovementRequestMsg::SEQUENCE_WAITING;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::WAITING);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::SEQUENCE_WAITING);
 
     // Switch back to MOVE
     controller_->requestStopSelectedGait();
     for (int i = 0; i < kMaxIterations; ++i) {
         controller_->updateSelectedGait(vel);
     }
-    request.type = MovementRequestMsg::MOVE;
+    request.type = MovementRequestMsg::CONTINUOUS_MOVE;
     controller_->setGait(request);
-    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::MOVE);
+    EXPECT_EQ(controller_->currentGait(), MovementRequestMsg::CONTINUOUS_MOVE);
 
     // Update with forward velocity - should work
     EXPECT_NO_THROW({

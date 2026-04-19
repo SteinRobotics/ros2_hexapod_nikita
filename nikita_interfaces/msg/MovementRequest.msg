@@ -1,25 +1,26 @@
 std_msgs/Header header
 # Types:
 uint8 NO_REQUEST = 0
-uint8 LAYDOWN = 1
-uint8 STAND_UP = 2
-uint8 WAITING = 3
-uint8 CONTINUOUS_POSE = 7
-uint8 WATCH = 8
-uint8 LOOK = 9
-uint8 DANCE = 10
-uint8 HIGH_FIVE = 11
-uint8 LEGS_WAVE = 12 
-uint8 BODY_ROLL = 13
-uint8 BITE = 14
-uint8 STOMP = 15
-uint8 CLAP = 16
-uint8 SINGLE_POSE = 17
-uint8 TESTLEGS = 18
-uint8 MOVE = 19  # auto-selects WAVE/RIPPLE/TRIPOD based on velocity
-# the following types are not used for normal operation 
-uint8 NEUTRAL = 101  # set all servos position 0, used for calibration
-uint8 CALIBRATE = 102  # set all feets to kiss point ground, used for calibration
+# Single pose
+uint8 SINGLE_POSE = 1
+# Sequence gaits (one-shot animations)
+uint8 SEQUENCE_LAYDOWN = 10
+uint8 SEQUENCE_STAND_UP = 11
+uint8 SEQUENCE_WAITING = 12
+uint8 SEQUENCE_WATCH = 13
+uint8 SEQUENCE_LOOK = 14
+uint8 SEQUENCE_DANCE = 15
+uint8 SEQUENCE_HIGH_FIVE = 16
+uint8 SEQUENCE_LEGS_WAVE = 17
+uint8 SEQUENCE_BODY_ROLL = 18
+uint8 SEQUENCE_BITE = 19
+uint8 SEQUENCE_STOMP = 20
+uint8 SEQUENCE_CLAP = 21
+uint8 SEQUENCE_TESTLEGS = 22
+# Continuous gaits
+uint8 CONTINUOUS_POSE = 30
+uint8 CONTINUOUS_MOVE = 31  # auto-selects WAVE/RIPPLE/TRIPOD based on velocity
+uint8 CONTINUOUS_RUNNING = 32  # fast 2-leg-support gait, unstable but fastest
 
 # Directions:
 uint8 CLOCKWISE = 0

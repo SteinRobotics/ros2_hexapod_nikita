@@ -22,39 +22,37 @@
 #########
 
 
-import os
-import sys
 import json
+import logging
 import queue
-import vosk
-import sounddevice as sd
-
-import pathlib
 import time
 from threading import Thread
 
+import sounddevice as sd
+import vosk
+
+from nikita_communication import package_resource_path
+
 
 class SpeechToTextOffline(Thread):
-    def __init__(self, robotnames, cb):
+    def __init__(self, robotnames, cb, logger=None):
         Thread.__init__(self)
         self.cb = cb
         self.robotnames = robotnames
         self.isStopListeningRequested = False
+        self.logger = logger or logging.getLogger(__name__)
 
         # change the name of the model to match the downloaded model's name
         model = 'vosk-model-small-en-us-0.15'
 
-        # TODO is there an ROS alternative? Do we need to copy the model to the install folder?
-        self.model_dir = pathlib.Path(__file__).parent.joinpath('../models/', model).resolve()
+        self.model_dir = package_resource_path('models', model)
 
-
-        if not os.path.exists(self.model_dir):
-            print("Could not find a model at:")
-            print(self.model_dir)
-            print("Please download a model for your language from https://alphacephei.com/vosk/models")
-            print("and unpack as 'model' in the folder /models.")
-            # rospy.signal_shutdown('no model installed!')
-            exit()
+        if not self.model_dir.exists():
+            raise FileNotFoundError(
+                f"Could not find a model at: {self.model_dir}\n"
+                "Please download a model for your language from https://alphacephei.com/vosk/models\n"
+                "and unpack as 'model' in the folder /models."
+            )
 
     def stop_listening(self):
         self.isStopListeningRequested = True
@@ -62,7 +60,7 @@ class SpeechToTextOffline(Thread):
     def stream_callback(self, indata, frames, time, status):
         #"""This is called (from a separate thread) for each audio block."""
         if status:
-            print(status, file=sys.stderr)
+            self.logger.warning(str(status))
         self.q.put(bytes(indata))
 
     def is_robotname_in_text(self, text):
@@ -76,7 +74,7 @@ class SpeechToTextOffline(Thread):
 
         input_dev_num = sd.query_hostapis()[0]['default_input_device']
         if input_dev_num == -1:
-            print('No input device found')
+            self.logger.error('No input device found')
             raise ValueError('No input device found, device number == -1')
 
         device_info = sd.query_devices(input_dev_num, 'input')
@@ -108,7 +106,7 @@ class SpeechToTextOffline(Thread):
 
                         if lentext > 2:
                             result_text = diction["text"]
-                            print(result_text)
+                            self.logger.info(result_text)
                             isRecognized = True
                         else:
                             isRecognized = False
@@ -123,7 +121,8 @@ class SpeechToTextOffline(Thread):
                             break
 
         except Exception as e:
-            exit(type(e).__name__ + ': ' + str(e))
+            self.logger.error(f'{type(e).__name__}: {e}')
+            return
 
         input_dev_num = None
         self.isStopListeningRequested = False

@@ -36,6 +36,7 @@ set(SOURCES
   src/requester/gait_legwave.cpp
   src/requester/gait_look.cpp
   src/requester/gait_move_combined.cpp
+  src/requester/gait_running.cpp
   src/requester/gait_standup.cpp
   src/requester/gait_singlepose.cpp
   src/requester/gait_testlegs.cpp

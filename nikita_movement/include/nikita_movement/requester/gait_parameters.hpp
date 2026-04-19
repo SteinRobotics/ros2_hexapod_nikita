@@ -31,8 +31,16 @@ struct Parameters {
         double factor_velocity_to_gait_cycle_time{0.0};
         double gait_step_length{0.0};
         double leg_lift_height{0.0};
+    };
+
+    struct Running {
+        double head_amplitude_yaw_deg{0.0};
+        double factor_velocity_to_gait_cycle_time{60.0};
+        double gait_step_length{0.0};
+        double leg_lift_height{0.0};
         double velocity_filter_alpha{0.01};
         double rotation_weight{0.7};
+        double flight_fraction{0.15};  // fraction of half-cycle where both groups are airborne
     };
 
     struct Look {
@@ -48,7 +56,6 @@ struct Parameters {
         double coxa_delta_deg{0.0};
         double femur_delta_deg{0.0};
         double tibia_delta_deg{0.0};
-        double hold_time_per_leg{0.0};
     };
 
     struct Tripod {
@@ -56,21 +63,15 @@ struct Parameters {
         double factor_velocity_to_gait_cycle_time{0.0};
         double gait_step_length{0.0};
         double leg_lift_height{0.0};
-        double velocity_filter_alpha{0.01};
-        double rotation_weight{0.7};
     };
 
-    struct Waiting {
-        double leg_lift_height{0.0};
-    };
+    struct Waiting {};
 
     struct Wave {
         double head_amplitude_yaw_deg{0.0};
         double factor_velocity_to_gait_cycle_time{0.0};
         double gait_step_length{0.0};
         double leg_lift_height{0.0};
-        double velocity_filter_alpha{0.01};
-        double rotation_weight{0.7};
     };
 
     struct Watch {
@@ -97,6 +98,7 @@ struct Parameters {
     LegWave legWave;
     Look look;
     Ripple ripple;
+    Running running;
     StandUp standUp;
     SinglePose singlePose;
     TestLegs testLegs;
@@ -115,7 +117,6 @@ inline Parameters Parameters::declare(std::shared_ptr<rclcpp::Node> node) {
     // Generic Parameters
     const double body_max_roll_deg = node->declare_parameter<double>("GENERIC_BODY_MAX_ROLL");
     const double body_max_pitch_deg = node->declare_parameter<double>("GENERIC_BODY_MAX_PITCH");
-    node->declare_parameter<double>("GENERIC_BODY_MAX_YAW");
     const double head_max_yaw_deg = node->declare_parameter<double>("GENERIC_HEAD_MAX_YAW");
     const double head_max_pitch_deg = node->declare_parameter<double>("GENERIC_HEAD_MAX_PITCH");
 
@@ -132,9 +133,17 @@ inline Parameters Parameters::declare(std::shared_ptr<rclcpp::Node> node) {
         node->declare_parameter<double>("GAIT_TRIPOD_FACTOR_VELOCITY_TO_CYCLE_TIME");
     params.tripod.gait_step_length = step_length;
     params.tripod.leg_lift_height = leg_lift_height;
-    params.tripod.velocity_filter_alpha =
-        node->declare_parameter<double>("GAIT_TRIPOD_VELOCITY_FILTER_ALPHA", 0.01);
-    params.tripod.rotation_weight = node->declare_parameter<double>("GAIT_TRIPOD_ROTATION_WEIGHT", 0.7);
+
+    // Running
+    params.running.head_amplitude_yaw_deg = node->declare_parameter<double>("GAIT_RUNNING_HEAD_MAX_YAW", 5.0);
+    params.running.factor_velocity_to_gait_cycle_time =
+        node->declare_parameter<double>("GAIT_RUNNING_FACTOR_VELOCITY_TO_CYCLE_TIME", 60.0);
+    params.running.gait_step_length = step_length;
+    params.running.leg_lift_height = leg_lift_height;
+    params.running.velocity_filter_alpha =
+        node->declare_parameter<double>("GAIT_RUNNING_VELOCITY_FILTER_ALPHA", 0.01);
+    params.running.rotation_weight = node->declare_parameter<double>("GAIT_RUNNING_ROTATION_WEIGHT", 0.7);
+    params.running.flight_fraction = node->declare_parameter<double>("GAIT_RUNNING_FLIGHT_FRACTION", 0.15);
 
     // Ripple
     params.ripple.head_amplitude_yaw_deg = node->declare_parameter<double>("GAIT_RIPPLE_HEAD_MAX_YAW", 10.0);
@@ -142,9 +151,6 @@ inline Parameters Parameters::declare(std::shared_ptr<rclcpp::Node> node) {
         node->declare_parameter<double>("GAIT_RIPPLE_FACTOR_VELOCITY_TO_CYCLE_TIME", 40.0);
     params.ripple.gait_step_length = step_length;
     params.ripple.leg_lift_height = leg_lift_height;
-    params.ripple.velocity_filter_alpha =
-        node->declare_parameter<double>("GAIT_RIPPLE_VELOCITY_FILTER_ALPHA", 0.01);
-    params.ripple.rotation_weight = node->declare_parameter<double>("GAIT_RIPPLE_ROTATION_WEIGHT", 0.7);
 
     // Wave
     params.wave.head_amplitude_yaw_deg = node->declare_parameter<double>("GAIT_WAVE_HEAD_MAX_YAW", 8.0);
@@ -152,12 +158,6 @@ inline Parameters Parameters::declare(std::shared_ptr<rclcpp::Node> node) {
         node->declare_parameter<double>("GAIT_WAVE_FACTOR_VELOCITY_TO_CYCLE_TIME", 40.0);
     params.wave.gait_step_length = step_length;
     params.wave.leg_lift_height = leg_lift_height;
-    params.wave.velocity_filter_alpha =
-        node->declare_parameter<double>("GAIT_WAVE_VELOCITY_FILTER_ALPHA", 0.01);
-    params.wave.rotation_weight = node->declare_parameter<double>("GAIT_WAVE_ROTATION_WEIGHT", 0.7);
-
-    // Waiting
-    params.waiting.leg_lift_height = leg_lift_height;
 
     // LayDown
     params.layDown.head_max_pitch_deg = head_max_pitch_deg;
@@ -197,7 +197,6 @@ inline Parameters Parameters::declare(std::shared_ptr<rclcpp::Node> node) {
     params.testLegs.coxa_delta_deg = node->declare_parameter<double>("TESTLEGS_COXA_DELTA_DEG");
     params.testLegs.femur_delta_deg = node->declare_parameter<double>("TESTLEGS_FEMUR_DELTA_DEG");
     params.testLegs.tibia_delta_deg = node->declare_parameter<double>("TESTLEGS_TIBIA_DELTA_DEG");
-    params.testLegs.hold_time_per_leg = node->declare_parameter<double>("TESTLEGS_HOLD_TIME_PER_LEG");
 
     return params;
 }

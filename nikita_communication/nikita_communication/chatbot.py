@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os.path
-from stoppable_thread import StoppableThread
+from nikita_communication.stoppable_thread import StoppableThread
 import pathlib
 # import openai
 
@@ -53,7 +53,7 @@ class ChatBot():
         self.chatBotThread.start()
 
     def is_thread_running(self):
-        self.chatBotThread.stopped()
+        return self.chatBotThread.stopped()
 
 if __name__=="__main__":
     chatBot = ChatBot()

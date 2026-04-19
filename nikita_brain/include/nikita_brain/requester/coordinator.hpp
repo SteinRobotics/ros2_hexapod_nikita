@@ -82,8 +82,9 @@ class CCoordinator : public IRequester {
 
     // Gait cycling: button_start iterates through these modes
     const std::vector<uint32_t> gaitModes_ = {
-        nikita_interfaces::msg::MovementRequest::MOVE,
+        nikita_interfaces::msg::MovementRequest::CONTINUOUS_MOVE,
         nikita_interfaces::msg::MovementRequest::CONTINUOUS_POSE,
+        nikita_interfaces::msg::MovementRequest::CONTINUOUS_RUNNING,
     };
     size_t activeGaitIndex_ = 0;
 

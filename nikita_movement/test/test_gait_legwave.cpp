@@ -27,6 +27,11 @@ class LegWaveGaitTest : public ::testing::Test {
         node_ = std::make_shared<rclcpp::Node>("test_gait_legwave_node", options);
         kinematics_ = std::make_shared<CKinematics>(node_);
         params_ = test_helpers::makeDeclaredParameters(node_);
+
+        // Move legs from default laydown to standing (gaits assume robot is standing)
+        for (const auto& [idx, pos] : kinematics_->getLegsStandingPositions()) {
+            kinematics_->setSingleFeet(idx, pos);
+        }
     }
 
     void TearDown() override {

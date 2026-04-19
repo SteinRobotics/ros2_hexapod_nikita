@@ -83,7 +83,7 @@ void CCoordinator::cycleGaitMode() {
 }
 
 void CCoordinator::cmdVelReceived(const geometry_msgs::msg::Twist& msg) {
-    submitRequestMove(MovementRequest::MOVE, 0.0, "", Prio::High, std::nullopt, std::nullopt, msg);
+    submitRequestMove(MovementRequest::CONTINUOUS_MOVE, 0.0, "", Prio::High, std::nullopt, std::nullopt, msg);
 }
 
 void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
@@ -183,7 +183,7 @@ void CCoordinator::joystickRequestReceived(const JoystickRequest& msg) {
         return;
     }
 
-    if ((actualMovementType_ == MovementRequest::MOVE) && newMovementType == MovementRequest::NO_REQUEST) {
+    if ((actualMovementType_ == MovementRequest::CONTINUOUS_MOVE) && newMovementType == MovementRequest::NO_REQUEST) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "end move request");
         auto request = std::make_shared<RequestVelocity>();
         request->velocity = velocity;
@@ -226,12 +226,12 @@ void CCoordinator::speechRecognized(std::string text) {
             velocity.linear.y = -kVelocityLinear_;
         }
         RCLCPP_INFO_STREAM(node_->get_logger(), "submit move request");
-        submitRequestMove(MovementRequest::MOVE, 0, "ich laufe los", Prio::High, std::nullopt, std::nullopt,
+        submitRequestMove(MovementRequest::CONTINUOUS_MOVE, 0, "ich laufe los", Prio::High, std::nullopt, std::nullopt,
                           velocity);
     } else if (command == "commandStopMove") {
         RCLCPP_INFO_STREAM(node_->get_logger(), "submit stop move request");
         geometry_msgs::msg::Twist velocity;
-        submitRequestMove(MovementRequest::MOVE, 0, "ich halte an", Prio::High, std::nullopt, std::nullopt,
+        submitRequestMove(MovementRequest::CONTINUOUS_MOVE, 0, "ich halte an", Prio::High, std::nullopt, std::nullopt,
                           velocity);
 
     } else if (command == "tellMeSupplyVoltage") {
@@ -285,9 +285,9 @@ void CCoordinator::servoStatusReceived(const ServoStatus& msg) {
 void CCoordinator::movementTypeActualReceived(const MovementRequest& msg) {
     RCLCPP_INFO_STREAM(node_->get_logger(), "movementTypeActualReceived: " << msg.name);
     actualMovementType_ = msg.type;
-    if (actualMovementType_ == MovementRequest::STAND_UP) {
+    if (actualMovementType_ == MovementRequest::SEQUENCE_STAND_UP) {
         isStanding_ = true;
-    } else if (actualMovementType_ == MovementRequest::LAYDOWN) {
+    } else if (actualMovementType_ == MovementRequest::SEQUENCE_LAYDOWN) {
         isStanding_ = false;
     }
 }
@@ -316,7 +316,7 @@ void CCoordinator::requestShutdown(Prio prio) {
     submitRequest(request, prio);
 
     if (isStanding_) {
-        submitRequestMove(MovementRequest::LAYDOWN, 1.5, "", prio);
+        submitRequestMove(MovementRequest::SEQUENCE_LAYDOWN, 1.5, "", prio);
     }
     auto sysRequest = std::make_shared<RequestSystem>();
     sysRequest->turnOffServoRelay = true;
@@ -339,7 +339,7 @@ void CCoordinator::requestReactionOnError(std::string text, bool switchServoRela
 
     if (switchServoRelayOff || isShutdownRequested) {
         if (isStanding_) {
-            submitRequestMove(MovementRequest::LAYDOWN, 1.5, "", prio);
+            submitRequestMove(MovementRequest::SEQUENCE_LAYDOWN, 1.5, "", prio);
         }
         auto sysRequest = std::make_shared<RequestSystem>();
         sysRequest->turnOffServoRelay = switchServoRelayOff;
@@ -375,7 +375,7 @@ void CCoordinator::requestChat(std::string text, Prio prio) {
 }
 
 void CCoordinator::requestWaiting(Prio prio) {
-    actualMovementType_ = MovementRequest::WAITING;
+    actualMovementType_ = MovementRequest::SEQUENCE_WAITING;
     submitRequestMove(actualMovementType_, 5.0, "ich warte", prio);
 }
 
@@ -391,11 +391,11 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
         request_v.push_back(talkRequest);
     }
     // If we are not standing, we need to stand up first
-    if (!isStanding_ && movementType == MovementRequest::MOVE) {
+    if (!isStanding_ && movementType == MovementRequest::CONTINUOUS_MOVE) {
         RCLCPP_INFO_STREAM(node_->get_logger(), "standup before move request");
         isStanding_ = true;
         // recursive call to first stand up
-        submitRequestMove(MovementRequest::STAND_UP, 1.5, "ich stehe erst mal auf", prio);
+        submitRequestMove(MovementRequest::SEQUENCE_STAND_UP, 1.5, "ich stehe erst mal auf", prio);
     }
 
     auto request = MovementRequest();
@@ -426,7 +426,7 @@ void CCoordinator::submitRequestMove(uint32_t movementType, double duration_s, s
     actionPlanner_->request(request_v, prio);
 
     // Lock the new move request for the given duration except for move gait requests
-    if (MovementRequest::MOVE == movementType) {
+    if (MovementRequest::CONTINUOUS_MOVE == movementType) {
         return;
     }
     isNewMoveRequestLocked_ = true;
