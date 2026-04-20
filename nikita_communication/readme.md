@@ -1,9 +1,18 @@
 # TTS
-## openai
-https://platform.openai.com/docs/guides/text-to-speech
-
 # STT Keyword spotting offline
 ## picovoice porcupine
+Keyword module: `nikita_communication/stt_keyword.py`
+
+Expected runtime assets:
+- Picovoice access key in `PICOVOICE_ACCESS_KEY` or `keys/picovoice_access_key.txt`
+- Custom keyword files in `models/porcupine/` with one `.ppn` for `nikita` and one for `jamie`
+
+Install:
+```
+pip3 install pvporcupine --user --break-system-packages
+```
+
+TODO: change offline keword detection to:
 https://picovoice.ai/platform/porcupine/
 
 # STT
