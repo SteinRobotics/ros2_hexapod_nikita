@@ -16,13 +16,18 @@
 
 #include "handler/servo_controller.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <cmath>
 #include <functional>
 #include <memory>
 #include <thread>
 
+#include "handler/feetech_protocol.hpp"
+#include "handler/hiwonder_protocol.hpp"
 #include "handler/leg_servo_conversion.hpp"
+#include "handler/offline_servo_protocol.hpp"
 using namespace std::chrono_literals;
 using nikita_interfaces::msg::ServoAngle;
 using nikita_interfaces::msg::ServoAngles;
@@ -32,12 +37,55 @@ using std::placeholders::_1;
 
 namespace nikita_movement {
 
+namespace {
+
+constexpr auto kServoControllerTypeParam = "SERVO_CONTROLLER_TYPE";
+constexpr auto kHiwonderServoControllerType = "hiwonder";
+constexpr auto kFeetechServoControllerType = "feetech";
+
+std::string normalizeServoControllerType(std::string controllerType) {
+    std::transform(controllerType.begin(), controllerType.end(), controllerType.begin(),
+                   [](unsigned char character) { return static_cast<char>(std::tolower(character)); });
+    return controllerType;
+}
+
+std::shared_ptr<CServoProtocol> createServoProtocol(const std::shared_ptr<rclcpp::Node>& node,
+                                                    const std::string& serialPort,
+                                                    const bool isServoControllerOffline,
+                                                    const std::string& servoControllerType) {
+    if (isServoControllerOffline) {
+        RCLCPP_INFO_STREAM(node->get_logger(),
+                           "CServoController: using offline protocol for servo controller type '"
+                               << servoControllerType << "'");
+        return std::make_shared<COfflineServoProtocol>(node, serialPort);
+    }
+
+    if (servoControllerType == kHiwonderServoControllerType) {
+        return std::make_shared<CHiwonderProtocol>(node, serialPort);
+    }
+
+    if (servoControllerType == kFeetechServoControllerType) {
+        return std::make_shared<CFeetechProtocol>(node, serialPort);
+    }
+
+    RCLCPP_ERROR_STREAM(node->get_logger(), "CServoController: unsupported SERVO_CONTROLLER_TYPE='"
+                                                << servoControllerType << "'. Supported values are '"
+                                                << kHiwonderServoControllerType << "' and '"
+                                                << kFeetechServoControllerType << "'");
+    return nullptr;
+}
+
+}  // namespace
+
 CServoController::CServoController(std::shared_ptr<rclcpp::Node> node) : node_(node) {
     cycleCounter_ = 0;
 
     RCLCPP_INFO_STREAM(node_->get_logger(), "CServoController: initializing connection...");
 
     std::string serialPort = node_->declare_parameter<std::string>("SERIAL_PORT", "/dev/ttyUSB0");
+
+    std::string servoControllerType = normalizeServoControllerType(
+        node_->declare_parameter<std::string>(kServoControllerTypeParam, kHiwonderServoControllerType));
 
     bool isServoControllerOffline = node_->declare_parameter<bool>("SERVO_CONTROLLER_OFFLINE", false);
 
@@ -56,15 +104,26 @@ CServoController::CServoController(std::shared_ptr<rclcpp::Node> node) : node_(n
     std::vector<int64_t> ids =
         node_->declare_parameter<std::vector<int64_t>>("SERVO_SERIAL_ID", std::vector<int64_t>());
 
-    for (size_t i = 0; i < names.size(); ++i) {
+    size_t numServos = names.size();
+    if (adaptations.size() < numServos || offsets.size() < numServos || clockwise.size() < numServos ||
+        ids.size() < numServos) {
+        RCLCPP_ERROR(node_->get_logger(),
+                     "CServoController: Parameter size mismatch! SERVO_NAME: %zu, "
+                     "SERVO_ADAPTATION_DEG: %zu, SERVO_OFFSET_DEG: %zu, "
+                     "SERVO_ORIENTATION_CLOCKWISE: %zu, SERVO_SERIAL_ID: %zu",
+                     names.size(), adaptations.size(), offsets.size(), clockwise.size(), ids.size());
+        numServos =
+            std::min({names.size(), adaptations.size(), offsets.size(), clockwise.size(), ids.size()});
+    }
+
+    for (size_t i = 0; i < numServos; ++i) {
         servos_[i] = CServo{names[i], static_cast<uint8_t>(ids[i]), clockwise[i], offsets[i], adaptations[i]};
         nameToIdx_[names.at(i)] = i;
     }
 
-    if (isServoControllerOffline) {
-        protocol_ = std::make_shared<COfflineServoProtocol>(node_, serialPort);
-    } else {
-        protocol_ = std::make_shared<CServoProtocol>(node_, serialPort);
+    protocol_ = createServoProtocol(node_, serialPort, isServoControllerOffline, servoControllerType);
+    if (!protocol_) {
+        return;
     }
 
     if (!protocol_->triggerConnection()) {

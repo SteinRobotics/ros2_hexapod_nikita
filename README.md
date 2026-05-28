@@ -37,6 +37,53 @@ Nikita is an open-source, modular hexapod robot platform for makers, tinkerers, 
    PIP_BREAK_SYSTEM_PACKAGES=1 rosdep install --from-paths ~/Workspace/colcon_nikita --ignore-src -r -y
    git submodule update --init --recursive
    ```
+   If you want the simplest setup, keep using the full-workspace install above. If you want to split machines, the current package layout already allows two practical ROS setups:
+
+   **Robot / headless target**
+   - Intended for the Raspberry Pi or onboard computer.
+   - Keeps runtime, sensor, audio, and hardware nodes.
+   - Skips GUI and Gazebo packages such as `rviz2`, `joint_state_publisher_gui`, `ros_gz_sim`, and controller GUI tooling.
+   ```bash
+   PIP_BREAK_SYSTEM_PACKAGES=1 rosdep install -r -y --ignore-src \
+     --from-paths \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_interfaces \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_utils \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_movement \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_brain \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_communication \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_hmi \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_lidar \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_navigation \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_teleop \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_bringup
+
+   colcon build --symlink-install --packages-up-to nikita_bringup
+   ```
+
+   **Remote PC / simulation and GUI tools**
+   - Intended for Gazebo, RViz, URDF inspection, and desktop debugging.
+   - Keeps shared logic packages plus the visualization/simulation packages.
+   - Can skip robot-only hardware packages such as `nikita_hmi` and usually `nikita_bringup`.
+   ```bash
+   PIP_BREAK_SYSTEM_PACKAGES=1 rosdep install -r -y --ignore-src \
+     --from-paths \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_interfaces \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_utils \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_movement \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_brain \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_communication \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_navigation \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_description \
+       ~/Workspace/colcon_nikita/src/ros2_hexapod_nikita/nikita_gazebo
+
+   colcon build --symlink-install \
+     --packages-up-to nikita_gazebo nikita_description nikita_navigation
+   ```
+
+   Notes:
+   - The split is already possible because the GUI-heavy dependencies are isolated mainly in `nikita_description` and `nikita_gazebo`, while `nikita_bringup` stays on the robot/runtime side.
+   - Do not run `rosdep install --from-paths ...` over the entire workspace on the robot if you want a lean headless install, because that will pull the Gazebo and RViz dependencies too.
+   - This is currently a documentation-level split, not a fully formalized profile system. If you later want stricter separation, the next step would be to introduce dedicated metapackages such as `nikita_robot` and `nikita_desktop`.
 2. **Build the Workspace**
    ```bash
    colcon build --symlink-install

@@ -10,14 +10,13 @@
 #include <string>
 #include <vector>
 
-#include "handler/offline_servo_protocol.hpp"
+#include "handler/servo_protocol.hpp"
 #include "nikita_interfaces/msg/servo_angle.hpp"
 #include "nikita_interfaces/msg/servo_angles.hpp"
 #include "nikita_interfaces/msg/servo_direct_request.hpp"
 #include "nikita_interfaces/msg/servo_status.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "requester/types.hpp"
-#include "servo_protocol.hpp"
 #include "std_msgs/msg/header.hpp"
 
 namespace nikita_movement {

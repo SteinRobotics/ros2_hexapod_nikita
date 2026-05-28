@@ -2,51 +2,123 @@
  * Copyright (c) 2024 Christian Stein
  ******************************************************************************/
 
-#include "handler/servo_protocol.hpp"
+#include "handler/hiwonder_protocol.hpp"
 
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
 
 #include <algorithm>
+#include <cerrno>
 #include <cstring>
 #include <iostream>
 #include <string>
 
 namespace nikita_movement {
 
-static constexpr bool SERIAL_DEBUG = false;
+namespace {
 
-CServoProtocol::CServoProtocol(std::shared_ptr<rclcpp::Node> node, const std::string& deviceName)
-    : node_(node), deviceName_(deviceName) {
+constexpr bool SERIAL_DEBUG = false;
+constexpr uint8_t SERVO_FRAME_HEADER = 0x55;
+
+inline constexpr uint8_t getLowByte(uint16_t value) {
+    return static_cast<uint8_t>(value & 0xFF);
 }
 
-bool CServoProtocol::triggerConnection() {
+inline constexpr uint8_t getHighByte(uint16_t value) {
+    return static_cast<uint8_t>(value >> 8);
+}
+
+inline constexpr uint16_t byteToHW(uint8_t high, uint8_t low) {
+    return static_cast<uint16_t>((static_cast<uint16_t>(high) << 8) | low);
+}
+
+constexpr uint8_t SERVO_MOVE_TIME_WRITE = 1;
+constexpr uint8_t SERVO_MOVE_TIME_READ = 2;
+constexpr uint8_t SERVO_MOVE_TIME_WAIT_WRITE = 7;
+constexpr uint8_t SERVO_MOVE_TIME_WAIT_READ = 8;
+constexpr uint8_t SERVO_MOVE_START = 11;
+constexpr uint8_t SERVO_MOVE_STOP = 12;
+constexpr uint8_t SERVO_ID_WRITE = 13;
+constexpr uint8_t SERVO_ID_READ = 14;
+constexpr uint8_t SERVO_ANGLE_OFFSET_ADJUST = 17;
+constexpr uint8_t SERVO_ANGLE_OFFSET_WRITE = 18;
+constexpr uint8_t SERVO_ANGLE_OFFSET_READ = 19;
+constexpr uint8_t SERVO_ANGLE_LIMITS_WRITE = 20;
+constexpr uint8_t SERVO_ANGLE_LIMITS_READ = 21;
+constexpr uint8_t SERVO_VIN_LIMITS_WRITE = 22;
+constexpr uint8_t SERVO_VIN_LIMITS_READ = 23;
+constexpr uint8_t SERVO_TEMP_LIMIT_WRITE = 24;
+constexpr uint8_t SERVO_TEMP_LIMIT_READ = 25;
+constexpr uint8_t SERVO_TEMP_READ = 26;
+constexpr uint8_t SERVO_VIN_READ = 27;
+constexpr uint8_t SERVO_POS_READ = 28;
+constexpr uint8_t SERVO_OR_MOTOR_MODE_WRITE = 29;
+constexpr uint8_t SERVO_OR_MOTOR_MODE_READ = 30;
+constexpr uint8_t SERVO_TORQUE_WRITE = 31;
+constexpr uint8_t SERVO_TORQUE_READ = 32;
+constexpr uint8_t SERVO_LED_CTRL_WRITE = 33;
+constexpr uint8_t SERVO_LED_CTRL_READ = 34;
+constexpr uint8_t SERVO_LED_ERROR_WRITE = 35;
+constexpr uint8_t SERVO_LED_ERROR_READ = 36;
+
+constexpr uint8_t s_SERVO_MOVE_TIME_WRITE = 7;
+constexpr uint8_t s_SERVO_MOVE_TIME_WAIT_WRITE = 7;
+constexpr uint8_t s_SERVO_MOVE_START = 3;
+constexpr uint8_t s_SERVO_MOVE_STOP = 3;
+constexpr uint8_t s_SERVO_ID_WRITE = 4;
+constexpr uint8_t s_SERVO_ANGLE_OFFSET_ADJUST = 4;
+constexpr uint8_t s_SERVO_ANGLE_OFFSET_WRITE = 3;
+constexpr uint8_t s_SERVO_ANGLE_LIMITS_WRITE = 7;
+constexpr uint8_t s_SERVO_VIN_LIMITS_WRITE = 7;
+constexpr uint8_t s_SERVO_TEMP_LIMIT_WRITE = 4;
+constexpr uint8_t s_SERVO_MODE_WRITE = 7;
+constexpr uint8_t s_SERVO_TORQUE_WRITE = 4;
+constexpr uint8_t s_SERVO_LED_CTRL_WRITE = 4;
+constexpr uint8_t s_SERVO_LED_ERROR_WRITE = 4;
+
+constexpr uint8_t s_SERVO_ALL_READ_CMDS = 3;
+
+constexpr uint8_t s_SERVO_MOVE_TIME_READ = 7;
+constexpr uint8_t s_SERVO_MOVE_TIME_WAIT_READ = 7;
+constexpr uint8_t s_SERVO_ID_READ = 4;
+constexpr uint8_t s_SERVO_ANGLE_OFFSET_READ = 4;
+constexpr uint8_t s_SERVO_ANGLE_LIMITS_READ = 7;
+constexpr uint8_t s_SERVO_VIN_LIMITS_READ = 7;
+constexpr uint8_t s_SERVO_TEMP_LIMIT_READ = 4;
+constexpr uint8_t s_SERVO_TEMP_READ = 4;
+constexpr uint8_t s_SERVO_VIN_READ = 5;
+constexpr uint8_t s_SERVO_POS_READ = 5;
+constexpr uint8_t s_SERVO_MODE_READ = 7;
+constexpr uint8_t s_SERVO_TORQUE_READ = 4;
+constexpr uint8_t s_SERVO_LED_CTRL_READ = 4;
+constexpr uint8_t s_SERVO_LED_ERROR_READ = 4;
+
+}  // namespace
+
+CHiwonderProtocol::CHiwonderProtocol(std::shared_ptr<rclcpp::Node> node, const std::string& deviceName)
+    : CServoProtocol(node), deviceName_(deviceName) {
+}
+
+bool CHiwonderProtocol::triggerConnection() {
     isConnected_ = false;
 
     struct termios options;
 
-    // Open device
     device_ = open(deviceName_.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
     if (device_ == -1) return false;
 
-    // Optional: switch to blocking mode
     fcntl(device_, F_SETFL, 0);
-
-    // Flush port
     tcflush(device_, TCIOFLUSH);
 
-    // Get current port settings
     if (tcgetattr(device_, &options) < 0) {
         close(device_);
         return false;
     }
 
-    // Set baud rate
     cfsetispeed(&options, B115200);
     cfsetospeed(&options, B115200);
 
-    // 8N1 config
     options.c_cflag &= ~PARENB;
     options.c_cflag &= ~CSTOPB;
     options.c_cflag &= ~CSIZE;
@@ -54,17 +126,14 @@ bool CServoProtocol::triggerConnection() {
     options.c_cflag &= ~CRTSCTS;
     options.c_cflag |= CREAD | CLOCAL;
 
-    // Raw input/output
     options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
     options.c_iflag &= ~(IXON | IXOFF | IXANY);
     options.c_iflag &= ~(INLCR | ICRNL | IGNCR);
     options.c_oflag &= ~OPOST;
 
-    // Set timeout to 100 ms (VTIME = 1 means 0.1s)
-    options.c_cc[VMIN] = 1;  // Minimum number of characters to read
+    options.c_cc[VMIN] = 1;
     options.c_cc[VTIME] = 1;
 
-    // Apply the configuration
     if (tcsetattr(device_, TCSANOW, &options) != 0) {
         close(device_);
         return false;
@@ -74,15 +143,15 @@ bool CServoProtocol::triggerConnection() {
     return true;
 }
 
-bool CServoProtocol::isConnected() {
+bool CHiwonderProtocol::isConnected() {
     return isConnected_;
 }
 
-void CServoProtocol::closeConnection() {
+void CHiwonderProtocol::closeConnection() {
     close(device_);
 }
 
-bool CServoProtocol::writeToServo(uint8_t buf[], int numBytes) {
+bool CHiwonderProtocol::writeToServo(uint8_t buf[], int numBytes) {
     ssize_t written = write(device_, buf, numBytes);
     if (written < 0 || written != numBytes) {
         return false;
@@ -92,14 +161,13 @@ bool CServoProtocol::writeToServo(uint8_t buf[], int numBytes) {
         for (auto i = 0; i < 6; ++i) {
             text += std::to_string(buf[i]) + ", ";
         }
-        // text.replace();
         text += "]";
         RCLCPP_INFO_STREAM(node_->get_logger(), "serial: " << text);
     }
     return true;
 }
 
-bool CServoProtocol::readCMD(uint8_t ID, uint8_t CMD_opcode, uint8_t RX_buf_size, uint8_t* RX_buf) {
+bool CHiwonderProtocol::readCMD(uint8_t ID, uint8_t CMD_opcode, uint8_t RX_buf_size, uint8_t* RX_buf) {
     uint8_t TX_buf[s_SERVO_ALL_READ_CMDS + 3];
     bool syntax_check = false;
 
@@ -109,16 +177,29 @@ bool CServoProtocol::readCMD(uint8_t ID, uint8_t CMD_opcode, uint8_t RX_buf_size
     TX_buf[4] = CMD_opcode;
     TX_buf[5] = checksum(TX_buf);
 
-    if (!writeToServo(TX_buf, sizeof(TX_buf))) {  // Send Read Command for 'CMD_opcode'
+    if (!writeToServo(TX_buf, sizeof(TX_buf))) {
         return false;
     }
 
-    int rx_size = read(device_, RX_buf, RX_buf_size);
+    int bytes_read = 0;
+    while (bytes_read < RX_buf_size) {
+        int result = read(device_, RX_buf + bytes_read, RX_buf_size - bytes_read);
+        if (result < 0) {
+            if (errno == EAGAIN || errno == EINTR) {
+                continue;
+            }
+            return false;
+        } else if (result == 0) {
+            break;
+        }
+        bytes_read += result;
+    }
+
+    int rx_size = bytes_read;
     syntax_check = (rx_size == RX_buf_size);
     syntax_check = syntax_check && (RX_buf[0] == SERVO_FRAME_HEADER);
     syntax_check = syntax_check && (RX_buf[1] == SERVO_FRAME_HEADER);
-    if (ID != 0xFE)  // Broadcast Read CMD returns real ID
-    {
+    if (ID != 0xFE) {
         syntax_check = syntax_check && (RX_buf[2] == ID);
     }
     syntax_check = syntax_check && (RX_buf[3] == RX_buf_size - 3);
@@ -128,7 +209,7 @@ bool CServoProtocol::readCMD(uint8_t ID, uint8_t CMD_opcode, uint8_t RX_buf_size
     return syntax_check;
 }
 
-uint8_t CServoProtocol::checksum(uint8_t buf[]) {
+uint8_t CHiwonderProtocol::checksum(uint8_t buf[]) {
     uint8_t i;
     uint16_t chksum = 0;
     for (i = 2; i < buf[3] + 2; i++) {
@@ -139,20 +220,20 @@ uint8_t CServoProtocol::checksum(uint8_t buf[]) {
     return i;
 }
 
-bool CServoProtocol::getServoID(uint8_t ID, uint8_t& answer) {
+bool CHiwonderProtocol::getServoID(uint8_t ID, uint8_t& answer) {
     uint8_t CMD_opcode = SERVO_ID_READ;
     uint8_t RX_buf[s_SERVO_ID_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
     if (syntax_check) {
-        answer = RX_buf[5];  // The servo ID is in the 6th byte of the response
+        answer = RX_buf[5];
     }
     return syntax_check;
 }
 
-bool CServoProtocol::setServoID(uint8_t ID, uint8_t newID) {
+bool CHiwonderProtocol::setServoID(uint8_t ID, uint8_t newID) {
     uint8_t buf[s_SERVO_ID_WRITE + 3];
 
-    newID = std::clamp<uint8_t>(newID, 0, 254);  // ID must be in range 0..254
+    newID = std::clamp<uint8_t>(newID, 0, 254);
     buf[0] = buf[1] = SERVO_FRAME_HEADER;
     buf[2] = ID;
     buf[3] = s_SERVO_ID_WRITE;
@@ -163,11 +244,11 @@ bool CServoProtocol::setServoID(uint8_t ID, uint8_t newID) {
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::setPosition(uint8_t ID, uint16_t pos, uint16_t time) {
+bool CHiwonderProtocol::setPosition(uint8_t ID, uint16_t pos, uint16_t time) {
     uint8_t buf[s_SERVO_MOVE_TIME_WRITE + 3];
 
     pos = std::clamp<uint16_t>(pos, 0, 1000);
-    time = std::clamp<uint16_t>(time, 0, 30000);  // time is in ms
+    time = std::clamp<uint16_t>(time, 0, 30000);
 
     buf[0] = buf[1] = SERVO_FRAME_HEADER;
     buf[2] = ID;
@@ -182,11 +263,11 @@ bool CServoProtocol::setPosition(uint8_t ID, uint16_t pos, uint16_t time) {
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::setRegPos(uint8_t ID, uint16_t pos, uint16_t time) {
+bool CHiwonderProtocol::setRegPos(uint8_t ID, uint16_t pos, uint16_t time) {
     uint8_t buf[s_SERVO_MOVE_TIME_WAIT_WRITE + 3];
 
     pos = std::clamp<uint16_t>(pos, 0, 1000);
-    time = std::clamp<uint16_t>(time, 0, 30000);  // time is in ms
+    time = std::clamp<uint16_t>(time, 0, 30000);
 
     buf[0] = buf[1] = SERVO_FRAME_HEADER;
     buf[2] = ID;
@@ -201,7 +282,7 @@ bool CServoProtocol::setRegPos(uint8_t ID, uint16_t pos, uint16_t time) {
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::actionStart(uint8_t ID) {
+bool CHiwonderProtocol::actionStart(uint8_t ID) {
     uint8_t buf[s_SERVO_MOVE_START + 3];
 
     buf[0] = buf[1] = SERVO_FRAME_HEADER;
@@ -213,7 +294,7 @@ bool CServoProtocol::actionStart(uint8_t ID) {
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::moveStop(uint8_t ID) {
+bool CHiwonderProtocol::moveStop(uint8_t ID) {
     uint8_t buf[s_SERVO_MOVE_STOP + 3];
 
     buf[0] = buf[1] = SERVO_FRAME_HEADER;
@@ -225,11 +306,10 @@ bool CServoProtocol::moveStop(uint8_t ID) {
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::getPositionOffset(uint8_t ID, int8_t& deviation) {
+bool CHiwonderProtocol::getPositionOffset(uint8_t ID, int8_t& deviation) {
     uint8_t CMD_opcode = SERVO_ANGLE_OFFSET_READ;
     uint8_t RX_buf[s_SERVO_ANGLE_OFFSET_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
-    // The deviation is stored as an unsigned byte (0..255), but represents a signed value (-128..+127)
     if (syntax_check) {
         uint8_t raw = RX_buf[5];
         if (raw > 127) {
@@ -241,10 +321,9 @@ bool CServoProtocol::getPositionOffset(uint8_t ID, int8_t& deviation) {
     return syntax_check;
 }
 
-bool CServoProtocol::setPositionOffset(uint8_t ID, int8_t deviation) {
+bool CHiwonderProtocol::setPositionOffset(uint8_t ID, int8_t deviation) {
     uint8_t buf[s_SERVO_ANGLE_OFFSET_ADJUST + 3];
 
-    // Store as unsigned byte (0..255), but represents signed value (-128..+127)
     uint8_t deviationU8 = 0;
     if (deviation < 0) {
         deviationU8 = static_cast<uint8_t>(deviation) + 127;
@@ -261,7 +340,7 @@ bool CServoProtocol::setPositionOffset(uint8_t ID, int8_t deviation) {
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::savePositionOffset(uint8_t ID) {
+bool CHiwonderProtocol::savePositionOffset(uint8_t ID) {
     uint8_t buf[s_SERVO_ANGLE_OFFSET_WRITE + 3];
 
     buf[0] = buf[1] = SERVO_FRAME_HEADER;
@@ -273,7 +352,7 @@ bool CServoProtocol::savePositionOffset(uint8_t ID) {
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::getPositionLimits(uint8_t ID, uint16_t& min_position, uint16_t& max_position) {
+bool CHiwonderProtocol::getPositionLimits(uint8_t ID, uint16_t& min_position, uint16_t& max_position) {
     uint8_t CMD_opcode = SERVO_ANGLE_LIMITS_READ;
     uint8_t RX_buf[s_SERVO_ANGLE_LIMITS_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
@@ -284,7 +363,7 @@ bool CServoProtocol::getPositionLimits(uint8_t ID, uint16_t& min_position, uint1
     return syntax_check;
 }
 
-bool CServoProtocol::setPositionLimits(uint8_t ID, uint16_t min_position, uint16_t max_position) {
+bool CHiwonderProtocol::setPositionLimits(uint8_t ID, uint16_t min_position, uint16_t max_position) {
     uint8_t buf[s_SERVO_ANGLE_LIMITS_WRITE + 3];
 
     min_position = std::clamp<uint16_t>(min_position, 0, 1000);
@@ -303,10 +382,10 @@ bool CServoProtocol::setPositionLimits(uint8_t ID, uint16_t min_position, uint16
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::flashLedErrCode(uint8_t ID, uint8_t code) {
+bool CHiwonderProtocol::flashLedErrCode(uint8_t ID, uint8_t code) {
     uint8_t buf[s_SERVO_LED_ERROR_WRITE + 3];
 
-    code = std::clamp<uint8_t>(code, 0, 7);  // b0=temp, b1:voltage, b2:stalled
+    code = std::clamp<uint8_t>(code, 0, 7);
 
     buf[0] = buf[1] = SERVO_FRAME_HEADER;
     buf[2] = ID;
@@ -315,12 +394,12 @@ bool CServoProtocol::flashLedErrCode(uint8_t ID, uint8_t code) {
     buf[5] = code;
     buf[6] = checksum(buf);
 
-    usleep(50 * 1000);  // need to wait until Flash in Servo is written
+    usleep(50 * 1000);
 
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::getPosition(uint8_t ID, int16_t& pos) {
+bool CHiwonderProtocol::getPosition(uint8_t ID, int16_t& pos) {
     uint8_t CMD_opcode = SERVO_POS_READ;
     uint8_t RX_buf[s_SERVO_POS_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
@@ -330,7 +409,7 @@ bool CServoProtocol::getPosition(uint8_t ID, int16_t& pos) {
     return syntax_check;
 }
 
-bool CServoProtocol::getVoltage(uint8_t ID, uint16_t& vin) {
+bool CHiwonderProtocol::getVoltage(uint8_t ID, uint16_t& vin) {
     uint8_t CMD_opcode = SERVO_VIN_READ;
     uint8_t RX_buf[s_SERVO_VIN_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
@@ -340,7 +419,7 @@ bool CServoProtocol::getVoltage(uint8_t ID, uint16_t& vin) {
     return syntax_check;
 }
 
-bool CServoProtocol::getVoltageLimits(uint8_t ID, uint16_t& min_voltage, uint16_t& max_voltage) {
+bool CHiwonderProtocol::getVoltageLimits(uint8_t ID, uint16_t& min_voltage, uint16_t& max_voltage) {
     uint8_t CMD_opcode = SERVO_VIN_LIMITS_READ;
     uint8_t RX_buf[s_SERVO_VIN_LIMITS_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
@@ -351,7 +430,7 @@ bool CServoProtocol::getVoltageLimits(uint8_t ID, uint16_t& min_voltage, uint16_
     return syntax_check;
 }
 
-bool CServoProtocol::setVoltageLimits(uint8_t ID, uint16_t min_voltage, uint16_t max_voltage) {
+bool CHiwonderProtocol::setVoltageLimits(uint8_t ID, uint16_t min_voltage, uint16_t max_voltage) {
     uint8_t buf[s_SERVO_VIN_LIMITS_WRITE + 3];
 
     min_voltage = std::clamp<uint16_t>(min_voltage, 4500, 12000);
@@ -370,7 +449,7 @@ bool CServoProtocol::setVoltageLimits(uint8_t ID, uint16_t min_voltage, uint16_t
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::getTemperature(uint8_t ID, uint8_t& temp) {
+bool CHiwonderProtocol::getTemperature(uint8_t ID, uint8_t& temp) {
     uint8_t CMD_opcode = SERVO_TEMP_READ;
     uint8_t RX_buf[s_SERVO_TEMP_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
@@ -380,7 +459,7 @@ bool CServoProtocol::getTemperature(uint8_t ID, uint8_t& temp) {
     return syntax_check;
 }
 
-bool CServoProtocol::getMaxTemperatureLimit(uint8_t ID, uint8_t& max_temperature) {
+bool CHiwonderProtocol::getMaxTemperatureLimit(uint8_t ID, uint8_t& max_temperature) {
     uint8_t CMD_opcode = SERVO_TEMP_LIMIT_READ;
     uint8_t RX_buf[s_SERVO_TEMP_LIMIT_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
@@ -390,7 +469,7 @@ bool CServoProtocol::getMaxTemperatureLimit(uint8_t ID, uint8_t& max_temperature
     return syntax_check;
 }
 
-bool CServoProtocol::setMaxTemperatureLimit(uint8_t ID, uint8_t max_temperature) {
+bool CHiwonderProtocol::setMaxTemperatureLimit(uint8_t ID, uint8_t max_temperature) {
     uint8_t buf[s_SERVO_TEMP_LIMIT_WRITE + 3];
 
     max_temperature = std::clamp<uint8_t>(max_temperature, 50, 100);
@@ -405,7 +484,7 @@ bool CServoProtocol::setMaxTemperatureLimit(uint8_t ID, uint8_t max_temperature)
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::getLedErrcode(uint8_t ID, uint8_t& lederrcode) {
+bool CHiwonderProtocol::getLedErrcode(uint8_t ID, uint8_t& lederrcode) {
     uint8_t CMD_opcode = SERVO_LED_ERROR_READ;
     uint8_t RX_buf[s_SERVO_LED_ERROR_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
@@ -415,51 +494,48 @@ bool CServoProtocol::getLedErrcode(uint8_t ID, uint8_t& lederrcode) {
     return syntax_check;
 }
 
-bool CServoProtocol::getMode(uint8_t ID, uint8_t& mode) {
+bool CHiwonderProtocol::getMode(uint8_t ID, uint8_t& mode) {
     uint8_t CMD_opcode = SERVO_OR_MOTOR_MODE_READ;
     uint8_t RX_buf[s_SERVO_MODE_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
     if (syntax_check) {
-        mode = RX_buf[5];  // The mode is in the 6th byte of the response
+        mode = RX_buf[5];
     }
     return syntax_check;
 }
 
-bool CServoProtocol::getMotorSpeed([[maybe_unused]] uint8_t ID, [[maybe_unused]] int16_t& speed) {
-    // This function is not implemented in the original code.
-    // If you need to implement it, you can add the logic here.
-    // For now, we return false to indicate that this functionality is not available.
+bool CHiwonderProtocol::getMotorSpeed([[maybe_unused]] uint8_t ID, [[maybe_unused]] int16_t& speed) {
     return false;
 }
 
-bool CServoProtocol::setServoMode(uint8_t ID) {
+bool CHiwonderProtocol::setServoMode(uint8_t ID) {
     uint8_t buf[s_SERVO_MODE_WRITE + 3];
 
     buf[0] = buf[1] = SERVO_FRAME_HEADER;
     buf[2] = ID;
     buf[3] = s_SERVO_MODE_WRITE;
     buf[4] = SERVO_OR_MOTOR_MODE_WRITE;
-    buf[5] = 0;  // Mode 0 for servo
-    buf[6] = 0;  // Speed is not used in servo mode
-    buf[7] = 0;  // Speed is not used in servo mode
+    buf[5] = 0;
+    buf[6] = 0;
+    buf[7] = 0;
     buf[8] = checksum(buf);
 
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::setMotorMode(uint8_t ID, int16_t speed) {
+bool CHiwonderProtocol::setMotorMode(uint8_t ID, int16_t speed) {
     uint8_t buf[s_SERVO_MODE_WRITE + 3];
 
     speed = std::clamp<int16_t>(speed, -1000, 1000);
     if (speed < 0) {
-        speed += 65536;  // Convert to unsigned value
+        speed += 65536;
     }
 
     buf[0] = buf[1] = SERVO_FRAME_HEADER;
     buf[2] = ID;
     buf[3] = s_SERVO_MODE_WRITE;
     buf[4] = SERVO_OR_MOTOR_MODE_WRITE;
-    buf[5] = 1;  // Mode 1 for motor
+    buf[5] = 1;
     buf[6] = getLowByte(speed);
     buf[7] = getHighByte(speed);
     buf[8] = checksum(buf);
@@ -467,34 +543,34 @@ bool CServoProtocol::setMotorMode(uint8_t ID, int16_t speed) {
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::setTorque(uint8_t ID, bool active) {
+bool CHiwonderProtocol::setTorque(uint8_t ID, bool active) {
     uint8_t buf[s_SERVO_TORQUE_WRITE + 3];
 
     buf[0] = buf[1] = SERVO_FRAME_HEADER;
     buf[2] = ID;
     buf[3] = s_SERVO_TORQUE_WRITE;
     buf[4] = SERVO_TORQUE_WRITE;
-    buf[5] = uint8_t(active);  // 1 for Load motor, 0 for Unload motor
+    buf[5] = uint8_t(active);
     buf[6] = checksum(buf);
 
     return writeToServo(buf, sizeof(buf));
 }
 
-bool CServoProtocol::isLedOn(uint8_t ID) {
+bool CHiwonderProtocol::isLedOn(uint8_t ID) {
     uint8_t CMD_opcode = SERVO_LED_CTRL_READ;
     uint8_t RX_buf[s_SERVO_LED_CTRL_READ + 3];
     bool syntax_check = readCMD(ID, CMD_opcode, sizeof(RX_buf), RX_buf);
-    return syntax_check && (RX_buf[5] == 0);  // Check if LED is on (0 means on)
+    return syntax_check && (RX_buf[5] == 0);
 }
 
-bool CServoProtocol::setLed(uint8_t ID, bool on) {
+bool CHiwonderProtocol::setLed(uint8_t ID, bool on) {
     uint8_t buf[s_SERVO_LED_CTRL_WRITE + 3];
 
     buf[0] = buf[1] = SERVO_FRAME_HEADER;
     buf[2] = ID;
     buf[3] = s_SERVO_LED_CTRL_WRITE;
     buf[4] = SERVO_LED_CTRL_WRITE;
-    buf[5] = uint8_t(!on);  // 0 for on, 1 for off
+    buf[5] = uint8_t(!on);
     buf[6] = checksum(buf);
 
     return writeToServo(buf, sizeof(buf));

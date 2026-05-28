@@ -187,10 +187,7 @@ void CKinematics::calcLegInverseKinematics(const CPosition& targetFeetPos, CLeg&
     double agCoxaRad = atan2(targetFeetPos.x, targetFeetPos.y);
     double zOffset = COXA_HEIGHT - targetFeetPos.z;
 
-    // Prevent division by zero
-    assert(abs(cos(agCoxaRad)) >= 0.00001 && "targetFeetPos.x = 0");
-
-    double lLegTopView = targetFeetPos.y / cos(agCoxaRad);  // L1
+    double lLegTopView = std::hypot(targetFeetPos.x, targetFeetPos.y);  // L1
 
     double sqL = pow(zOffset, 2) + pow(lLegTopView - COXA_LENGTH, 2);
     double L = sqrt(sqL);

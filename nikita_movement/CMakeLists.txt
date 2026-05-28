@@ -26,7 +26,13 @@ find_package(magic_enum CONFIG REQUIRED)
 ## set sources
 set(SOURCES
   src/handler/servo_controller.cpp
-  src/handler/servo_protocol.cpp
+  src/handler/hiwonder_protocol.cpp
+  src/handler/feetech_protocol.cpp
+  src/handler/feetech/HLSCL.cpp
+  src/handler/feetech/SCS.cpp
+  src/handler/feetech/SCSCL.cpp
+  src/handler/feetech/SCSerial.cpp
+  src/handler/feetech/SMS_STS.cpp
   src/handler/servohandler.cpp
   src/requester/gait_bodyroll.cpp
   src/requester/gait_clap.cpp
@@ -50,7 +56,11 @@ set(SOURCES
 add_library(nikita_movement_core
   ${SOURCES}
 )
-target_include_directories(nikita_movement_core PUBLIC include/nikita_movement include/nikita_movement/requester)
+target_include_directories(nikita_movement_core PUBLIC
+  include/nikita_movement
+  include/nikita_movement/requester
+  include/nikita_movement/handler/feetech
+)
 target_link_libraries(nikita_movement_core PUBLIC
   rclcpp::rclcpp
   ${std_msgs_TARGETS}
@@ -75,6 +85,7 @@ target_link_libraries(node_movement PRIVATE
 
 include_directories(
   include/nikita_movement/
+  include/nikita_movement/handler/feetech/
 )
 
 install(TARGETS

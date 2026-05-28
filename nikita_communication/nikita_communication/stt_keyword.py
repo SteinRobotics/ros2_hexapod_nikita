@@ -7,6 +7,7 @@ import platform
 import queue
 import struct
 from pathlib import Path
+import threading
 from threading import Thread
 
 import sounddevice as sd
@@ -27,7 +28,7 @@ class KeywordSpotter(Thread):
         self.keywords = tuple(keywords or ("nikita", "jamie"))
         self.sensitivities = tuple(sensitivities or (0.6,) * len(self.keywords))
         self.keyword_dir = Path(keyword_dir) if keyword_dir is not None else package_resource_path('models', 'porcupine')
-        self.is_stop_listening_requested = False
+        self._stop_requested = threading.Event()
 
         if pvporcupine is None:
             raise ModuleNotFoundError(
@@ -42,7 +43,7 @@ class KeywordSpotter(Thread):
         self.keyword_paths = self._resolve_keyword_paths()
 
     def stop_listening(self):
-        self.is_stop_listening_requested = True
+        self._stop_requested.set()
 
     def stream_callback(self, indata, frames, time_info, status):
         if status:
@@ -124,8 +125,12 @@ class KeywordSpotter(Thread):
                 channels=1,
                 callback=self.stream_callback,
             ):
-                while not self.is_stop_listening_requested:
-                    data = self.q.get()
+                while not self._stop_requested.is_set():
+                    try:
+                        data = self.q.get(timeout=0.2)
+                    except queue.Empty:
+                        continue
+
                     pcm = struct.unpack_from(f'{porcupine.frame_length}h', data)
                     keyword_index = porcupine.process(pcm)
 
@@ -141,6 +146,5 @@ class KeywordSpotter(Thread):
             if porcupine is not None:
                 porcupine.delete()
 
-        self.is_stop_listening_requested = False
-        if detected_keyword is not None:
+        if detected_keyword is not None and not self._stop_requested.is_set():
             self.cb(detected_keyword)

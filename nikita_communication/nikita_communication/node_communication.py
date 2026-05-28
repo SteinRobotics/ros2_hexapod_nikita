@@ -98,6 +98,7 @@ class NodeCommunication(Node):
             self.stt_offline.stop_listening()
             self.stt_offline.join()
         elif self.statusOld == CommunicationStatus.STT_ONLINE_ACTIVE and self.stt_online is not None:
+            self.stt_online.stop_listening()
             self.stt_online.join()
 
 # callbacks triggered from  external ROS msgs

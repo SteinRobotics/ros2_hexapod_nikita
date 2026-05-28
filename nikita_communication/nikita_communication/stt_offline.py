@@ -25,6 +25,7 @@
 import json
 import logging
 import queue
+import threading
 import time
 from threading import Thread
 
@@ -36,10 +37,10 @@ from nikita_communication import package_resource_path
 
 class SpeechToTextOffline(Thread):
     def __init__(self, robotnames, cb, logger=None):
-        Thread.__init__(self)
+        super().__init__()
         self.cb = cb
         self.robotnames = robotnames
-        self.isStopListeningRequested = False
+        self._stop_requested = threading.Event()
         self.logger = logger or logging.getLogger(__name__)
 
         # change the name of the model to match the downloaded model's name
@@ -55,7 +56,7 @@ class SpeechToTextOffline(Thread):
             )
 
     def stop_listening(self):
-        self.isStopListeningRequested = True
+        self._stop_requested.set()
 
     def stream_callback(self, indata, frames, time, status):
         #"""This is called (from a separate thread) for each audio block."""
@@ -96,8 +97,12 @@ class SpeechToTextOffline(Thread):
                 isRecognized = False
                 result_text = ""
 
-                while not self.isStopListeningRequested:
-                    data = self.q.get()
+                while not self._stop_requested.is_set():
+                    try:
+                        data = self.q.get(timeout=0.2)
+                    except queue.Empty:
+                        continue
+
                     if rec.AcceptWaveform(data):
                         # In case of final result
                         result = rec.FinalResult()
@@ -125,5 +130,5 @@ class SpeechToTextOffline(Thread):
             return
 
         input_dev_num = None
-        self.isStopListeningRequested = False
-        self.cb()
+        if not self._stop_requested.is_set():
+            self.cb()

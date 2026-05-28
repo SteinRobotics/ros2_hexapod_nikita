@@ -2,19 +2,24 @@
 # -*- coding: utf-8 -*-
 
 import os.path
-from nikita_communication.stoppable_thread import StoppableThread
 import pathlib
-# import openai
+import threading
 
-# https://github.com/uesleibros/OpenGPT
 # free to use GPT
 
 
-class ChatBotThread(StoppableThread):
+class ChatBotThread(threading.Thread):
     def __init__(self, chat_question, cb):
-        StoppableThread.__init__(self)
+        super().__init__()
         self.cb = cb
         self.chat_question = chat_question
+        self._stop_requested = threading.Event()
+
+    def request_stop(self):
+        self._stop_requested.set()
+
+    def stop_requested(self):
+        return self._stop_requested.is_set()
 
     def run(self):
         context = "Lebensbejahender Serviceroboter namens Nikita"
@@ -30,7 +35,7 @@ class ChatBotThread(StoppableThread):
         reply = reply.split('Nikita: ', 1)[-1]
         print(reply)
 
-        if self.cb:
+        if self.cb and not self.stop_requested():
             self.cb(reply)
 
 
@@ -53,7 +58,7 @@ class ChatBot():
         self.chatBotThread.start()
 
     def is_thread_running(self):
-        return self.chatBotThread.stopped()
+        return hasattr(self, 'chatBotThread') and self.chatBotThread.is_alive()
 
 if __name__=="__main__":
     chatBot = ChatBot()

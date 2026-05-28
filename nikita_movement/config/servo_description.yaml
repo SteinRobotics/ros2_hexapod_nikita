@@ -1,6 +1,7 @@
 node_movement:
   ros__parameters:
     SERIAL_PORT: '/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0'   # "/dev/ttyUSB0"
+    SERVO_CONTROLLER_TYPE: 'hiwonder'
 
     SERVO_NAME: ['HEAD_YAW', 'HEAD_PITCH',
                  'LEG_RIGHT_FRONT_COXA', 'LEG_RIGHT_FRONT_FEMUR', 'LEG_RIGHT_FRONT_TIBIA',
