@@ -60,3 +60,5 @@ build/
 log/
 install/
 
+.venv/
+.vscode/
