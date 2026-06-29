@@ -4,8 +4,8 @@ from pathlib import Path
 
 from build123d import *
 
-import assembly_leg_cylinders
-import cylinder_spacer  
+import assembly_leg_with_spacers
+import spacer  
 import leg_top
 from ocp_utils import show
 
@@ -29,7 +29,7 @@ _BRACKET_SCALE = 0.5
 
 def build_assembly() -> Compound:
     servo = import_step(str(Path(__file__).parent / "imported" / "ST3215.step"))
-    leg_assembly = assembly_leg_cylinders.build_assembly()
+    leg_assembly = assembly_leg_with_spacers.build_assembly()
     bracket = import_step(
         str(Path(__file__).parent / "imported" / "HX-35HM Inclinded U Shape Bracket.stp")
     ).scale(_BRACKET_SCALE)
@@ -46,7 +46,7 @@ def build_assembly() -> Compound:
     leg_placed = (
         Pos(
             servo_cx + _SERVO_CENTER_X + 14.0,
-            -bb.max.Y - cylinder_spacer.OVERALL_LENGTH/2 - leg_top.THICKNESS,
+            -bb.max.Y - spacer.OVERALL_LENGTH/2 - leg_top.THICKNESS,
             servo_cz + _SERVO_CENTER_Y - 5.5,
         )
         * Rot(270, 0, 90)

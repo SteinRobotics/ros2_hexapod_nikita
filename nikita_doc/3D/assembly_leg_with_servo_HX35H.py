@@ -4,8 +4,8 @@ from pathlib import Path
 
 from build123d import *
 
-import assembly_leg_cylinders
-import cylinder_spacer  
+import assembly_leg_with_spacers
+import spacer  
 import leg_top
 from ocp_utils import show
 
@@ -15,7 +15,7 @@ DARK_GRAY = Color(0.25, 0.25, 0.25)
 def build_assembly() -> Compound:
     servo = import_step(str(Path(__file__).parent / "imported" / "HX-35H.stp"))
     servo.color = DARK_GRAY
-    leg_assembly = assembly_leg_cylinders.build_assembly()
+    leg_assembly = assembly_leg_with_spacers.build_assembly()
 
     servo_bb = servo.bounding_box()
     # servo_cx = (bb.min.X + bb.max.X) / 2
