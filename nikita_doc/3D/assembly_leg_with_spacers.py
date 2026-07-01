@@ -2,15 +2,16 @@
 
 from pathlib import Path
 
-from build123d import *
+from build123d import Compound, Pos, export_step
 
+from cad_config import (
+    SPACER_OUTER_DIAMETER,
+    SPACER_OVERALL_LENGTH,
+    SPACER_STUD_HOLE_DIAMETER,
+)
 import leg_top
 import spacer
 from ocp_utils import show
-
-SPACER_OUTER_DIAMETER = 5.0
-SPACER_OVERALL_LENGTH = 32.0
-SPACER_STUD_HOLE_DIAMETER = 2.5
 
 
 TARGET_HOLE = leg_top.TIBIA_MOUNT_HOLES[0]

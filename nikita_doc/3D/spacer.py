@@ -2,14 +2,19 @@
 
 from pathlib import Path
 
-from build123d import *
+from build123d import BuildPart, Cylinder, Mode, Part, export_step, export_stl
 
+from cad_config import (
+    SPACER_OUTER_DIAMETER,
+    SPACER_OVERALL_LENGTH,
+    SPACER_STUD_HOLE_DIAMETER,
+)
 from ocp_utils import show
 
 
-OUTER_DIAMETER = 5.0
-OVERALL_LENGTH = 32.0
-STUD_HOLE_DIAMETER = 2.5
+OUTER_DIAMETER = SPACER_OUTER_DIAMETER
+OVERALL_LENGTH = SPACER_OVERALL_LENGTH
+STUD_HOLE_DIAMETER = SPACER_STUD_HOLE_DIAMETER
 
 
 def build_model(

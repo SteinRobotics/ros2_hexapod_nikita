@@ -2,10 +2,10 @@
 
 from pathlib import Path
 
-from build123d import *
+from build123d import Compound, Pos, Rot, export_step, import_step
 
 import assembly_leg_with_spacers
-import spacer  
+from cad_config import SPACER_OVERALL_LENGTH, ST3215_LEG_OFFSET_X, ST3215_LEG_OFFSET_Z
 import leg_top
 from ocp_utils import show
 
@@ -30,9 +30,9 @@ def build_assembly() -> Compound:
     # sit flush against the servo's front face (Y = bb.max.Y).
     leg_placed = (
         Pos(
-            servo_cx + _SERVO_CENTER_X + 14.0,
-            -bb.max.Y - spacer.OVERALL_LENGTH/2 - leg_top.THICKNESS,
-            servo_cz + _SERVO_CENTER_Y - 5.5,
+            servo_cx + _SERVO_CENTER_X + ST3215_LEG_OFFSET_X,
+            -bb.max.Y - SPACER_OVERALL_LENGTH / 2 - leg_top.THICKNESS,
+            servo_cz + _SERVO_CENTER_Y + ST3215_LEG_OFFSET_Z,
         )
         * Rot(270, 0, 90)
         * leg_assembly
