@@ -9,16 +9,16 @@ from cad_config import (
     SPACER_OVERALL_LENGTH,
     SPACER_STUD_HOLE_DIAMETER,
 )
-import leg_top
+import leg_bottom
 import spacer
 from ocp_utils import show
 
 
-TARGET_HOLE = leg_top.TIBIA_MOUNT_HOLES[0]
+TARGET_HOLE = leg_bottom.TIBIA_MOUNT_HOLES[0]
 
 
 def build_assembly() -> Compound:
-    leg_part = leg_top.build_model(leg_top.build_surface())
+    leg_part = leg_bottom.build_model(leg_bottom.build_surface())
     stud_part = spacer.build_model(
         outer_diameter=SPACER_OUTER_DIAMETER,
         inner_diameter=SPACER_STUD_HOLE_DIAMETER,
@@ -26,7 +26,7 @@ def build_assembly() -> Compound:
     )
 
     hole_x, hole_y, _hole_radius = TARGET_HOLE
-    stud_z = leg_top.THICKNESS + SPACER_OVERALL_LENGTH / 2
+    stud_z = leg_bottom.THICKNESS + SPACER_OVERALL_LENGTH / 2
     placed_stud = Pos(hole_x, hole_y, stud_z) * stud_part
 
     return Compound(children=[leg_part, placed_stud])

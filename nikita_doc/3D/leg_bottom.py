@@ -8,13 +8,13 @@ from build123d import (
     BuildSketch,
     Circle,
     Curve,
-    ExportDXF,
     Line,
+    ExportDXF,
     Locations,
     Mode,
     Part,
-    Polygon,
     Pos,
+    Polygon,
     Rectangle,
     Sketch,
     Sphere,
@@ -31,24 +31,25 @@ M2_5_RADIUS = 1.25
 
 # Set to an OUTLINE_POINTS index to show the matching polygon edge in viewer.
 DEBUG_POINT_INDEX: int | None = None
+DEBUG_POINT_INDEX = 15
 
-# Converted from imported/leg_v3p3.svg path data into the CAD local frame.
-# SVG to CAD transform used: x' = x - 34.25, y' = 67.25 - y
 OUTLINE_POINTS = [
     (-16.25, -25.75),  # 0
-    ( 53.75, -25.75),  # 1
-    ( 91.75, -16.75),  # 2
-    ( 91.75,   0.25),  # 3
-    ( 18.75,   9.25),  # 4
-    ( 12.75,  15.25),  # 5
-    (  9.75,  15.25),  # 6
-    (  6.75,  12.25),  # 7
-    (  6.75, -13.75),  # 8
-    ( -7.25, -13.75),  # 9
-    ( -7.25,  -9.75),  # 10
-    (-12.25,  -9.75),  # 11
-    (-19.25, -16.75),  # 12
-    (-19.25, -22.75),  # 13
+    (-19.25, -22.75),  # 1
+    (-19.25, -16.75),  # 2
+    (-12.25,  -9.75),  # 3
+    (  9.75,  -9.75),  # 4
+    (  9.75,   2.25),  # 5
+    ( 10.75,   2.25),  # 6 
+    ( 10.75,   9.25),  # 7 
+    (  6.75,   9.25),  # 8 
+    (  6.75,  12.25),  # 9
+    (  9.75,  15.25),  # 10
+    ( 13.75,  15.25),  # 11
+    ( 18.75,   9.25),  # 12
+    ( 91.75,   0.25),  # 13
+    ( 91.75, -16.75),  # 14
+    ( 53.00, -25.75),  # 15
 ]
 
 BODY_RAIL_HOLES = [
@@ -77,6 +78,7 @@ TIP_SLOTS = [
     (88.25,  -3.75, 3.0, 4.0),
     (88.25, -12.75, 3.0, 4.0),
 ]
+
 
 
 def build_surface() -> Sketch:
@@ -128,13 +130,13 @@ def main() -> None:
     surface = build_surface()
     result = build_model(surface)
     Path("generated").mkdir(exist_ok=True)
-    export_step(result, "generated/leg_top.step")
+    export_step(result, "generated/leg_bottom.step")
 
     dxf_export = ExportDXF()
     dxf_export.add_shape(surface)
-    dxf_export.write("generated/leg_top.dxf")
+    dxf_export.write("generated/leg_bottom.dxf")
 
-    show(result, name="leg_top", clear=True)
+    show(result, name="leg_bottom", clear=True)
 
     if DEBUG_POINT_INDEX is not None:
         edge = build_debug_edge_from_point(DEBUG_POINT_INDEX)
