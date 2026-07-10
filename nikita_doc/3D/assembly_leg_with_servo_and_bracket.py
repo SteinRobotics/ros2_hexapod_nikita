@@ -5,12 +5,12 @@ from pathlib import Path
 from build123d import Compound, Pos, Rot, export_step, import_step
 
 import assembly_leg_with_spacers
-from cad_config import SPACER_OVERALL_LENGTH, ST3215_LEG_OFFSET_X, ST3215_LEG_OFFSET_Z
-import leg_bottom
+from cad_config import FOOT_SPACER_OVERALL_LENGTH, ST3215_LEG_OFFSET_X, ST3215_LEG_OFFSET_Z
+import foot_back
 from ocp_utils import show
 
 # Midpoint of the three servo-bracket holes defined in leg_top.py
-_SERVO_HOLES = leg_bottom.SERVO_BRACKET_HOLES
+_SERVO_HOLES = foot_back.SERVO_BRACKET_HOLES
 _SERVO_CENTER_X = sum(x for x, _y, _r in _SERVO_HOLES) / len(_SERVO_HOLES)
 _SERVO_CENTER_Y = sum(y for _x, y, _r in _SERVO_HOLES) / len(_SERVO_HOLES)
 
@@ -46,7 +46,7 @@ def build_assembly() -> Compound:
     leg_placed = (
         Pos(
             servo_cx + _SERVO_CENTER_X + ST3215_LEG_OFFSET_X,
-            -bb.max.Y - SPACER_OVERALL_LENGTH / 2 - leg_bottom.THICKNESS,
+            -bb.max.Y - FOOT_SPACER_OVERALL_LENGTH / 2 - foot_back.THICKNESS,
             servo_cz + _SERVO_CENTER_Y + ST3215_LEG_OFFSET_Z,
         )
         * Rot(270, 0, 90)

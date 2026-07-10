@@ -5,16 +5,16 @@ from pathlib import Path
 from build123d import BuildPart, Cylinder, Mode, Part, export_step, export_stl
 
 from cad_config import (
-    SPACER_OUTER_DIAMETER,
-    SPACER_OVERALL_LENGTH,
-    SPACER_STUD_HOLE_DIAMETER,
+    FOOT_SPACER_OUTER_DIAMETER,
+    FOOT_SPACER_OVERALL_LENGTH,
+    FOOT_SPACER_STUD_HOLE_DIAMETER,
 )
 from ocp_utils import show
 
 
-OUTER_DIAMETER = SPACER_OUTER_DIAMETER
-OVERALL_LENGTH = SPACER_OVERALL_LENGTH
-STUD_HOLE_DIAMETER = SPACER_STUD_HOLE_DIAMETER
+OUTER_DIAMETER = FOOT_SPACER_OUTER_DIAMETER
+OVERALL_LENGTH = FOOT_SPACER_OVERALL_LENGTH
+STUD_HOLE_DIAMETER = FOOT_SPACER_STUD_HOLE_DIAMETER
 
 
 def build_model(
@@ -46,7 +46,6 @@ def main() -> None:
     result = build_model()
     Path("generated").mkdir(exist_ok=True)
     export_step(result, "generated/spacer.step")
-    export_stl(result, "generated/spacer.stl")
 
     show(result, name="spacer", clear=True)
 

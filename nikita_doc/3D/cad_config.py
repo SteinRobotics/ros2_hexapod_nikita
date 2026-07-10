@@ -3,9 +3,9 @@
 """Shared numeric parameters for CAD parts and assemblies."""
 
 # Spacer dimensions
-SPACER_OUTER_DIAMETER = 5.0
-SPACER_OVERALL_LENGTH = 32.0
-SPACER_STUD_HOLE_DIAMETER = 2.5
+FOOT_SPACER_OUTER_DIAMETER = 4.0
+FOOT_SPACER_OVERALL_LENGTH = 32.0
+FOOT_SPACER_STUD_HOLE_DIAMETER = 2.5
 
 # ST3215 leg placement offsets relative to computed servo/hole centers
 ST3215_LEG_OFFSET_X = 14.0

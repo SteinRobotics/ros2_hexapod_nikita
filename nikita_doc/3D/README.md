@@ -48,7 +48,7 @@ python assembly_leg_with_servo_and_bracket.py
 Common dimensions and placement offsets are centralized in `cad_config.py`.
 
 - Spacer dimensions:
-  - `SPACER_OUTER_DIAMETER`
+  - `FOOT_SPACER_OUTER_DIAMETER`
   - `SPACER_STUD_HOLE_DIAMETER`
   - `SPACER_OVERALL_LENGTH`
 - Assembly placement offsets:

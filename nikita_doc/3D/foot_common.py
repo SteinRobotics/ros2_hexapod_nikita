@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+
+from build123d import (
+    BuildPart,
+    BuildSketch,
+    Circle,
+    Locations,
+    Mode,
+    Part,
+    Polygon,
+    Sketch,
+    add,
+    extrude,
+)
+
+from ocp_utils import show
+
+THICKNESS = 1.5
+M2_RADIUS = 1.0
+M2_5_RADIUS = 1.25
+
+FOOT_OUTLINE = [
+    (-16.25, -25.75),  # 0
+    ( 53.75, -25.75),  # 1
+    ( 91.75, -16.75),  # 2
+    ( 91.75,   0.25),  # 3
+    ( 18.75,   9.25),  # 4
+    ( 12.75,  15.25),  # 5
+    (  9.75,  15.25),  # 6
+    (  6.75,  12.25),  # 7
+    ( -7.25,  -9.75),  # 8
+    (-12.25,  -9.75),  # 9
+    (-19.25, -16.75),  # 10
+    (-19.25, -22.75),  # 11
+]
+
+SERVO_BACK_CUTOUT = [
+    (  9.75,  -9.75),  # 4
+    (  9.75,   2.25),  # 5
+    ( 10.75,   2.25),  # 6 
+    ( 10.75,   9.25),  # 7 
+    (  6.75,   9.25),  # 8 
+    (  6.75,  12.25),  # 9
+    (  9.75,  15.25),  # 10
+    (  -9.75,  15.25),  # 10
+    (  -6.75,  12.25),  # 9
+    (  -6.75,   9.25),  # 8 
+    ( -10.75,   9.25),  # 7 
+    ( -10.75,   2.25),  # 6 
+    (  -9.75,   2.25),  # 5
+    (  -9.75,  -9.75),  # 4
+]
+
+SERVO_FRONT_CUTOUT = [
+    (  7.25, -13.75),  # 8
+    ( -7.25, -13.75),  # 9
+    ( -7.25, 13.75),  # 10
+    ( 7.25, 13.75),  # 10
+]
+
+OUTLINE_POINTS_FOR_TESTING = [
+    (-20,  -20), 
+    (  20,  -20), 
+    (  20,   20),  
+    ( -20,   20), 
+]
+
+# Rectangle corners for the servo bracket holes; center is the drawing origin.
+# Holes are placed at the first three corners (top-right, bottom-right, bottom-left).
+SERVO_BRACKET_RECT = [
+    ( 10.25,  12.25),  # top-right
+    ( 10.25, -12.25),  # bottom-right
+    (-10.25, -12.25),  # bottom-left
+    (-10.25,  12.25),  # top-left (no hole)
+]
+
+SERVO_BRACKET_HOLES = [
+    (x, y, M2_RADIUS) for x, y in SERVO_BRACKET_RECT
+]
+
+FOOT_MOUNT_HOLES = [
+    {"x": 84.75, "y": -8.25, "radius": M2_5_RADIUS},
+    {"x": 52.75, "y": -19.75, "radius": M2_5_RADIUS},
+    {"x": -14.25, "y": -19.75, "radius": M2_5_RADIUS},
+]
+
+TIP_SLOTS = [
+    (88.25,  -3.75, 3.0, 4.0),
+    (88.25, -12.75, 3.0, 4.0),
+]
+
+def build_surface() -> Sketch:
+    with BuildSketch() as sketch:
+        Polygon(*OUTLINE_POINTS_FOR_TESTING)
+        Polygon(*SERVO_FRONT_CUTOUT, mode=Mode.SUBTRACT)
+
+        for x, y, radius in SERVO_BRACKET_HOLES:
+            with Locations((x, y)):
+                Circle(radius, mode=Mode.SUBTRACT)
+
+    return sketch.sketch
+
+def build_model(surface: Sketch) -> Part:
+    with BuildPart() as model:
+        add(surface)
+        extrude(amount=THICKNESS)
+
+    return model.part
+
+def main() -> None:
+    surface = build_surface()
+    result = build_model(surface)
+    show(result, name="foot_cutout", clear=True)
+
+
+if __name__ == "__main__":
+    main()
