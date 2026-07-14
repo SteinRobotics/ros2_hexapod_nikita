@@ -1,246 +1,283 @@
 #!/usr/bin/env python3
 
+import math
 from pathlib import Path
+from typing import NamedTuple
 
 from build123d import (
     BuildPart,
+    BuildLine,
     BuildSketch,
     Circle,
+    Edge,
     ExportDXF,
+    Line,
     Locations,
     Mode,
     Part,
     Polygon,
+    Pos,
     Rectangle,
     Sketch,
+    Sphere,
     add,
     export_step,
     extrude,
 )
 
 from ocp_utils import show
+from servo_cutouts import SERVO_BACK_CUTOUT, SERVO_BRACKET_HOLES 
+from geometry_utils import (
+    mirror_circle_holes_horizontal_axis as mirror_holes_horizontal_axis,
+    mirror_circle_holes_vertical_axis as mirror_holes_x_axis,
+    mirror_points_horizontal_axis as mirror_points_x_axis,
+    mirror_slots_vertical_axis as mirror_slots_x_axis,
+)
 
 THICKNESS = 1.0
-# Converted from imported/body_layer_1.svg path geometry.
-# Coordinates are in the same CAD frame as the imported result.
-OUTER_POINTS = [
-    (86.000, 180.000),
-    (114.000, 180.000),
-    (76.000, 190.000),
-    (50.544, 190.000),
-    (47.383, 186.839),
-    (47.383, 182.596),
-    (49.504, 180.475),
-    (52.333, 183.303),
-    (57.282, 178.353),
-    (56.575, 177.646),
-    (65.061, 169.161),
-    (51.251, 155.352),
-    (42.766, 163.837),
-    (42.059, 163.130),
-    (37.109, 168.080),
-    (39.938, 170.908),
-    (37.816, 173.030),
-    (33.907, 173.362),
-    (30.745, 170.201),
-    (30.745, 144.745),
-    (37.816, 137.674),
-    (37.816, 92.326),
-    (30.745, 85.255),
-    (30.745, 59.799),
-    (33.907, 56.638),
-    (37.816, 56.971),
-    (39.938, 59.092),
-    (37.109, 61.920),
-    (42.059, 66.870),
-    (42.766, 66.163),
-    (51.251, 74.648),
-    (65.061, 60.839),
-    (56.575, 52.354),
-    (57.282, 51.647),
-    (52.333, 46.697),
-    (49.504, 49.525),
-    (47.383, 47.404),
-    (47.383, 43.161),
-    (50.544, 40.000),
-    (76.000, 40.000),
-    (86.000, 50.000),
-    (114.000, 50.000),
-    (132.000, 32.000),
-    (136.471, 32.000),
-    (139.000, 35.000),
-    (139.000, 38.000),
-    (135.000, 38.000),
-    (135.000, 45.000),
-    (136.000, 45.000),
-    (136.000, 57.000),
-    (155.529, 57.000),
-    (155.529, 45.000),
-    (156.529, 45.000),
-    (156.529, 38.000),
-    (152.529, 38.000),
-    (152.529, 35.000),
-    (155.529, 32.000),
-    (160.000, 32.000),
-    (178.000, 50.000),
-    (206.000, 50.000),
-    (216.000, 40.000),
-    (241.456, 40.000),
-    (244.617, 43.161),
-    (244.284, 47.071),
-    (242.163, 49.192),
-    (239.335, 46.364),
-    (234.385, 51.314),
-    (235.092, 52.021),
-    (226.607, 60.506),
-    (240.416, 74.315),
-    (248.901, 65.830),
-    (249.608, 66.537),
-    (254.558, 61.587),
-    (251.730, 58.759),
-    (253.851, 56.638),
-    (258.094, 56.638),
-    (261.000, 60.000),
-    (261.000, 84.000),
-    (278.000, 101.000),
-    (278.000, 105.471),
-    (275.000, 108.471),
-    (272.000, 108.471),
-    (272.000, 104.471),
-    (265.000, 104.471),
-    (265.000, 105.471),
-    (253.000, 105.471),
-    (253.000, 125.000),
-    (265.000, 125.000),
-    (265.000, 126.000),
-    (272.000, 126.000),
-    (272.000, 122.000),
-    (275.000, 122.000),
-    (278.000, 124.529),
-    (278.000, 129.000),
-    (261.000, 146.000),
-    (261.000, 170.000),
-    (258.094, 173.362),
-    (253.851, 173.362),
-    (251.730, 171.241),
-    (254.558, 168.413),
-    (249.608, 163.463),
-    (248.901, 164.170),
-    (240.416, 155.685),
-    (226.607, 169.494),
-    (235.092, 177.979),
-    (234.385, 178.686),
-    (239.335, 183.636),
-    (242.163, 180.808),
-    (244.284, 182.929),
-    (244.617, 186.839),
-    (241.456, 190.000),
-    (216.000, 190.000),
-    (206.000, 180.000),
-    (178.000, 180.000),
-    (160.000, 198.000),
-    (155.529, 198.000),
-    (152.529, 195.000),
-    (152.529, 192.000),
-    (156.529, 192.000),
-    (156.529, 185.000),
-    (155.529, 185.000),
-    (155.529, 173.000),
-    (136.000, 173.000),
-    (136.000, 185.000),
-    (135.000, 185.000),
-    (135.000, 192.000),
-    (139.000, 192.000),
-    (139.000, 195.000),
-    (136.471, 198.000),
-    (132.000, 198.000),
-    (114.000, 180.000),
+AXIS_X_TOP_BOTTOM = 0.221
+AXIS_X_CENTER = -2.779
+
+
+class ServoBackCutoutOutlineConfig(NamedTuple):
+    start_index: int
+    rotation_deg_clockwise: float
+    offset_x: float
+    offset_y: float
+
+
+SERVO_BACK_CUTOUT_OUTLINE_CONFIGS = [
+    # left cutout
+    ServoBackCutoutOutlineConfig(
+        start_index=7,
+        rotation_deg_clockwise=-45.0,
+        offset_x=-94.194,
+        offset_y=54.473,
+    ),
+    # center cutout
+    ServoBackCutoutOutlineConfig(
+        start_index=7,
+        rotation_deg_clockwise=0.0,
+        offset_x=0.0,
+        offset_y=67.750,
+    ),
+    # right cutout
+    ServoBackCutoutOutlineConfig(
+        start_index=7,
+        rotation_deg_clockwise=45.0,
+        offset_x=94.949,
+        offset_y=54.161,
+    ),
 ]
 
-INNER_POINTS = [
-    (236.000, 115.000),
-    (236.000, 137.000),
-    (205.000, 168.000),
-    (170.000, 168.000),
-    (164.000, 162.000),
-    (128.000, 162.000),
-    (122.000, 168.000),
-    (86.000, 168.000),
-    (50.000, 132.000),
-    (50.000, 115.000),
-    (50.000, 98.000),
-    (86.000, 62.000),
-    (122.000, 62.000),
-    (128.000, 68.000),
-    (164.000, 68.000),
-    (170.000, 62.000),
-    (205.000, 62.000),
-    (236.000, 93.000),
+# Set an explicit point index, or leave None and use DEBUG_POINT_MARKER.
+DEBUG_POINT_INDEX: int | None = None
+DEBUG_POINT_MARKER: str | None = "Marker"
+
+def project_point_to_x_axis(point: tuple[float, float]) -> tuple[float, float]:
+    """Project a 2D point onto the x-axis while preserving its x coordinate."""
+    x, _ = point
+    return (x, 0.0)
+
+
+def shift_points(
+    points: list[tuple[float, float]], dx: float, dy: float
+) -> list[tuple[float, float]]:
+    """Shift 2D points by a constant offset."""
+    return [(x + dx, y + dy) for x, y in points]
+
+
+def rotate_point_sequence(
+    points: list[tuple[float, float]], start_index: int
+) -> list[tuple[float, float]]:
+    """Rotate a point sequence so it starts at start_index."""
+    return points[start_index:] + points[:start_index]
+
+
+def rotate_points_clockwise(
+    points: list[tuple[float, float]], degrees: float
+) -> list[tuple[float, float]]:
+    """Rotate 2D points around the origin by degrees clockwise."""
+    radians = math.radians(-degrees)
+    cosine = math.cos(radians)
+    sine = math.sin(radians)
+    return [
+        (x * cosine - y * sine, x * sine + y * cosine)
+        for x, y in points
+    ]
+
+
+def transform_servo_back_cutout(
+    config: ServoBackCutoutOutlineConfig,
+) -> list[tuple[float, float]]:
+    points = rotate_point_sequence(SERVO_BACK_CUTOUT, config.start_index)
+    points = rotate_points_clockwise(points, config.rotation_deg_clockwise)
+    return shift_points(points, config.offset_x, config.offset_y)
+
+
+def transform_servo_bracket_holes(
+    config: ServoBackCutoutOutlineConfig,
+) -> list[tuple[float, float, float]]:
+    hole_centers = [(x, y) for x, y, _ in SERVO_BRACKET_HOLES]
+    hole_centers = rotate_points_clockwise(hole_centers, config.rotation_deg_clockwise)
+    hole_centers = shift_points(hole_centers, config.offset_x, config.offset_y)
+    radii = [radius for _, _, radius in SERVO_BRACKET_HOLES]
+    return [
+        (x, y, radius)
+        for (x, y), radius in zip(hole_centers, radii, strict=True)
+    ]
+
+
+(
+    SERVO_BACK_CUTOUT_LEFT_FOR_OUTLINE,
+    SERVO_BACK_CUTOUT_FOR_OUTLINE,
+    SERVO_BACK_CUTOUT_RIGHT_FOR_OUTLINE,
+) = [
+    transform_servo_back_cutout(config)
+    for config in SERVO_BACK_CUTOUT_OUTLINE_CONFIGS
 ]
 
-SMALL_HOLES = [
-    (135.428, 35.1, 1.0),
-    (155.957, 35.1, 1.0),
-    (241.688, 44.616, 1.0),
-    (49.878, 45.051, 1.0),
-    (256.204, 59.133, 1.0),
-    (35.361, 59.567, 1.0),
-    (135.457, 59.6, 1.002),
-    (155.957, 59.6, 1.002),
-    (224.385, 61.961, 1.002),
-    (67.202, 62.375, 1.002),
-    (238.88, 76.457, 1.002),
-    (52.706, 76.87, 1.002),
-    (250.4, 105.043, 1.002),
-    (274.9, 105.043, 1.0),
-    (250.4, 125.543, 1.002),
-    (274.9, 125.572, 1.0),
-    (52.706, 153.13, 1.002),
-    (238.88, 153.543, 1.002),
-    (67.202, 167.625, 1.002),
-    (224.385, 168.039, 1.002),
-    (135.457, 170.4, 1.002),
-    (155.957, 170.4, 1.002),
-    (35.361, 170.433, 1.0),
-    (256.204, 170.868, 1.0),
-    (49.878, 184.95, 1.0),
-    (241.688, 185.384, 1.0),
-    (135.428, 194.9, 1.0),
-    (155.957, 194.9, 1.0),
+SERVO_BRACKET_HOLES_BASE_FOR_OUTLINE = [
+    hole
+    for config in SERVO_BACK_CUTOUT_OUTLINE_CONFIGS
+    for hole in transform_servo_bracket_holes(config)
 ]
 
-LARGE_HOLES = [
-    (100.0, 55.0, 1.5),
-    (192.0, 55.0, 1.5),
-    (43.0, 99.588, 1.5),
-    (243.0, 99.588, 1.5),
-    (43.0, 130.5, 1.5),
-    (243.0, 130.5, 1.5),
-    (100.0, 175.0, 1.5),
-    (192.0, 175.0, 1.5),
+SERVO_BRACKET_HOLES_FOR_OUTLINE = (
+    SERVO_BRACKET_HOLES_BASE_FOR_OUTLINE
+    + mirror_holes_horizontal_axis(
+        SERVO_BRACKET_HOLES_BASE_FOR_OUTLINE, AXIS_X_TOP_BOTTOM
+    )
+)
+
+
+# Coordinates are centered at the drawing midpoint.
+OUTER_UPPER_RAW_POINTS = [
+    (None, (-107.962, 22.674)),
+    (None, (-115.033, 29.745)),
+    (None, (-115.033, 55.201)),
+    *[(None, point) for point in SERVO_BACK_CUTOUT_LEFT_FOR_OUTLINE],
+    (None, (-95.235, 75.000)),
+    (None, (-69.779, 75.000)),
+    (None, (-59.779, 65.000)),
+    (None, (-31.779, 65.000)),
+    (None, (-13.779, 83.000)),
+    *[(None, point) for point in SERVO_BACK_CUTOUT_FOR_OUTLINE],
+    (None, (14.221, 83.000)),
+    (None, (32.221, 65.000)),
+    (None, (60.221, 65.000)),
+    (None, (70.221, 75.000)),
+    (None, (95.677, 75.000)),
+    *[(None, point) for point in SERVO_BACK_CUTOUT_RIGHT_FOR_OUTLINE],
+    ("Marker", (115.221, 55.000)),
+    (None, (115.221, 31.000)),
+    (None, (132.221, 14.000)),
 ]
 
-SLOT_HOLES = [
-    (92.0, 58.25, 8.0, 1.5),
-    (108.0, 58.25, 8.0, 1.5),
-    (124.0, 58.25, 8.0, 1.5),
-    (168.0, 58.25, 8.0, 1.5),
-    (184.0, 58.25, 8.0, 1.5),
-    (200.0, 58.25, 8.0, 1.5),
-    (46.25, 99.0, 1.5, 8.0),
-    (239.75, 99.0, 1.5, 8.0),
-    (46.25, 115.0, 1.5, 8.0),
-    (239.75, 115.0, 1.5, 8.0),
-    (46.25, 131.0, 1.5, 8.0),
-    (239.75, 131.0, 1.5, 8.0),
-    (92.0, 171.75, 8.0, 1.5),
-    (108.0, 171.75, 8.0, 1.5),
-    (124.0, 171.75, 8.0, 1.5),
-    (168.0, 171.75, 8.0, 1.5),
-    (184.0, 171.75, 8.0, 1.5),
-    (200.0, 171.75, 8.0, 1.5),
+OUTER_UPPER: dict[int, tuple[str | None, tuple[float, float]]] = {}
+for index, point_data in enumerate(OUTER_UPPER_RAW_POINTS):
+    OUTER_UPPER[index] = point_data
+
+OUTER_UPPER_POINTS = [OUTER_UPPER[index][1] for index in sorted(OUTER_UPPER)]
+
+OUTER_POINTS = OUTER_UPPER_POINTS + mirror_points_x_axis(
+    list(reversed(OUTER_UPPER_POINTS))
+)
+
+INNER_UPPER = [
+    (90.221, 22.000),
+    (59.221, 53.000),
+    (24.221, 53.000),
+    (18.221, 47.000),
+    (-17.779, 47.000),
+    (-23.779, 53.000),
+    (-59.779, 53.000),
+    (-95.779, 17.000),
 ]
 
+INNER_START = project_point_to_x_axis(INNER_UPPER[0])
+INNER_END = project_point_to_x_axis(INNER_UPPER[-1])
+
+INNER_POINTS = (
+    [INNER_START]
+    + INNER_UPPER
+    + [INNER_END]
+    + mirror_points_x_axis(list(reversed(INNER_UPPER)))
+)
+
+SMALL_HOLES = SERVO_BRACKET_HOLES_FOR_OUTLINE
+
+LARGE_HOLES_RIGHT_TOP_BOTTOM = [
+    (46.221, -60.000, 1.500),
+    (46.221, 60.000, 1.500),
+]
+
+LARGE_HOLES_RIGHT_CENTER = [
+    (97.221, -15.500, 1.500),
+    (97.221, 15.500, 1.500),
+]
+
+LARGE_HOLES = (
+    mirror_holes_x_axis(LARGE_HOLES_RIGHT_TOP_BOTTOM, AXIS_X_TOP_BOTTOM)
+    + LARGE_HOLES_RIGHT_TOP_BOTTOM
+    + mirror_holes_x_axis(LARGE_HOLES_RIGHT_CENTER, AXIS_X_CENTER)
+    + LARGE_HOLES_RIGHT_CENTER
+)
+
+SLOT_HOLES_ROW_RIGHT = [
+    (22.221, -56.750, 8.000, 1.500),
+    (38.221, -56.750, 8.000, 1.500),
+    (54.221, -56.750, 8.000, 1.500),
+    (22.221, 56.750, 8.000, 1.500),
+    (38.221, 56.750, 8.000, 1.500),
+    (54.221, 56.750, 8.000, 1.500),
+]
+
+SLOT_HOLES_CENTER_RIGHT = [
+    (93.971, -16.000, 1.500, 8.000),
+    (93.971, 0.000, 1.500, 8.000),
+    (93.971, 16.000, 1.500, 8.000),
+]
+
+SLOT_HOLES = (
+    mirror_slots_x_axis(SLOT_HOLES_ROW_RIGHT, AXIS_X_TOP_BOTTOM)
+    + SLOT_HOLES_ROW_RIGHT
+    + mirror_slots_x_axis(SLOT_HOLES_CENTER_RIGHT, AXIS_X_CENTER)
+    + SLOT_HOLES_CENTER_RIGHT
+)
+
+def build_debug_edge_from_point(point_index: int) -> Edge:
+    point_indices = list(OUTER_UPPER)
+    if point_index not in OUTER_UPPER:
+        raise ValueError(
+            f"Point index must be one of {point_indices[0]}..{point_indices[-1]}"
+        )
+
+    next_pos = (point_indices.index(point_index) + 1) % len(point_indices)
+    next_index = point_indices[next_pos]
+
+    x1, y1 = OUTER_UPPER[point_index][1]
+    x2, y2 = OUTER_UPPER[next_index][1]
+
+    with BuildLine() as edge:
+        Line((x1, y1, 0), (x2, y2, 0))
+
+    return edge.edges()[0]
+
+
+def resolve_debug_point_index() -> int | None:
+    if DEBUG_POINT_INDEX is not None:
+        return DEBUG_POINT_INDEX
+
+    if DEBUG_POINT_MARKER is None:
+        return None
+
+    for index in sorted(OUTER_UPPER):
+        marker, _ = OUTER_UPPER[index]
+        if marker == DEBUG_POINT_MARKER:
+            return index
+
+    raise ValueError(f"No OUTER_UPPER point found for marker '{DEBUG_POINT_MARKER}'")
 
 def build_surface() -> Sketch:
     with BuildSketch() as sketch:
@@ -250,7 +287,7 @@ def build_surface() -> Sketch:
         for x, y, radius in SMALL_HOLES:
             with Locations((x, y)):
                 Circle(radius, mode=Mode.SUBTRACT)
-
+                
         for x, y, radius in LARGE_HOLES:
             with Locations((x, y)):
                 Circle(radius, mode=Mode.SUBTRACT)
@@ -258,6 +295,7 @@ def build_surface() -> Sketch:
         for x, y, width, height in SLOT_HOLES:
             with Locations((x, y)):
                 Rectangle(width, height, mode=Mode.SUBTRACT)
+
 
     return sketch.sketch
 
@@ -283,6 +321,23 @@ def main() -> None:
 
     show(result, name="body_layer_1", clear=True)
 
-
+    debug_point_index = resolve_debug_point_index()
+    if debug_point_index is not None:
+        edge = build_debug_edge_from_point(debug_point_index)
+        x, y = OUTER_UPPER[debug_point_index][1]
+        marker = Pos(x, y, THICKNESS + 0.4) * Sphere(0.5)
+        show(
+            edge,
+            name=f"outline_edge_{debug_point_index}",
+            clear=False,
+            options={"color": "red"},
+        )
+        show(
+            marker,
+            name=f"outline_point_{debug_point_index}",
+            clear=False,
+            options={"color": "red"},
+        )
+        
 if __name__ == "__main__":
     main()
