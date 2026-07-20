@@ -18,6 +18,8 @@ from ocp_utils import show
 
 THICKNESS = 1.5
 M2_RADIUS = 1.0
+SERVO_CUTOUT_HIGHT = 15.0
+
 
 SERVO_BACK_CUTOUT_RIGHT = [
     (  9.75,  -9.75),
@@ -25,8 +27,10 @@ SERVO_BACK_CUTOUT_RIGHT = [
     ( 10.75,   2.25),
     ( 10.75,   9.25),
     (  6.75,   9.25),
-    (  6.75,  12.25),
-    (  9.75,  15.25),
+    (  6.75,  11.5),
+    (  10.0,  SERVO_CUTOUT_HIGHT),
+    (  15.0,  SERVO_CUTOUT_HIGHT),
+    (  15.0,  18.0),
 ]
 
 SERVO_BACK_CUTOUT = (
@@ -36,7 +40,10 @@ SERVO_BACK_CUTOUT = (
 
 SERVO_FRONT_CUTOUT_RIGHT = [
     ( 7.25, -13.75),
-    ( 7.25, 13.75),
+    (  7.25,  11.5),
+    (  10.0,  SERVO_CUTOUT_HIGHT),
+    (  15.0,  SERVO_CUTOUT_HIGHT),
+    (  15.0,  18.0),
 ]
 
 SERVO_FRONT_CUTOUT = (
@@ -67,7 +74,7 @@ SERVO_BRACKET_HOLES = [
 def build_surface() -> Sketch:
     with BuildSketch() as sketch:
         Polygon(*OUTLINE_POINTS_FOR_TESTING)
-        Polygon(*SERVO_BACK_CUTOUT, mode=Mode.SUBTRACT)
+        Polygon(*SERVO_FRONT_CUTOUT, mode=Mode.SUBTRACT)
 
         for x, y, radius in SERVO_BRACKET_HOLES:
             with Locations((x, y)):
