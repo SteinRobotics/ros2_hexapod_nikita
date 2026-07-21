@@ -85,8 +85,8 @@ with BuildSketch() as base_plate:
     Rectangle(rect_w, rect_h)
     chamfer(base_plate.vertices(), chamfer_length)
 
-diag_offset = 6.0
-linear_offset = 10.0
+diag_offset = 5.0
+linear_offset = 8.0
 
 octagon_position_left_top = Location((-half_w + diag_offset, half_h - diag_offset), -45.0)
 octagon_position_right_top = Location((half_w - diag_offset, half_h - diag_offset), 45.0)

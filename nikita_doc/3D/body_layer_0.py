@@ -47,7 +47,7 @@ def build_surface() -> Sketch:
         add(body_common.base_plate)
         for pos in octagon_positions:
             with Locations(pos):
-                add(chamfered_octagon(55, 55, 2))
+                add(chamfered_octagon(55, 55, 4))
 
         for loc in body_common.hole_locations:
             with Locations(loc):
