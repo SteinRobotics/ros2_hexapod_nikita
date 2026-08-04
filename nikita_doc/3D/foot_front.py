@@ -18,7 +18,7 @@ from build123d import (
     extrude,
 )
 
-from ocp_utils import show
+from utils.ocp_utils import show
 
 from servo_cutouts import (SERVO_FRONT_CUTOUT, 
                            SERVO_BRACKET_HOLES)

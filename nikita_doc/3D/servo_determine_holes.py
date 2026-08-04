@@ -32,7 +32,7 @@
 from pathlib import Path
 
 from build123d import *
-from ocp_utils import show
+from utils.ocp_utils import show
 
 from cad_config import (
     DARK_GRAY,

@@ -2,11 +2,6 @@
 
 """Shared numeric parameters for CAD parts and assemblies."""
 
-# Color definitions
-DARK_GRAY = (0.2, 0.2, 0.2)
-CREAMY_WHITE = (0.95, 0.95, 0.9)
-WINE_RED = (0.5, 0.0, 0.0)
-
 # Spacer dimensions
 FOOT_SPACER_OUTER_DIAMETER = 4.0
 FOOT_SPACER_OVERALL_LENGTH = 32.0

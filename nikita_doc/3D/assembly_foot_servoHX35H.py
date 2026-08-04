@@ -10,7 +10,7 @@ from cad_config import (
     HX35H_LEG_OFFSET_Y,
     HX35H_LEG_OFFSET_Z,
 )
-from ocp_utils import show
+from utils.ocp_utils import show
 
 DARK_GRAY = Color(0.25, 0.25, 0.25)
 

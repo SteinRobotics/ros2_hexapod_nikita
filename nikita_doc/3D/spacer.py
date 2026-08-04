@@ -9,7 +9,7 @@ from cad_config import (
     FOOT_SPACER_OVERALL_LENGTH,
     FOOT_SPACER_STUD_HOLE_DIAMETER,
 )
-from ocp_utils import show
+from utils.ocp_utils import show
 
 
 OUTER_DIAMETER = FOOT_SPACER_OUTER_DIAMETER

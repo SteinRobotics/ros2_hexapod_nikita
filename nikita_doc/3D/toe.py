@@ -6,7 +6,7 @@ from pathlib import Path
 
 from build123d import BuildPart, Cone, Cylinder, Mode, Part, export_step
 
-from ocp_utils import show
+from utils.ocp_utils import show
 
 LITTLE_TOE_DIAMETER = 10.0
 BIG_TOE_DIAMETER = 14.0

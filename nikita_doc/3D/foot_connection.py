@@ -17,7 +17,7 @@ from build123d import (
     extrude,
 )
 
-from ocp_utils import show
+from utils.ocp_utils import show
 
 THICKNESS = 3.0
 

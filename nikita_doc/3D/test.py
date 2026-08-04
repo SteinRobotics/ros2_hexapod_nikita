@@ -1,5 +1,5 @@
 from build123d import *
-from ocp_utils import show
+from utils.ocp_utils import show
 
 THICKNESS = 1.5
 

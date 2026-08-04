@@ -13,8 +13,10 @@ from build123d import (
     extrude,
 )
 
-from geometry_utils import mirror_points_vertical_axis as mirror_y
-from ocp_utils import show
+from utils.geometry_utils import mirror_points_vertical_axis as mirror_y
+from utils.ocp_utils import show
+
+from servo_with_connections import SERVO_CONNECTIONS_FLAT
 
 THICKNESS = 1.5
 M2_RADIUS = 1.0
@@ -52,23 +54,23 @@ SERVO_FRONT_CUTOUT = (
 )
 
 OUTLINE_POINTS_FOR_TESTING = [
-    (-20,  -20), 
-    (  20,  -20), 
-    (  20,   20),  
-    ( -20,   20), 
+    (-15,  -15), 
+    (  15,  -15), 
+    (  15,   15),  
+    ( -15,   15), 
 ]
 
 # Rectangle corners for the servo bracket holes; center is the drawing origin.
 # Holes are placed at the first three corners (top-right, bottom-right, bottom-left).
-SERVO_BRACKET_RECT = [
-    ( 10.25,  12.25),  # top-right
-    ( 10.25, -12.25),  # bottom-right
-    (-10.25, -12.25),  # bottom-left
-    (-10.25,  12.25),  # top-left (no hole)
-]
+# SERVO_BRACKET_RECT = [
+#     ( 10.25,  12.25),  # top-right
+#     ( 10.25, -12.25),  # bottom-right
+#     (-10.25, -12.25),  # bottom-left
+#     (-10.25,  12.25),  # top-left (no hole)
+# ]
 
 SERVO_BRACKET_HOLES = [
-    (x, y, M2_RADIUS) for x, y in SERVO_BRACKET_RECT
+    (x, y, M2_RADIUS) for x, y in SERVO_CONNECTIONS_FLAT
 ]
 
 def build_surface() -> Sketch:

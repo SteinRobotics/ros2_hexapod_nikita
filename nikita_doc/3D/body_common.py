@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from build123d import *
-from ocp_utils import show
+from utils.ocp_utils import show
 from servo_cutouts import SERVO_BACK_CUTOUT, SERVO_FRONT_CUTOUT, SERVO_BRACKET_HOLES
 
 THICKNESS = 1.5

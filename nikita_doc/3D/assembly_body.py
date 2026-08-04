@@ -3,7 +3,9 @@
 from pathlib import Path
 
 from build123d import Color, Compound, Pos, Rot, export_step
-from ocp_utils import show
+from utils.ocp_utils import show
+
+from utils.colors import COLOR_CREAMY_WHITE, COLOR_WINE_RED, COLOR_DARK_GRAY
 
 import toe
 import spacer
@@ -11,11 +13,6 @@ import body_common
 import body_layer_0
 import body_layer_1
 import body_layer_2
-
-
-CREAMY_WHITE = Color(0.98, 0.95, 0.88)
-WINE_RED = Color(0.45, 0.06, 0.16)
-DARK_GRAY = Color(0.2, 0.2, 0.2)
 
 SPACER_OUTER_DIAMETER = 5.0
 SPACER_INNER_DIAMETER = 3.0
@@ -46,13 +43,13 @@ def build_assembly() -> Compound:
         length=SPACER_LENGTH_TOP,
     )
 
-    body_layer_0_part.color = CREAMY_WHITE
-    body_layer_1_part.color = CREAMY_WHITE
-    body_layer_2_part.color = CREAMY_WHITE
-    toe_part.color = DARK_GRAY
-    spacer_part_0_1.color = WINE_RED
-    spacer_part_1_2.color = WINE_RED
-    spacer_part_top.color = WINE_RED
+    body_layer_0_part.color = COLOR_CREAMY_WHITE
+    body_layer_1_part.color = COLOR_CREAMY_WHITE
+    body_layer_2_part.color = COLOR_CREAMY_WHITE
+    toe_part.color = COLOR_DARK_GRAY
+    spacer_part_0_1.color = COLOR_WINE_RED
+    spacer_part_1_2.color = COLOR_WINE_RED
+    spacer_part_top.color = COLOR_WINE_RED
 
     body_layer_0_part.label = "body_layer_0"
     body_layer_1_part.label = "body_layer_1"

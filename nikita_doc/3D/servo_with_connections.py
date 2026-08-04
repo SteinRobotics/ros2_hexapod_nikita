@@ -3,10 +3,14 @@
 from pathlib import Path
 
 from build123d import *
-from ocp_utils import show
+from utils.ocp_utils import show
 
-from cad_config import (
-    DARK_GRAY,
+from utils.colors import (
+    COLOR_DARK_GRAY,
+    COLOR_RED,
+    COLOR_ORANGE,
+    COLOR_GREEN,
+    COLOR_BLUE,
 )
 
 # Marker geometry — adjust to match your model's units/scale
@@ -17,19 +21,29 @@ MARKER_LENGTH = 2.0
 # with their cylinder axis along Y, since these positions come from a
 # top-view / back-view convention where Y is the viewing direction.
 
-CONNECTIONS_TOP_VIEW = {
+SERVO_CONNECTIONS_TOP_VIEW = {
     "right_down": (10.25, -16.5, 27.05),
     "left_down": (-10.25, -16.5, 27.05),
     "right_up":  ( 10.25, -16.5,  2.60),
     "left_up":   (-10.25, -16.5,  2.60),
 }
 
-CONNECTIONS_BACK_VIEW = {
+SERVO_CONNECTIONS_BACK_VIEW = {
     "right_down": (10.25, 17.5, 27.05),
     "left_down": (-10.25, 17.5, 27.05),
     "right_up":  ( 10.25, 17.5,  2.60),
     "left_up":   (-10.25, 17.5,  2.60),
 }
+
+
+# 27.05 - 2.60 = 24.45, which is the distance between the two servo connection holes along Z.
+# 24.45 / 2 = 12.225, which is the distance from the center of the servo to each connection hole along Z. 
+SERVO_CONNECTIONS_FLAT = [
+    (10.25, 12.225),
+    (-10.25, 12.225),
+    (10.25,  -12.225),
+    (-10.25,  -12.225),
+]
 
 SERVO_HORN_TOP_VIEW = {
     "center": (0.0, -20.5, 35.35),
@@ -49,10 +63,10 @@ SERVO_HORN_BACK_VIEW = {
 
 # Group name -> (positions dict, marker color)
 MARKER_GROUPS = {
-    "connections_top": (CONNECTIONS_TOP_VIEW, Color(1, 0, 0)),
-    "connections_back": (CONNECTIONS_BACK_VIEW, Color(1, 0.5, 0)),
-    "servo_horn_top": (SERVO_HORN_TOP_VIEW, Color(0, 1, 0)),
-    "servo_horn_back": (SERVO_HORN_BACK_VIEW, Color(0, 0.5, 1)),
+    "connections_top": (SERVO_CONNECTIONS_TOP_VIEW, COLOR_RED),
+    "connections_back": (SERVO_CONNECTIONS_BACK_VIEW, COLOR_ORANGE),
+    "servo_horn_top": (SERVO_HORN_TOP_VIEW, COLOR_GREEN),
+    "servo_horn_back": (SERVO_HORN_BACK_VIEW, COLOR_BLUE),
 }
 
 
@@ -80,7 +94,7 @@ def build_markers() -> list[Part]:
 
 def build_assembly() -> Compound:
     servo = import_step(str(Path(__file__).parent / "imported" / "HX-35H.stp"))
-    servo.color = DARK_GRAY
+    servo.color = COLOR_DARK_GRAY
 
     marker_parts = build_markers()
 

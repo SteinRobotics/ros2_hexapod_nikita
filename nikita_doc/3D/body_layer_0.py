@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from build123d import *
-from ocp_utils import show
+from utils.ocp_utils import show
 
 import body_common
 
