@@ -22,27 +22,27 @@ MARKER_LENGTH = 2.0
 # top-view / back-view convention where Y is the viewing direction.
 
 SERVO_CONNECTIONS_TOP_VIEW = {
-    "right_down": (10.25, -16.5, 27.05),
-    "left_down": (-10.25, -16.5, 27.05),
-    "right_up":  ( 10.25, -16.5,  2.60),
-    "left_up":   (-10.25, -16.5,  2.60),
+    "right_down": (10.25, -16.5, 27.2),
+    "left_down": (-10.25, -16.5, 27.2),
+    "right_up":  ( 10.25, -16.5,  2.2),
+    "left_up":   (-10.25, -16.5,  2.2),
 }
 
 SERVO_CONNECTIONS_BACK_VIEW = {
-    "right_down": (10.25, 17.5, 27.05),
-    "left_down": (-10.25, 17.5, 27.05),
-    "right_up":  ( 10.25, 17.5,  2.60),
-    "left_up":   (-10.25, 17.5,  2.60),
+    "right_down": (10.25, 17.5, 27.2),
+    "left_down": (-10.25, 17.5, 27.2),
+    "right_up":  ( 10.25, 17.5,  2.2),
+    "left_up":   (-10.25, 17.5,  2.2),
 }
 
 
 # 27.05 - 2.60 = 24.45, which is the distance between the two servo connection holes along Z.
 # 24.45 / 2 = 12.225, which is the distance from the center of the servo to each connection hole along Z. 
 SERVO_CONNECTIONS_FLAT = [
-    (10.25, 12.225),
-    (-10.25, 12.225),
-    (10.25,  -12.225),
-    (-10.25,  -12.225),
+    (10.25, 12.5),
+    (-10.25, 12.5),
+    (10.25,  -12.5),
+    (-10.25,  -12.5),
 ]
 
 SERVO_HORN_TOP_VIEW = {
