@@ -58,11 +58,13 @@ def build_model() -> Part:
         plane = Plane(origin=(0.0, -(HORN_FRONT_Y / 2) - HORN_DISTANCE_TO_BODY , HORN_Z_CTR), z_dir=(0, 1, 0))
         with Locations(Location(plane)):
             Cylinder(HORN_R, HORN_FRONT_Y, mode=Mode.ADD)
-            
+            Cylinder(1.0, HORN_FRONT_Y, mode=Mode.SUBTRACT)
+
         # 3 - servo horn back
         plane = Plane(origin=(0.0, BODY_Y + HORN_BACK_Y / 2 + HORN_DISTANCE_TO_BODY, HORN_Z_CTR), z_dir=(0, 1, 0))
         with Locations(Location(plane)):
             Cylinder(HORN_R, HORN_BACK_Y, mode=Mode.ADD)
+            Cylinder(1.0, HORN_BACK_Y, mode=Mode.SUBTRACT)
 
         # 4 - add the front horn cutout with a 1.5 mm depth
         plane = Plane(origin=(0.0, -0.75, 14.00), x_dir=(-1, 0, 0), z_dir=(0, 1, 0))
