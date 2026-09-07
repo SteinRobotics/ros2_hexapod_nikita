@@ -6,7 +6,7 @@ from build123d import Compound, Pos, Rot, export_step, import_step
 
 
 from utils.colors import COLOR_DARK_GRAY
-import servo_with_connections
+import servo_simplified
 import bracket_inclined
 from utils.ocp_utils import show
 
@@ -24,7 +24,8 @@ def _center_xy_below(part, reference_bb):
 
 
 def build_assembly() -> Compound:
-    servo = servo_with_connections.build_assembly()
+    servo = servo_simplified.build_model()
+    servo.color = COLOR_DARK_GRAY
 
     bracket_botton = import_step(str(Path(__file__).parent / "imported" / "HX-35HM Botton Bracket.STEP"))
     bracket_botton.color = COLOR_DARK_GRAY
