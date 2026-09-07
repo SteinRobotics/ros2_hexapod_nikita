@@ -13,11 +13,13 @@ import body_common
 import servo_simplified
 from utils.ocp_utils import show
 
+ANGLE_FEMUR = 25.00
+ANGLE_TIBIA = -0.00
 
 # All 7 body servo positions minus "head", which is not a leg attachment.
 LEG_POSITIONS = [k for k in body_common.SERVO_CUTOUT_CONFIGS if k != "head"]
 
-
+# TODO the offsets below shall be replaced by a fix coaxial connection between the servo horn and the center hole of the inclined bracket.
 FEMUR_OFFSET_Y = 13.5
 FEMUR_OFFSET_Z = 22.5
 FOOT_OFFSET_Y  = -31.5
@@ -39,8 +41,8 @@ def build_single_leg() -> Compound:
     femur = assembly_femur.build_assembly()
     foot = assembly_foot_servo.build_assembly()
 
-    femur_placed = _center_xy_below(Rot(0, 0, 270) * femur, coxa.bounding_box(), offset_y=FEMUR_OFFSET_Y, offset_z=FEMUR_OFFSET_Z)
-    foot_placed  = _center_xy_below(Rot(0, 0, 270) * foot,  femur_placed.bounding_box(), offset_y=FOOT_OFFSET_Y,  offset_z=FOOT_OFFSET_Z)
+    femur_placed = _center_xy_below(Rot(ANGLE_FEMUR, 0, 90) * femur, coxa.bounding_box(), offset_y=FEMUR_OFFSET_Y, offset_z=FEMUR_OFFSET_Z)
+    foot_placed  = _center_xy_below(Rot(ANGLE_TIBIA, 0, 270) * foot,  femur_placed.bounding_box(), offset_y=FOOT_OFFSET_Y,  offset_z=FOOT_OFFSET_Z)
 
     return Compound(children=[coxa, femur_placed, foot_placed])
 
