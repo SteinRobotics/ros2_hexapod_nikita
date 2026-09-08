@@ -17,6 +17,9 @@ ANGLE_COXA = 0.0    # degrees
 ANGLE_FEMUR = 0.0   # degrees
 ANGLE_TIBIA = 0.0   # degrees
 
+ANGLE_COXA %= 360
+ANGLE_FEMUR %= 360
+ANGLE_TIBIA %= 360
 
 BRACKET_Y_OFFSET = 5.2  # mm
 
@@ -57,7 +60,7 @@ def build_assembly() -> Compound:
     )
     # Rotate around the joint connection point, not the world origin
     p = femur_assembly.joints["femur_to_tibia_fixed"].location.position
-    foot_servo_assembly = Pos(p.X, p.Y, p.Z) * Rot(2*ANGLE_FEMUR, 0, 180) * Pos(p.X - BRACKET_Y_OFFSET, -p.Y, -p.Z) * foot_servo_assembly
+    foot_servo_assembly = Pos(p.X, p.Y, p.Z) * Rot((2*ANGLE_FEMUR) % 360, 0, 180) * Pos(p.X - BRACKET_Y_OFFSET, -p.Y, -p.Z) * foot_servo_assembly
 
 
 
