@@ -8,7 +8,7 @@ from build123d import Compound, Pos, Rot, export_step
 import assembly_body_servo
 import assembly_coxa
 import assembly_femur
-import assembly_foot_servo
+import assembly_tibia
 import body_common
 import servo_simplified
 from utils.ocp_utils import show
@@ -26,7 +26,7 @@ def build_single_leg() -> Compound:
     """Coxa → femur → tibia/foot connected via coaxial joint connections."""
     coxa = assembly_coxa.build_assembly()
     femur = assembly_femur.build_assembly()
-    foot = assembly_foot_servo.build_assembly()
+    foot = assembly_tibia.build_assembly()
 
     femur.joints["horn"].connect_to(coxa.joints["servo_attachment"], angle=ANGLE_FEMUR)
     femur = Pos(0, Y_CLEARANCE, 0) * femur

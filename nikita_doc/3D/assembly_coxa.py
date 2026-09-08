@@ -37,8 +37,8 @@ def build_assembly() -> Compound:
 
 
     coxa = Compound(children=[bracket_straight_placed, bracket_inclinded_placed])
-    RigidJoint("joint_coxa", coxa, bracket_straight_placed.joints["fixed"].location)
-    RigidJoint("joint_femur", coxa, bracket_inclinded_placed.joints["fixed"].location)
+    RigidJoint("body_to_coxa_fixed", coxa, bracket_straight_placed.joints["fixed"].location)
+    RigidJoint("coxa_to_femur_fixed", coxa, bracket_inclinded_placed.joints["fixed"].location)
     return coxa
 
 

@@ -42,8 +42,8 @@ def build_assembly() -> Compound:
 
 
     femur = Compound(children=[servo, bracket_botton_placed, bracket_inclinded_placed])
-    RevoluteJoint("horn", femur, axis=Axis((0, 0, servo_simplified.HORN_Z_CTR), (0, 1, 0)), angular_range=(-180, 180))
-    RigidJoint("servo_attachment", femur, bracket_inclinded_placed.joints["fixed"].location)
+    RevoluteJoint("femur_to_coxa_revolute", femur, axis=Axis((0, 0, servo_simplified.HORN_Z_CTR), (0, 1, 0)), angular_range=(-180, 180))
+    RigidJoint("femur_to_tibia_fixed", femur, bracket_inclinded_placed.joints["fixed"].location)
     return femur
 
 

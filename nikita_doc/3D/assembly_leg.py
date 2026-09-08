@@ -10,7 +10,7 @@ from utils.colors import COLOR_DARK_GRAY
 import servo_simplified
 import assembly_coxa
 import assembly_femur
-import assembly_foot_servo
+import assembly_tibia
 
 
 ANGLE_COXA = 0.0    # degrees
@@ -26,13 +26,13 @@ def build_assembly() -> Compound:
     servo.color = COLOR_DARK_GRAY
     coxa_assembly = assembly_coxa.build_assembly()
     femur_assembly = assembly_femur.build_assembly()
-    foot_servo_assembly = assembly_foot_servo.build_assembly()
+    foot_servo_assembly = assembly_tibia.build_assembly()
 
     ##########################################################
     ## Connect servo to coxa assembly
     ##########################################################    
     servo.joints["rotation"].connect_to(
-        coxa_assembly.joints["joint_coxa"],
+        coxa_assembly.joints["body_to_coxa_fixed"],
         angle=ANGLE_COXA,
     )
     servo = Pos(0, BRACKET_Y_OFFSET, 0) * servo
@@ -40,23 +40,23 @@ def build_assembly() -> Compound:
     ##########################################################
     ## Connect coxa assembly to femur assembly
     ##########################################################
-    coxa_assembly.joints["joint_femur"].connect_to(
-        femur_assembly.joints["horn"],
+    coxa_assembly.joints["coxa_to_femur_fixed"].connect_to(
+        femur_assembly.joints["femur_to_coxa_revolute"],
         angle=ANGLE_FEMUR,
     )
     # Rotate around the joint connection point, not the world origin
-    p = coxa_assembly.joints["joint_femur"].location.position
+    p = coxa_assembly.joints["coxa_to_femur_fixed"].location.position
     femur_assembly = Pos(p.X, p.Y, p.Z) * Rot(60 + ANGLE_FEMUR, 0, 180) * Pos(p.X + BRACKET_Y_OFFSET, -p.Y, -p.Z) * femur_assembly
 
     ##########################################################
-    ## Connect femur assembly to foot servo assembly
+    ## Connect femur assembly to tibia (foot servo assembly)
     ##########################################################
-    femur_assembly.joints["servo_attachment"].connect_to(
-        foot_servo_assembly.joints["horn"],
+    femur_assembly.joints["femur_to_tibia_fixed"].connect_to(
+        foot_servo_assembly.joints["tibia_to_femur_revolute"],
         angle=ANGLE_TIBIA,
     )
     # Rotate around the joint connection point, not the world origin
-    p = femur_assembly.joints["servo_attachment"].location.position
+    p = femur_assembly.joints["femur_to_tibia_fixed"].location.position
     foot_servo_assembly = Pos(p.X, p.Y, p.Z) * Rot(ANGLE_TIBIA , 0, 180) * Pos(p.X - BRACKET_Y_OFFSET, -p.Y, -p.Z) * foot_servo_assembly
 
 
