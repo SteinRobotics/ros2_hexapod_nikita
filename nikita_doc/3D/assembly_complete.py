@@ -19,32 +19,22 @@ ANGLE_TIBIA = -0.00
 # All 7 body servo positions minus "head", which is not a leg attachment.
 LEG_POSITIONS = [k for k in body_common.SERVO_CUTOUT_CONFIGS if k != "head"]
 
-# TODO the offsets below shall be replaced by a fix coaxial connection between the servo horn and the center hole of the inclined bracket.
-FEMUR_OFFSET_Y = 13.5
-FEMUR_OFFSET_Z = 22.5
-FOOT_OFFSET_Y  = -31.5
-FOOT_OFFSET_Z  = 22.5
-
-
-def _center_xy_below(part, reference_bb, offset_y: float = 0.0, offset_z: float = 0.0):
-    bb = part.bounding_box()
-    return Pos(
-        (reference_bb.min.X + reference_bb.max.X) / 2 - (bb.min.X + bb.max.X) / 2,
-        (reference_bb.min.Y + reference_bb.max.Y) / 2 - (bb.min.Y + bb.max.Y) / 2 + offset_y,
-        reference_bb.min.Z - bb.max.Z + offset_z,
-    ) * part
+Y_CLEARANCE = 5.2  # mm clearance between servo body and bracket leg inner face
 
 
 def build_single_leg() -> Compound:
-    """Coxa → femur → tibia/foot stacked downward in the leg's local frame."""
+    """Coxa → femur → tibia/foot connected via coaxial joint connections."""
     coxa = assembly_coxa.build_assembly()
     femur = assembly_femur.build_assembly()
     foot = assembly_foot_servo.build_assembly()
 
-    femur_placed = _center_xy_below(Rot(ANGLE_FEMUR, 0, 90) * femur, coxa.bounding_box(), offset_y=FEMUR_OFFSET_Y, offset_z=FEMUR_OFFSET_Z)
-    foot_placed  = _center_xy_below(Rot(ANGLE_TIBIA, 0, 270) * foot,  femur_placed.bounding_box(), offset_y=FOOT_OFFSET_Y,  offset_z=FOOT_OFFSET_Z)
+    femur.joints["horn"].connect_to(coxa.joints["servo_attachment"], angle=ANGLE_FEMUR)
+    femur = Pos(0, Y_CLEARANCE, 0) * femur
 
-    return Compound(children=[coxa, femur_placed, foot_placed])
+    foot.joints["horn"].connect_to(femur.joints["servo_attachment"], angle=ANGLE_TIBIA)
+    foot = Pos(0, Y_CLEARANCE, 0) * foot
+
+    return Compound(children=[coxa, femur, foot])
 
 
 def build_assembly() -> Compound:

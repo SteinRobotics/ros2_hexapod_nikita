@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from build123d import Compound, Pos, Rot, export_step, import_step
+from build123d import Compound, Pos, Rot, export_step, import_step, RevoluteJoint, RigidJoint, Axis
 
 
 from utils.colors import COLOR_DARK_GRAY
@@ -41,7 +41,10 @@ def build_assembly() -> Compound:
     bracket_inclinded_placed = Pos(BRAKET_INCLINED_X_OFFSET, 0, 0) * bracket_inclinded_placed
 
 
-    return Compound(children=[servo, bracket_botton_placed, bracket_inclinded_placed])
+    femur = Compound(children=[servo, bracket_botton_placed, bracket_inclinded_placed])
+    RevoluteJoint("horn", femur, axis=Axis((0, 0, servo_simplified.HORN_Z_CTR), (0, 1, 0)), angular_range=(-180, 180))
+    RigidJoint("servo_attachment", femur, bracket_inclinded_placed.joints["fixed"].location)
+    return femur
 
 
 def main() -> None:

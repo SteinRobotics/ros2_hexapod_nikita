@@ -2,11 +2,12 @@
 
 from pathlib import Path
 
-from build123d import Compound, Pos, Rot, export_step, import_step
+from build123d import Compound, Pos, Rot, export_step, import_step, RevoluteJoint, Axis
 
 from utils.colors import COLOR_DARK_GRAY
 
 import assembly_foot
+import servo_simplified
 
 from utils.ocp_utils import show
 
@@ -29,7 +30,9 @@ def build_assembly() -> Compound:
         * foot_assembly
     )
 
-    return Compound(children=[servo, foot_placed])
+    foot_servo = Compound(children=[servo, foot_placed])
+    RevoluteJoint("horn", foot_servo, axis=Axis((0, 0, servo_simplified.HORN_Z_CTR), (0, 1, 0)), angular_range=(-180, 180))
+    return foot_servo
 
 
 def main() -> None:

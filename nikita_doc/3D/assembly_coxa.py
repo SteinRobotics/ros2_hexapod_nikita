@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from build123d import Compound, Pos, Rot, export_step, import_step
+from build123d import Compound, Pos, Rot, export_step, import_step, RigidJoint
 
 
 from utils.colors import COLOR_DARK_GRAY
@@ -36,7 +36,10 @@ def build_assembly() -> Compound:
     bracket_inclinded_placed = Pos(0, BRACKET_INCLINED_Y_OFFSET, 0) * bracket_inclinded_placed
 
 
-    return Compound(children=[bracket_straight_placed, bracket_inclinded_placed])
+    coxa = Compound(children=[bracket_straight_placed, bracket_inclinded_placed])
+    RigidJoint("joint_coxa", coxa, bracket_straight_placed.joints["fixed"].location)
+    RigidJoint("joint_femur", coxa, bracket_inclinded_placed.joints["fixed"].location)
+    return coxa
 
 
 def main() -> None:
