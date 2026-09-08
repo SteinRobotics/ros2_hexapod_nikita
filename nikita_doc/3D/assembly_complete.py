@@ -27,16 +27,14 @@ _z_layer_2_center = (
     + body_common.THICKNESS / 2
 )
 
-CORRECTION_FOR_SERVO_HORN = 5.65
-_COXA_SERVO_Z = _z_layer_2_center + (
+# Same formula as assembly_body_servo: front horn aligns with layer-2 centre.
+_COXA_SERVO_Z = _z_layer_2_center - (
     servo_simplified.HORN_FRONT_Y / 2 + servo_simplified.HORN_DISTANCE_TO_BODY
-) + CORRECTION_FOR_SERVO_HORN
-
+)
 # Midpoint of the M2 hole rows along the servo's local Z; used for XY alignment.
-CORRECTION_FOR_Y_POSITION = -30.0
-_COXA_SERVO_Z_MID = CORRECTION_FOR_Y_POSITION + (servo_simplified.HOLE_Z_LOW + servo_simplified.HOLE_Z_HIGH) / 2
-# World-Z of the leg origin: Rot(X=90) maps local Y→world Z, so subtract BRACKET_Y_OFFSET.
-_LEG_SHAFT_Z = _COXA_SERVO_Z - assembly_leg.BRACKET_Y_OFFSET
+_COXA_SERVO_Z_MID = (servo_simplified.HOLE_Z_LOW + servo_simplified.HOLE_Z_HIGH) / 2
+# Rot(X=-90) maps local Y → world -Z, so BRACKET_Y_OFFSET adds (not subtracts) to shaft_z.
+_LEG_SHAFT_Z = _COXA_SERVO_Z + assembly_leg.BRACKET_Y_OFFSET
 
 
 def build_assembly() -> Compound:
@@ -51,15 +49,11 @@ def build_assembly() -> Compound:
         rot = config.rotation_deg_clockwise
         rad = math.radians(rot)
 
-        # Rot(X=90) maps local Z → world -Y, inverting the SERVO_Z_MID sign vs
-        # assembly_body_servo (which used Rot(X=-90) and subtracted SERVO_Z_MID).
-        sx = config.offset_x + _COXA_SERVO_Z_MID * math.sin(rad)
-        sy = config.offset_y + _COXA_SERVO_Z_MID * math.cos(rad)
+        # Rot(X=-90) maps local Z → world +Y (outward); same sign as assembly_body_servo.
+        sx = config.offset_x - _COXA_SERVO_Z_MID * math.sin(rad)
+        sy = config.offset_y - _COXA_SERVO_Z_MID * math.cos(rad)
 
-        # Rot(X=90): maps the default -Z stack to world +Y (outward) and aligns
-        #            the coxa bracket shaft-hole axis (world Y) with world +Z,
-        #            so it mates with the vertical body servo shaft.
-        # Rot(Z=-rot): rotates that outward direction to match this leg's position.
+        # Rot(Z=-rot): spin to this leg's outward direction.
         instance = (
             Pos(sx, sy, _LEG_SHAFT_Z)
             * Rot(Z=-rot)
