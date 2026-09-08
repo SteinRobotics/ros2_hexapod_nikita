@@ -15,6 +15,8 @@ from build123d import (
     Part,
     Plane,
     export_step,
+    RevoluteJoint,
+    Axis,
 )
 
 from utils.ocp_utils import show
@@ -65,6 +67,13 @@ def build_model() -> Part:
         with Locations(Location(plane)):
             Cylinder(HORN_R, HORN_BACK_Y, mode=Mode.ADD)
             Cylinder(1.0, HORN_BACK_Y, mode=Mode.SUBTRACT)
+            
+        # Servo horn rotation axis
+        RevoluteJoint(
+        "rotation",
+        axis=Axis((0, 0, HORN_Z_CTR), (0, 1, 0)),
+        angular_range=(0, 90)
+        )
 
         # 4 - add the front horn cutout with a 1.5 mm depth
         plane = Plane(origin=(0.0, -0.75, 14.00), x_dir=(-1, 0, 0), z_dir=(0, 1, 0))

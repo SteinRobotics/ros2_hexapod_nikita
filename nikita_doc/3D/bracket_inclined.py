@@ -77,7 +77,7 @@ def leg_solid() -> Part:
             with Locations((r, HOLE_ROW_Z)):
                 Circle(BIG_HOLE_D / 2)
         extrude(amount=LEG_T, mode=Mode.SUBTRACT)
- 
+        
         with BuildSketch(Plane.YZ):
             with Locations((r, HOLE_ROW_Z)):
                 with PolarLocations(SERVO_HORN_BC_RADIUS, SERVO_HORN_HOLE_COUNT, start_angle=0):
@@ -126,7 +126,19 @@ def build_bracket() -> Part:
         add(plate)
         add(leg.locate(Location((-PLATE_W / 2, -PLATE_D / 2, 0))))
         add(leg.locate(Location((PLATE_W / 2 - LEG_T, -PLATE_D / 2, 0))))
- 
+
+        # joint Z axis points along the leg hole axis (global X)
+        RigidJoint(
+            label="fixed",
+            joint_location=Location(
+                Plane(
+                    origin=(-PLATE_W / 2 + LEG_T / 2, 0, HOLE_ROW_Z),
+                    x_dir=(0, 0, 1),
+                    z_dir=(1, 0, 0),
+                )
+            ),
+        )
+
     return bracket.part
  
 
