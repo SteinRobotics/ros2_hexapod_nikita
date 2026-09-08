@@ -15,7 +15,7 @@ bracket = bracket_inclined.build_bracket()
 
 
 # ============================================================
-# Joint verbinden
+# connect servo rotation joint to bracket fixed joint
 # ============================================================
 
 servo.joints["rotation"].connect_to(

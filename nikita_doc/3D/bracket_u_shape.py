@@ -116,6 +116,18 @@ def build_bracket() -> Part:
         add(leg.locate(Location((-PLATE_W / 2, -PLATE_D / 2, -LEG_H))))
         add(leg.locate(Location((PLATE_W / 2 - LEG_T, -PLATE_D / 2, -LEG_H))))
  
+        # joint along the leg hole (BIG_HOLE_D) axis through the left and the right leg
+        RigidJoint(
+            label="fixed",
+            joint_location=Location(
+                Plane(
+                    origin=(-PLATE_W / 2 + LEG_T / 2, 0, -LEG_H + HOLE_ROW_Z),
+                    x_dir=(0, 0, 1),
+                    z_dir=(1, 0, 0),
+                )
+            ),
+        )
+ 
     return bracket.part
  
 inclined_bracket = build_bracket()
