@@ -57,7 +57,7 @@ def build_assembly() -> Compound:
         instance = (
             Pos(sx, sy, _LEG_SHAFT_Z)
             * Rot(Z=-rot)
-            * Rot(X=270)
+            * Rot(X=-90)
             * leg
         )
         instance.label = f"leg_{name}"

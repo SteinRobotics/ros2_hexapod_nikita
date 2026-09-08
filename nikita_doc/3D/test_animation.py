@@ -45,8 +45,7 @@ with BuildPart() as plate:
 
     RevoluteJoint(
         "rotation",
-        axis=Axis.Z,
-        angular_range=(0, 90),
+        axis=Axis.Z
     )
 
 

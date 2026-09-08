@@ -71,8 +71,7 @@ def build_model() -> Part:
         # Servo horn rotation axis
         RevoluteJoint(
         "rotation",
-        axis=Axis((0, 0, HORN_Z_CTR), (0, 1, 0)),
-        angular_range=(0, 90)
+        axis=Axis((0, 0, HORN_Z_CTR), (0, 1, 0))
         )
 
         # 4 - add the front horn cutout with a 1.5 mm depth

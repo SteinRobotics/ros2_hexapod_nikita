@@ -31,7 +31,7 @@ def build_assembly() -> Compound:
     )
 
     foot_servo = Compound(children=[servo, foot_placed])
-    RevoluteJoint("tibia_to_femur_revolute", foot_servo, axis=Axis((0, 0, servo_simplified.HORN_Z_CTR), (0, 1, 0)), angular_range=(-180, 180))
+    RevoluteJoint("tibia_to_femur_revolute", foot_servo, axis=Axis((0, 0, servo_simplified.HORN_Z_CTR), (0, 1, 0)))
     return foot_servo
 
 

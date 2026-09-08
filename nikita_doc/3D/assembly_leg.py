@@ -46,7 +46,7 @@ def build_assembly() -> Compound:
     )
     # Rotate around the joint connection point, not the world origin
     p = coxa_assembly.joints["coxa_to_femur_fixed"].location.position
-    femur_assembly = Pos(p.X, p.Y, p.Z) * Rot(60 + ANGLE_FEMUR, 0, 180) * Pos(p.X + BRACKET_Y_OFFSET, -p.Y, -p.Z) * femur_assembly
+    femur_assembly = Pos(p.X, p.Y, p.Z) * Rot(60, 0, 180) * Pos(p.X + BRACKET_Y_OFFSET, -p.Y, -p.Z) * femur_assembly
 
     ##########################################################
     ## Connect femur assembly to tibia (foot servo assembly)
@@ -57,7 +57,7 @@ def build_assembly() -> Compound:
     )
     # Rotate around the joint connection point, not the world origin
     p = femur_assembly.joints["femur_to_tibia_fixed"].location.position
-    foot_servo_assembly = Pos(p.X, p.Y, p.Z) * Rot(ANGLE_TIBIA , 0, 180) * Pos(p.X - BRACKET_Y_OFFSET, -p.Y, -p.Z) * foot_servo_assembly
+    foot_servo_assembly = Pos(p.X, p.Y, p.Z) * Rot(2*ANGLE_FEMUR, 0, 180) * Pos(p.X - BRACKET_Y_OFFSET, -p.Y, -p.Z) * foot_servo_assembly
 
 
 
