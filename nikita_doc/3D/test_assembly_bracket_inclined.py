@@ -23,7 +23,7 @@ servo.joints["rotation"].connect_to(
     angle=JOINT_ANGLE,
 )
 
-Y_OFFSET = 5.00  # mm clearance between servo body and bracket leg inner face
+Y_OFFSET = 5.2  # mm clearance between servo body and bracket leg inner face
 servo = Pos(0, Y_OFFSET, 0) * servo
 
 

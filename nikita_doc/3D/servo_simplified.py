@@ -37,7 +37,7 @@ HORN_Z_CTR = 35.00
 
 # Servo horn dimensions (cylindrical protrusions at the front and back)
 HORN_R       = 10.00
-HORN_FRONT_Y = 5.50
+HORN_FRONT_Y = 3.50
 HORN_BACK_Y  = 3.00
 HORN_DISTANCE_TO_BODY = 0.75
 

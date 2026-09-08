@@ -21,7 +21,7 @@ from build123d import *
 from utils.ocp_utils import show
 
 # ---------------------------------------------------------------- params --
-PLATE_W = 40.0          # top plate overall width (X)
+PLATE_W = 41.0          # top plate overall width (X)
 PLATE_D = 25.0          # top plate depth, measured in plan view (Y)
 PLATE_T = 2.0           # top plate thickness (measured normal to its face)
  
