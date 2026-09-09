@@ -6,19 +6,25 @@ from build123d import *
 from utils.ocp_utils import show
 
 import body_common
+import board_rpi5
 
 THICKNESS = 1.5
 
+
+LOCATION_RPI5 = (20.0, 0.0)
+
+
 SMALL_HOLES = [
-    (-9.000, -7.580, 1.100),
-    (-9.000, 8.420, 1.100),
-    (26.603, 29.727, 1.100),
-    (50.603, 29.727, 1.100),
-    (-53.500, 38.099, 1.100),
-    (-35.500, 38.099, 1.100),
-    (26.603, 49.727, 1.100),
-    (50.603, 49.727, 1.100),
+    # (-9.000, -7.580, 1.100),
+    # (-9.000, 8.420, 1.100),
+    # (26.603, 29.727, 1.100),
+    # (50.603, 29.727, 1.100),
+    # (-53.500, 38.099, 1.100),
+    # (-35.500, 38.099, 1.100),
+    # (26.603, 49.727, 1.100),
+    # (50.603, 49.727, 1.100),
 ]
+
 
 holes_for_toes = [
     (75.0, 37.0, 1.500),   
@@ -60,6 +66,12 @@ def build_surface() -> Sketch:
         for x, y, radius in holes_for_toes:
             with Locations((x, y)):
                 Circle(radius, mode=Mode.SUBTRACT)
+        
+        # pcbs
+        LOCATION_RPI5 = (20.0, 0.0)
+        for x, y in board_rpi5.default_hole_positions(board_rpi5.cfg):
+            with Locations((x + LOCATION_RPI5[0], y + LOCATION_RPI5[1])):
+                Circle(board_rpi5.cfg.hole_diameter/2, mode=Mode.SUBTRACT)
 
     return sketch.sketch
 

@@ -6,12 +6,14 @@ from pathlib import Path
 
 from build123d import Compound, Pos, Rot, export_step
 
+from body_layer_0 import LOCATION_RPI5
 from utils.colors import COLOR_DARK_GRAY
 from utils.ocp_utils import show
 
 import assembly_body
 import body_common
 import servo_simplified
+import board_rpi5
 
 
 # Z height of the servo local origin so that:
@@ -36,6 +38,7 @@ SERVO_Z_MID = (servo_simplified.HOLE_Z_LOW + servo_simplified.HOLE_Z_HIGH) / 2
 def build_assembly() -> Compound:
     body = assembly_body.build_assembly()
 
+    # add servos
     servo_part = servo_simplified.build_model()
     servo_part.color = COLOR_DARK_GRAY
 
@@ -59,9 +62,14 @@ def build_assembly() -> Compound:
         instance.label = f"servo_{name}"
         servo_instances.append(instance)
 
+    # add pcbs
+    rpi_board = board_rpi5.build_board_with_spacers()
+    z_pos = board_rpi5.cfg.thickness + board_rpi5.cfg.spacer_height + body_common.THICKNESS
+    rpi_board = Pos(LOCATION_RPI5[0], LOCATION_RPI5[1], z_pos) * Rot(0, 180, 0) * rpi_board
+
     return Compound(
         label="assembly_body_servo",
-        children=[body, *servo_instances],
+        children=[body, *servo_instances, rpi_board],
     )
 
 

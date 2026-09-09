@@ -60,7 +60,7 @@ def default_hole_positions(cfg: PlateConfig) -> list[tuple[float, float]]:
 def build_plate(
     cfg: PlateConfig = PlateConfig(),
     hole_positions: list[tuple[float, float]] | None = None,
-) -> Compound:
+) -> Part:
     """Build a rounded-corner rectangular plate with holes and spacers.
 
     Args:
@@ -81,7 +81,7 @@ def build_plate(
             with Locations(*hole_positions):
                 Hole(radius=cfg.hole_diameter / 2)
 
-    return Compound([bp.part])
+    return bp.part
 
 
 if __name__ == "__main__":

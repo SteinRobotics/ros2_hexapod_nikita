@@ -1,9 +1,11 @@
 from pathlib import Path
 from build123d import *
+from sympy import im
 from utils.ocp_utils import show
 
 from utils.plate_with_holes import build_plate, PlateConfig, default_hole_positions
 import utils.spacer as spacer
+from utils.colors import *
 
 cfg = PlateConfig(
     length=68.0,
@@ -40,7 +42,9 @@ def build_board_with_spacers() -> Compound:
         )
         for x, y in hole_positions
     ]
-    return Compound([board] + spacers)
+    board.color = COLOR_DARK_GREEN
+    for s in spacers: s.color = COLOR_LIGHT_GRAY
+    return Compound(children=[board, *spacers])
 
 
 if __name__ == "__main__":
@@ -55,3 +59,4 @@ if __name__ == "__main__":
     dxf_export.write("generated/board_raspberrypi5.dxf")
 
     show(result, name="board_raspberrypi5", clear=True)
+    
