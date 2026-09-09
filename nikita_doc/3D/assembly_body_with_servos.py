@@ -7,7 +7,12 @@ from pathlib import Path
 from build123d import Compound, Pos, Rot, export_step
 
 from body_layer_0 import (
-    LOCATION_RPI5, LOCATION_LEFT_SERVO_PLUG, LOCATION_RIGHT_SERVO_PLUG, LOCATION_RELAY
+    LOCATION_RPI5, 
+    LOCATION_LEFT_SERVO_PLUG, 
+    LOCATION_RIGHT_SERVO_PLUG, 
+    LOCATION_RELAY,
+    LOCATION_BNO055,
+    LOCATION_INA228,
 )
 from utils.colors import COLOR_DARK_GRAY
 from utils.ocp_utils import show
@@ -18,6 +23,8 @@ import servo_simplified
 import board_rpi5
 import board_servo_plug
 import board_relay
+import board_bno055
+import board_ina228
 
 
 # Z height of the servo local origin so that:
@@ -83,9 +90,17 @@ def build_assembly() -> Compound:
     z_pos = board_relay.cfg.thickness + board_relay.cfg.spacer_height + body_common.THICKNESS
     relay_board = Pos(LOCATION_RELAY[0], LOCATION_RELAY[1], z_pos) * Rot(0, 180, 0) * relay_board
 
+    bno055_board = board_bno055.build_board_with_spacers()
+    z_pos = board_bno055.cfg.thickness + board_bno055.cfg.spacer_height + body_common.THICKNESS
+    bno055_board = Pos(LOCATION_BNO055[0], LOCATION_BNO055[1], z_pos) * Rot(0, 180, 0) * bno055_board
+
+    ina228_board = board_ina228.build_board_with_spacers()
+    z_pos = board_ina228.cfg.thickness + board_ina228.cfg.spacer_height + body_common.THICKNESS
+    ina228_board = Pos(LOCATION_INA228[0], LOCATION_INA228[1], z_pos) * Rot(0, 180, 0) * ina228_board
+
     return Compound(
         label="assembly_body_servo",
-        children=[body, *servo_instances, rpi_board, left_servo_plug_board, right_servo_plug_board, relay_board],
+        children=[body, *servo_instances, rpi_board, left_servo_plug_board, right_servo_plug_board, relay_board, bno055_board, ina228_board],
     )
 
 

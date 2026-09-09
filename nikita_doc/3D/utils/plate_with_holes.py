@@ -45,6 +45,10 @@ class PlateConfig:
                 "otherwise the hole overlaps the rounded corner"
             )
 
+def two_holes_on_one_side(cfg: PlateConfig) -> list[tuple[float, float]]:
+    x = cfg.length / 2 - cfg.hole_edge_offset
+    y = cfg.width / 2 - cfg.hole_edge_offset
+    return [(x, y), (-x, y)]
 
 def default_hole_positions(cfg: PlateConfig) -> list[tuple[float, float]]:
     n = cfg.hole_count

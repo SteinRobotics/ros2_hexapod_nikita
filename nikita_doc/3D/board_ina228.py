@@ -2,23 +2,23 @@ from pathlib import Path
 from build123d import *
 from utils.ocp_utils import show
 
-from utils.plate_with_holes import build_plate, PlateConfig, default_hole_positions
+from utils.plate_with_holes import build_plate, PlateConfig, two_holes_on_one_side
 import utils.spacer as spacer
 from utils.colors import *
 
 cfg = PlateConfig(
-    length = 68.0,
-    width = 49.0,
-    thickness = 30.0,        # including power supply board
-    corner_radius = 2.0,
+    length = 26.0,
+    width = 20.0,
+    thickness = 15.0,
+    corner_radius = 1.0,
     hole_diameter = 2.2,
-    hole_edge_offset = 5.0,
-    hole_count = 4,
-    spacer_height = 15.0,
+    hole_edge_offset = 3.0,
+    hole_count = 2,
+    spacer_height = 2.0,
 )
 
 def build_surface() -> Sketch:
-    hole_positions = default_hole_positions(cfg)
+    hole_positions = two_holes_on_one_side(cfg)
     with BuildSketch() as sk:
         Rectangle(cfg.length, cfg.width)
         fillet(sk.vertices(), radius=cfg.corner_radius)
@@ -29,8 +29,8 @@ def build_surface() -> Sketch:
 
 
 def build_board_with_spacers() -> Compound:
-    hole_positions = default_hole_positions(cfg)
-    board = build_plate(cfg=cfg)
+    hole_positions = two_holes_on_one_side(cfg)
+    board = build_plate(cfg=cfg, hole_positions=hole_positions)
     spacer_z = cfg.thickness + cfg.spacer_height / 2
     spacers = [
         Pos(x, y, spacer_z)
@@ -51,11 +51,11 @@ if __name__ == "__main__":
     result = build_board_with_spacers()
 
     Path("generated").mkdir(exist_ok=True)
-    export_step(result, "generated/board_rpi5.step")
+    export_step(result, "generated/board_ina228.step")
 
     dxf_export = ExportDXF()
     dxf_export.add_shape(surface)
-    dxf_export.write("generated/board_rpi5.dxf")
+    dxf_export.write("generated/board_ina228.dxf")
 
-    show(result, name="board_rpi5", clear=True)
+    show(result, name="board_ina228", clear=True)
     

@@ -9,25 +9,23 @@ import body_common
 import board_rpi5
 import board_servo_plug
 import board_relay
+import board_ina228
+import board_bno055
 
-THICKNESS = 1.5
-
-
+# orientation
+#         ^ x     
+#         |
+#         |
+#    <----o
+#    y
+#
 LOCATION_RPI5 = (-43.0, -12.0)  # rechts unten
 LOCATION_LEFT_SERVO_PLUG = (0.0, 23.0) # links mitte, sollen zusammengesetzt werden
 LOCATION_RIGHT_SERVO_PLUG = (0.0, 38.0) # links mitte, sollen zusammengesetzt werden
 LOCATION_RELAY = (36.0, 30.0) # links oben
 
-SMALL_HOLES = [
-    # (-9.000, -7.580, 1.100),
-    # (-9.000, 8.420, 1.100),
-    # (26.603, 29.727, 1.100),
-    # (50.603, 29.727, 1.100),
-    # (-53.500, 38.099, 1.100),
-    # (-35.500, 38.099, 1.100),
-    # (26.603, 49.727, 1.100),
-    # (50.603, 49.727, 1.100),
-]
+LOCATION_BNO055 = (0.0, 0.0) # mitte, ggf leicht verschoben
+LOCATION_INA228 = (-40.0, 0.0) # mitte unten
 
 
 holes_for_toes = [
@@ -63,10 +61,6 @@ def build_surface() -> Sketch:
             with Locations(loc):
                 Circle(body_common.hole_radius, mode=Mode.SUBTRACT)
         
-        for x, y, radius in SMALL_HOLES:
-            with Locations((x, y)):
-                Circle(radius, mode=Mode.SUBTRACT)
-
         for x, y, radius in holes_for_toes:
             with Locations((x, y)):
                 Circle(radius, mode=Mode.SUBTRACT)
@@ -87,6 +81,14 @@ def build_surface() -> Sketch:
         for x, y in board_relay.default_hole_positions(board_relay.cfg):
             with Locations((x + LOCATION_RELAY[0], y + LOCATION_RELAY[1])):
                 Circle(board_relay.cfg.hole_diameter/2, mode=Mode.SUBTRACT)
+                
+        for x, y in board_bno055.two_holes_on_one_side(board_bno055.cfg):
+            with Locations((x + LOCATION_BNO055[0], y + LOCATION_BNO055[1])):
+                Circle(board_bno055.cfg.hole_diameter/2, mode=Mode.SUBTRACT)
+
+        for x, y in board_ina228.two_holes_on_one_side(board_ina228.cfg):
+            with Locations((x + LOCATION_INA228[0], y + LOCATION_INA228[1])):
+                Circle(board_ina228.cfg.hole_diameter/2, mode=Mode.SUBTRACT)
 
     return sketch.sketch
 
@@ -94,7 +96,7 @@ def build_surface() -> Sketch:
 def build_model(surface: Sketch) -> Part:
     with BuildPart() as model:
         add(surface)
-        extrude(amount=THICKNESS)
+        extrude(amount=body_common.THICKNESS)
 
     return model.part
 

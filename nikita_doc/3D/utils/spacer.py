@@ -7,21 +7,15 @@ from build123d import BuildPart, Cylinder, Mode, Part, export_step, export_stl
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from ocp_utils import show
-    
 
 FOOT_SPACER_OUTER_DIAMETER = 4.0
 FOOT_SPACER_OVERALL_LENGTH = 32.0
 FOOT_SPACER_STUD_HOLE_DIAMETER = 2.5
 
-OUTER_DIAMETER = FOOT_SPACER_OUTER_DIAMETER
-OVERALL_LENGTH = FOOT_SPACER_OVERALL_LENGTH
-STUD_HOLE_DIAMETER = FOOT_SPACER_STUD_HOLE_DIAMETER
-
-
 def build_model(
-    outer_diameter: float = OUTER_DIAMETER,
-    inner_diameter: float = STUD_HOLE_DIAMETER,
-    length: float = OVERALL_LENGTH,
+    outer_diameter: float = FOOT_SPACER_OUTER_DIAMETER,
+    inner_diameter: float = FOOT_SPACER_STUD_HOLE_DIAMETER,
+    length: float = FOOT_SPACER_OVERALL_LENGTH,
     build_method=BuildPart,
 ) -> Part:
     if inner_diameter <= 0:
