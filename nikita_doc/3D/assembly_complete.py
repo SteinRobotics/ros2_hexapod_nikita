@@ -9,11 +9,14 @@ import assembly_leg
 import assembly_body
 import body_common
 import servo_simplified
+import assembly_head
 from utils.ocp_utils import show
 
 assembly_leg.ANGLE_COXA = 0.00
 assembly_leg.ANGLE_FEMUR = 0.00
 assembly_leg.ANGLE_TIBIA = 0.00
+
+assembly_head.ANGLE_COXA = 0.0
 
 # All 7 body servo positions minus "head", which is not a leg attachment.
 LEG_POSITIONS = [k for k in body_common.SERVO_CUTOUT_CONFIGS if k != "head"]
@@ -39,6 +42,13 @@ _LEG_SHAFT_Z = _COXA_SERVO_Z + assembly_leg.BRACKET_Y_OFFSET
 
 def build_assembly() -> Compound:
     body = assembly_body.build_assembly()
+    head = assembly_head.build_assembly()
+    head_config = body_common.SERVO_CUTOUT_CONFIGS["head"]
+    _head_rot = head_config.rotation_deg_clockwise
+    _head_rad = math.radians(_head_rot)
+    _head_sx = head_config.offset_x - _COXA_SERVO_Z_MID * math.sin(_head_rad)
+    _head_sy = head_config.offset_y - _COXA_SERVO_Z_MID * math.cos(_head_rad)
+    head = Pos(_head_sx, _head_sy, _LEG_SHAFT_Z) * Rot(Z=-_head_rot) * Rot(X=-90) * head
 
     leg_instances = []
     for name, config in body_common.SERVO_CUTOUT_CONFIGS.items():
@@ -65,7 +75,7 @@ def build_assembly() -> Compound:
 
     return Compound(
         label="assembly_complete",
-        children=[body, *leg_instances],
+        children=[body, head, *leg_instances],
     )
 
 
