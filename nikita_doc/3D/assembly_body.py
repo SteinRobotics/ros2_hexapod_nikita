@@ -8,7 +8,7 @@ from utils.ocp_utils import show
 from utils.colors import COLOR_CREAMY_WHITE, COLOR_WINE_RED, COLOR_DARK_GRAY
 
 import toe
-import spacer
+import utils.spacer as spacer
 import body_common
 import body_layer_0
 import body_layer_1

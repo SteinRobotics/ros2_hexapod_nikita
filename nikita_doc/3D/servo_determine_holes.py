@@ -34,9 +34,7 @@ from pathlib import Path
 from build123d import *
 from utils.ocp_utils import show
 
-from cad_config import (
-    DARK_GRAY,
-)
+DARK_GRAY = Color(0.25, 0.25, 0.25)
 
 OUTER_DIAMETER = 2.0
 OVERALL_LENGTH = 2.0

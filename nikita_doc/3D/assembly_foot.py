@@ -4,15 +4,13 @@ from pathlib import Path
 
 from build123d import Compound, Pos, Rot, export_step
 
-from cad_config import (
-    FOOT_SPACER_OUTER_DIAMETER,
-    FOOT_SPACER_OVERALL_LENGTH,
-    FOOT_SPACER_STUD_HOLE_DIAMETER,
-)
+FOOT_SPACER_OUTER_DIAMETER = 4.0
+FOOT_SPACER_OVERALL_LENGTH = 32.0
+FOOT_SPACER_STUD_HOLE_DIAMETER = 2.5
 import foot_back
 import foot_connection
 import foot_front
-import spacer
+import utils.spacer as spacer
 import toe
 from utils.ocp_utils import show
 
