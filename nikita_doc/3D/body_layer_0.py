@@ -7,12 +7,14 @@ from utils.ocp_utils import show
 
 import body_common
 import board_rpi5
+import board_servo_plug
 
 THICKNESS = 1.5
 
 
 LOCATION_RPI5 = (20.0, 0.0)
-
+LOCATION_LEFT_SERVO_PLUG = (0.0, -35.0)
+LOCATION_RIGHT_SERVO_PLUG = (0.0, 35.0)
 
 SMALL_HOLES = [
     # (-9.000, -7.580, 1.100),
@@ -68,10 +70,17 @@ def build_surface() -> Sketch:
                 Circle(radius, mode=Mode.SUBTRACT)
         
         # pcbs
-        LOCATION_RPI5 = (20.0, 0.0)
         for x, y in board_rpi5.default_hole_positions(board_rpi5.cfg):
             with Locations((x + LOCATION_RPI5[0], y + LOCATION_RPI5[1])):
                 Circle(board_rpi5.cfg.hole_diameter/2, mode=Mode.SUBTRACT)
+                
+        for x, y in board_servo_plug.default_hole_positions(board_servo_plug.cfg):
+            with Locations((x + LOCATION_LEFT_SERVO_PLUG[0], y + LOCATION_LEFT_SERVO_PLUG[1])):
+                Circle(board_servo_plug.cfg.hole_diameter/2, mode=Mode.SUBTRACT)
+        
+        for x, y in board_servo_plug.default_hole_positions(board_servo_plug.cfg):
+            with Locations((x + LOCATION_RIGHT_SERVO_PLUG[0], y + LOCATION_RIGHT_SERVO_PLUG[1])):
+                Circle(board_servo_plug.cfg.hole_diameter/2, mode=Mode.SUBTRACT)
 
     return sketch.sketch
 

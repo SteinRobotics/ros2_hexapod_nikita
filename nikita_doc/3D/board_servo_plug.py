@@ -7,14 +7,14 @@ import utils.spacer as spacer
 from utils.colors import *
 
 cfg = PlateConfig(
-    length = 68.0,
-    width = 49.0,
-    thickness = 30.0,        # including power supply board
-    corner_radius = 2.0,
+    length = 44.0,
+    width = 14.0,
+    thickness = 10.0,     # including servo plugs
+    corner_radius = 1.0,
     hole_diameter = 2.2,
-    hole_edge_offset = 5.0,
-    hole_count = 4,
-    spacer_height = 15.0,
+    hole_edge_offset = 7.0,
+    hole_count = 2,
+    spacer_height = 4.0,
 )
 
 def build_surface() -> Sketch:

@@ -35,8 +35,8 @@ class PlateConfig:
         if not 0 <= self.hole_count <= 4:
             raise ValueError("hole_count must be between 0 and 4")
         if self.hole_count and (
-            self.hole_edge_offset >= self.length / 2
-            or self.hole_edge_offset >= self.width / 2
+            self.hole_edge_offset > self.length / 2
+            or self.hole_edge_offset > self.width / 2
         ):
             raise ValueError("hole_edge_offset must be smaller than length/2 and width/2")
         if self.hole_count and self.hole_edge_offset <= self.corner_radius:
