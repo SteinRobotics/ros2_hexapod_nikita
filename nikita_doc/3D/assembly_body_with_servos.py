@@ -6,7 +6,9 @@ from pathlib import Path
 
 from build123d import Compound, Pos, Rot, export_step
 
-from body_layer_0 import LOCATION_RPI5, LOCATION_LEFT_SERVO_PLUG, LOCATION_RIGHT_SERVO_PLUG
+from body_layer_0 import (
+    LOCATION_RPI5, LOCATION_LEFT_SERVO_PLUG, LOCATION_RIGHT_SERVO_PLUG, LOCATION_RELAY
+)
 from utils.colors import COLOR_DARK_GRAY
 from utils.ocp_utils import show
 
@@ -15,6 +17,7 @@ import body_common
 import servo_simplified
 import board_rpi5
 import board_servo_plug
+import board_relay
 
 
 # Z height of the servo local origin so that:
@@ -76,9 +79,13 @@ def build_assembly() -> Compound:
     z_pos = board_servo_plug.cfg.thickness + board_servo_plug.cfg.spacer_height + body_common.THICKNESS
     right_servo_plug_board = Pos(LOCATION_RIGHT_SERVO_PLUG[0], LOCATION_RIGHT_SERVO_PLUG[1], z_pos) * Rot(0, 180, 0) * right_servo_plug_board
 
+    relay_board = board_relay.build_board_with_spacers()
+    z_pos = board_relay.cfg.thickness + board_relay.cfg.spacer_height + body_common.THICKNESS
+    relay_board = Pos(LOCATION_RELAY[0], LOCATION_RELAY[1], z_pos) * Rot(0, 180, 0) * relay_board
+
     return Compound(
         label="assembly_body_servo",
-        children=[body, *servo_instances, rpi_board, left_servo_plug_board, right_servo_plug_board],
+        children=[body, *servo_instances, rpi_board, left_servo_plug_board, right_servo_plug_board, relay_board],
     )
 
 
