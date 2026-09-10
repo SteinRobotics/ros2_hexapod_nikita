@@ -14,6 +14,7 @@ import board_servo_plug
 import board_relay
 import board_ina228
 import board_bno055
+import board_servo_interface
 
 # orientation
 #         ^ x
@@ -34,9 +35,10 @@ class Placement:
 LOCATION_RPI5 = Placement(-35.0, -6.0)  # rechts unten
 LOCATION_LEFT_SERVO_PLUG = Placement(0.0, 25.0)  # links mitte, sollen zusammengesetzt werden
 LOCATION_RIGHT_SERVO_PLUG = Placement(0.0, 40.0)  # links mitte, sollen zusammengesetzt werden
-LOCATION_RELAY = Placement(36.0, 30.0)  # links oben
+LOCATION_RELAY = Placement(36.0, 32.0)  # links oben
 LOCATION_BNO055 = Placement(0.0, -2.0, 90.0)  # mitte, ggf leicht verschoben
 LOCATION_INA228 = Placement(-65.0, -6.0, 90.0)  # mitte unten
+LOCATION_SERVO_INTERFACE = Placement(35.0, 0.0)  # oben, mitte
 
 TOE_MOUNTING_HOLES = [
     (75.0, 37.0, 1.500),
@@ -129,6 +131,11 @@ def build_surface() -> Sketch:
             board_ina228.two_holes_on_one_side(board_ina228.cfg),
             LOCATION_INA228,
             board_ina228.cfg.hole_diameter / 2,
+        )
+        place_board_holes(
+            board_servo_interface.default_hole_positions(board_servo_interface.cfg),
+            LOCATION_SERVO_INTERFACE,
+            board_servo_interface.cfg.hole_diameter / 2,
         )
 
     return sketch.sketch
