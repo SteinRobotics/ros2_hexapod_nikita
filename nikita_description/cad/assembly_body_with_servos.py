@@ -32,6 +32,8 @@ import board_servo_interface
 import board_i2c_distributor
 
 
+servo_by_name = {}
+
 # Z height of the servo local origin so that:
 #   front horn (local Y < 0) sits inside body layer 2
 #   back  horn (local Y > BODY_Y) sits inside body layer 1
@@ -45,7 +47,6 @@ _z_layer_2_center = (
 SERVO_Z = _z_layer_2_center - (
     servo_simplified.HORN_FRONT_Y / 2 + servo_simplified.HORN_DISTANCE_TO_BODY
 )
-
 # Midpoint of the two M2 hole rows along the servo's local Z axis.
 # Used to centre the servo over the body-layer cutout.
 SERVO_Z_MID = (servo_simplified.HOLE_Z_LOW + servo_simplified.HOLE_Z_HIGH) / 2
@@ -92,8 +93,11 @@ def build_assembly() -> Compound:
             * Rot(-90, 0, 0)
             * servo_part
         )
+        # TODO: add a rotation joint for each servo
         instance.label = f"servo_{name}"
         servo_instances.append(instance)
+        servo_by_name[f"servo_{name}"] = instance
+        print(f"Placed servo '{name}' at position: {instance.location.position}")
 
     # add pcbs
     rpi_board = place_board(board_rpi5, LOCATION_RPI5)

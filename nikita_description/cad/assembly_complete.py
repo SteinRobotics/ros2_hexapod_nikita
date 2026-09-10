@@ -5,77 +5,127 @@ from pathlib import Path
 
 from build123d import Compound, Pos, Rot, export_step
 
-import assembly_leg
-import assembly_body
+import assembly_coxa
+import assembly_femur
+import assembly_tibia
+import assembly_body_with_servos
 import body_common
-import servo_simplified
-import assembly_head
 from utils.ocp_utils import show
 
-assembly_leg.ANGLE_COXA = 0.00
-assembly_leg.ANGLE_FEMUR = 0.00
-assembly_leg.ANGLE_TIBIA = 0.00
+ANGLE_LEG_COXA = 0.0    # °
+ANGLE_LEG_FEMUR = 0.0   # °
+ANGLE_LEG_TIBIA = 0.0   # °
+ANGLE_HEAD_COXA = 0.0   # °
 
-assembly_head.ANGLE_COXA = 0.0
+BRACKET_Y_OFFSET = 5.2  # mm
+
+ANGLE_LEG_COXA %= 360.00
+ANGLE_LEG_FEMUR %= 360.00
+ANGLE_LEG_TIBIA %= 360.00
+ANGLE_HEAD_COXA %= 360.00
 
 # All 7 body servo positions minus "head", which is not a leg attachment.
 LEG_POSITIONS = [k for k in body_common.SERVO_CUTOUT_CONFIGS if k != "head"]
+HEAD_POSITION = body_common.SERVO_CUTOUT_CONFIGS["head"]
 
-# Z of the coxa servo's local origin so its horns sit inside the body layers.
-_z_layer_2_center = (
-    body_common.THICKNESS
-    + assembly_body.SPACER_LENGTH_0_to_1
-    + body_common.THICKNESS
-    + assembly_body.SPACER_LENGTH_1_to_2
-    + body_common.THICKNESS / 2
-)
-
-# Same formula as assembly_body_servo: front horn aligns with layer-2 centre.
-_COXA_SERVO_Z = _z_layer_2_center - (
-    servo_simplified.HORN_FRONT_Y / 2 + servo_simplified.HORN_DISTANCE_TO_BODY
-)
-# Midpoint of the M2 hole rows along the servo's local Z; used for XY alignment.
-_COXA_SERVO_Z_MID = (servo_simplified.HOLE_Z_LOW + servo_simplified.HOLE_Z_HIGH) / 2
-# Rot(X=-90) maps local Y → world -Z, so BRACKET_Y_OFFSET adds (not subtracts) to shaft_z.
-_LEG_SHAFT_Z = _COXA_SERVO_Z + assembly_leg.BRACKET_Y_OFFSET
+# Keep leg placement tied to the servo placement defined by the body assembly.
+# The coxa shaft is offset from the servo origin by the bracket clearance.
+_LEG_SHAFT_Z = assembly_body_with_servos.SERVO_Z + BRACKET_Y_OFFSET
 
 
 def build_assembly() -> Compound:
-    body = assembly_body.build_assembly()
-    head = assembly_head.build_assembly()
-    head_config = body_common.SERVO_CUTOUT_CONFIGS["head"]
-    _head_rot = head_config.rotation_deg_clockwise
-    _head_rad = math.radians(_head_rot)
-    _head_sx = head_config.offset_x - _COXA_SERVO_Z_MID * math.sin(_head_rad)
-    _head_sy = head_config.offset_y - _COXA_SERVO_Z_MID * math.cos(_head_rad)
-    head = Pos(_head_sx, _head_sy, _LEG_SHAFT_Z) * Rot(Z=-_head_rot) * Rot(X=-90) * head
+    body = assembly_body_with_servos.build_assembly()
 
+    # HEAD
+    coxa_head = assembly_coxa.build_assembly()
+    instance_servo_head = assembly_body_with_servos.servo_by_name[f"servo_head"]
+    
+    instance_servo_head.joints["rotation"].connect_to(
+        coxa_head.joints["body_to_coxa_fixed"],
+        angle=ANGLE_HEAD_COXA,
+    )
+    p = coxa_head.joints["body_to_coxa_fixed"].location.position
+    coxa_head = (
+        Pos(p.X, p.Y, p.Z)
+        * Rot(180, 180, 180)
+        * Pos(-p.X, -p.Y, -p.Z + BRACKET_Y_OFFSET)
+        * coxa_head
+    )
+
+    # LEGS
     leg_instances = []
-    for name, config in body_common.SERVO_CUTOUT_CONFIGS.items():
-        if name not in LEG_POSITIONS:
-            continue
 
-        leg = assembly_leg.build_assembly()
+    for name in LEG_POSITIONS:
+        config = body_common.SERVO_CUTOUT_CONFIGS[name]
+
+        coxa_assembly = assembly_coxa.build_assembly()
+        femur_assembly = assembly_femur.build_assembly()
+        tibia_assembly = assembly_tibia.build_assembly()
+
+        
+        # instance_servo = assembly_body_with_servos.servo_by_name[f"servo_{name}"]
+        
+        # instance_servo.joints["rotation"].connect_to(
+        #     coxa_assembly.joints["body_to_coxa_fixed"],
+        #     angle=ANGLE_LEG_COXA,
+        # )
+        p = coxa_assembly.joints["body_to_coxa_fixed"].location.position
+        coxa_assembly = (
+            Pos(p.X, p.Y, p.Z)
+            * Rot(0, 180, 180)
+            * Pos(-p.X, -p.Y + BRACKET_Y_OFFSET + assembly_body_with_servos.SERVO_Z_MID , -p.Z - BRACKET_Y_OFFSET)
+            * coxa_assembly
+        )
+
+        # Connect the coxa to the femur and rotate the femur around the
+        # coxa/femur joint, matching assembly_leg.py.
+        coxa_assembly.joints["coxa_to_femur_fixed"].connect_to(
+            femur_assembly.joints["femur_to_coxa_revolute"],
+            angle=ANGLE_LEG_FEMUR,
+        )
+        p = coxa_assembly.joints["coxa_to_femur_fixed"].location.position
+        femur_assembly = (
+            Pos(p.X, p.Y, p.Z)
+            * Rot(60, 0, 180)
+            * Pos(p.X + BRACKET_Y_OFFSET, -p.Y, -p.Z)
+            * femur_assembly
+        )
+
+        # Connect the femur to the tibia and rotate the tibia around the
+        # femur/tibia joint, matching assembly_leg.py.
+        femur_assembly.joints["femur_to_tibia_fixed"].connect_to(
+            tibia_assembly.joints["tibia_to_femur_revolute"],
+            angle=ANGLE_LEG_TIBIA,
+        )
+        p = femur_assembly.joints["femur_to_tibia_fixed"].location.position
+        tibia_assembly = (
+            Pos(p.X, p.Y, p.Z)
+            * Rot((2 * ANGLE_LEG_FEMUR) % 360, 0, 180)
+            * Pos(p.X - BRACKET_Y_OFFSET, -p.Y, -p.Z)
+            * tibia_assembly
+        )
+
+        # The coxa servo is supplied by ``body``. Build only the leg parts
+        # here, positioned around that already-placed servo.
+        local_leg = Compound(children=[coxa_assembly, femur_assembly, tibia_assembly])
+
         rot = config.rotation_deg_clockwise
         rad = math.radians(rot)
+        sx = config.offset_x - assembly_body_with_servos.SERVO_Z_MID * math.sin(rad)
+        sy = config.offset_y - assembly_body_with_servos.SERVO_Z_MID * math.cos(rad)
 
-        # Rot(X=-90) maps local Z → world +Y (outward); same sign as assembly_body_servo.
-        sx = config.offset_x - _COXA_SERVO_Z_MID * math.sin(rad)
-        sy = config.offset_y - _COXA_SERVO_Z_MID * math.cos(rad)
-
-        # Rot(Z=-rot): spin to this leg's outward direction.
         instance = (
             Pos(sx, sy, _LEG_SHAFT_Z)
             * Rot(Z=-rot)
             * Rot(X=-90)
-            * leg
+            * local_leg
         )
         instance.label = f"leg_{name}"
         leg_instances.append(instance)
 
     return Compound(
         label="assembly_complete",
-        children=[body, head, *leg_instances],
+        children=[body, coxa_head, *leg_instances],
     )
 
 

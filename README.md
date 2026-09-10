@@ -136,6 +136,12 @@ source install/setup.bash
 ros2 launch nikita_description display.launch.py
 ```
 
+To preview the CAD/STL-based model instead, use its separate launch file:
+```bash
+ros2 launch nikita_description display_mesh.launch.py
+```
+The original primitive model remains available through `display.launch.py`.
+
 ### Gazebo Simulation
 Run the full hexapod simulation in Gazebo Harmonic:
 ```bash
@@ -157,6 +163,17 @@ ros2 launch nikita_gazebo simulation_gazebo.launch.py \
   world:=$(ros2 pkg prefix nikita_gazebo)/share/nikita_gazebo/worlds/simple_room.sdf \
   enable_navigation:=true
 ```
+
+### Mesh Model in Gazebo
+The mesh model has its own launch file and does not change the existing primitive-model simulation:
+```bash
+colcon build --symlink-install --packages-select nikita_description nikita_gazebo
+source install/setup.bash
+ros2 launch nikita_gazebo simulation_mesh.launch.py
+```
+This starts Gazebo Harmonic, spawns the STL-based robot, loads the existing 20-joint
+controller configuration, and starts the joint-state broadcaster. The mesh model omits
+head visuals but retains invisible head yaw and pitch joints for controller compatibility.
 
 Command joints in the simulation (all 20 joints, values in radians):
 ```bash
@@ -226,4 +243,3 @@ This is a maker project—experimentation, hacking, and learning are encouraged!
 Copyright (c) 2021-2025 Christian Stein
 
 ---
-
