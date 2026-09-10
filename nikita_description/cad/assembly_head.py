@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from build123d import Compound, Pos, Rot, export_step, import_step, RigidJoint
+from build123d import Compound, Pos, Rot, export_step, export_stl, import_step, RigidJoint
 
 from utils.ocp_utils import show
 from utils.colors import COLOR_DARK_GRAY
@@ -38,6 +38,7 @@ def main() -> None:
     assembly = build_assembly()
     Path("generated").mkdir(exist_ok=True)
     export_step(assembly, "generated/assembly_head.step")
+    export_stl(assembly, "generated/assembly_head.stl")
 
     show(assembly, name="assembly_head", clear=True)
 

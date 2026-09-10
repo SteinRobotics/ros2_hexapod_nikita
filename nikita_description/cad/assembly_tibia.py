@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from build123d import Compound, Pos, Rot, export_step, import_step, RevoluteJoint, Axis
+from build123d import Compound, Pos, Rot, export_step, export_stl, import_step, RevoluteJoint, Axis
 
 from utils.colors import COLOR_DARK_GRAY
 
@@ -37,8 +37,9 @@ def build_assembly() -> Compound:
 
 def main() -> None:
     assembly = build_assembly()
-    # Path("generated").mkdir(exist_ok=True)
-    # export_step(assembly, "generated/assembly_foot_servo.step")
+    Path("generated").mkdir(exist_ok=True)
+    export_step(assembly, "generated/assembly_tibia.step")
+    export_stl(assembly, "generated/assembly_tibia.stl")
     show(assembly, name="assembly_tibia", clear=True)
 
 

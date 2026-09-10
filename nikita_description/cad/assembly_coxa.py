@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from build123d import Compound, Pos, Rot, export_step, import_step, RigidJoint
+from build123d import Compound, Pos, Rot, export_step, export_stl, import_step, RigidJoint
 
 
 from utils.colors import COLOR_DARK_GRAY
@@ -46,7 +46,7 @@ def main() -> None:
     assembly = build_assembly()
     Path("generated").mkdir(exist_ok=True)
     export_step(assembly, "generated/assembly_coxa.step")
-
+    export_stl(assembly, "generated/assembly_coxa.stl")
     show(assembly, name="assembly_coxa", clear=True)
 
 

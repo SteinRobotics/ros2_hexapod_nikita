@@ -55,7 +55,8 @@ nikita_communication/soundfiles/
 nikita_communication/tts_cache/
 nikita_communication/keys/
 nikita_communication/models/
-nikita_doc/3D/generated/
+nikita_description/cad/imported/
+nikita_description/cad/generated/
 
 build/
 log/

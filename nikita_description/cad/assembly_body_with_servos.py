@@ -4,7 +4,7 @@
 import math
 from pathlib import Path
 
-from build123d import Compound, Pos, Rot, export_step
+from build123d import Compound, Pos, Rot, export_step, export_stl
 
 from body_layer_0 import (
     Placement,
@@ -126,6 +126,7 @@ def main() -> None:
     assembly = build_assembly()
     Path("generated").mkdir(exist_ok=True)
     export_step(assembly, "generated/assembly_body_servo.step")
+    export_stl(assembly, "generated/assembly_body_servo.stl")
     show(assembly, name="assembly_body_servo", clear=True)
 
 
