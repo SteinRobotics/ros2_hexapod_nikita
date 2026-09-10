@@ -7,9 +7,10 @@ from pathlib import Path
 from build123d import Compound, Pos, Rot, export_step
 
 from body_layer_0 import (
-    LOCATION_RPI5, 
-    LOCATION_LEFT_SERVO_PLUG, 
-    LOCATION_RIGHT_SERVO_PLUG, 
+    Placement,
+    LOCATION_RPI5,
+    LOCATION_LEFT_SERVO_PLUG,
+    LOCATION_RIGHT_SERVO_PLUG,
     LOCATION_RELAY,
     LOCATION_BNO055,
     LOCATION_INA228,
@@ -46,6 +47,23 @@ SERVO_Z = _z_layer_2_center - (
 SERVO_Z_MID = (servo_simplified.HOLE_Z_LOW + servo_simplified.HOLE_Z_HIGH) / 2
 
 
+def place_board(board_module, placement: Placement):
+    """Build a board-with-spacers assembly and place it (component-side down) on the body.
+
+    The board is flipped and rotated around its own center first, then
+    moved to the placement's XY offset - matching the hole pattern cut in
+    body_layer_0.build_surface().
+    """
+    board = board_module.build_board_with_spacers()
+    z_pos = board_module.cfg.thickness + board_module.cfg.spacer_height + body_common.THICKNESS
+    return (
+        Pos(placement.x, placement.y, z_pos)
+        * Rot(0, 0, placement.rotation)
+        * Rot(0, 180, 0)
+        * board
+    )
+
+
 def build_assembly() -> Compound:
     body = assembly_body.build_assembly()
 
@@ -74,33 +92,25 @@ def build_assembly() -> Compound:
         servo_instances.append(instance)
 
     # add pcbs
-    rpi_board = board_rpi5.build_board_with_spacers()
-    z_pos = board_rpi5.cfg.thickness + board_rpi5.cfg.spacer_height + body_common.THICKNESS
-    rpi_board = Pos(LOCATION_RPI5[0], LOCATION_RPI5[1], z_pos) * Rot(0, 180, 0) * rpi_board
-
-    left_servo_plug_board = board_servo_plug.build_board_with_spacers()
-    z_pos = board_servo_plug.cfg.thickness + board_servo_plug.cfg.spacer_height + body_common.THICKNESS
-    left_servo_plug_board = Pos(LOCATION_LEFT_SERVO_PLUG[0], LOCATION_LEFT_SERVO_PLUG[1], z_pos) * Rot(0, 180, 0) * left_servo_plug_board
-
-    right_servo_plug_board = board_servo_plug.build_board_with_spacers()
-    z_pos = board_servo_plug.cfg.thickness + board_servo_plug.cfg.spacer_height + body_common.THICKNESS
-    right_servo_plug_board = Pos(LOCATION_RIGHT_SERVO_PLUG[0], LOCATION_RIGHT_SERVO_PLUG[1], z_pos) * Rot(0, 180, 0) * right_servo_plug_board
-
-    relay_board = board_relay.build_board_with_spacers()
-    z_pos = board_relay.cfg.thickness + board_relay.cfg.spacer_height + body_common.THICKNESS
-    relay_board = Pos(LOCATION_RELAY[0], LOCATION_RELAY[1], z_pos) * Rot(0, 180, 0) * relay_board
-
-    bno055_board = board_bno055.build_board_with_spacers()
-    z_pos = board_bno055.cfg.thickness + board_bno055.cfg.spacer_height + body_common.THICKNESS
-    bno055_board = Pos(LOCATION_BNO055[0], LOCATION_BNO055[1], z_pos) * Rot(0, 180, 0) * bno055_board
-
-    ina228_board = board_ina228.build_board_with_spacers()
-    z_pos = board_ina228.cfg.thickness + board_ina228.cfg.spacer_height + body_common.THICKNESS
-    ina228_board = Pos(LOCATION_INA228[0], LOCATION_INA228[1], z_pos) * Rot(0, 180, 0) * ina228_board
+    rpi_board = place_board(board_rpi5, LOCATION_RPI5)
+    left_servo_plug_board = place_board(board_servo_plug, LOCATION_LEFT_SERVO_PLUG)
+    right_servo_plug_board = place_board(board_servo_plug, LOCATION_RIGHT_SERVO_PLUG)
+    relay_board = place_board(board_relay, LOCATION_RELAY)
+    bno055_board = place_board(board_bno055, LOCATION_BNO055)
+    ina228_board = place_board(board_ina228, LOCATION_INA228)
 
     return Compound(
         label="assembly_body_servo",
-        children=[body, *servo_instances, rpi_board, left_servo_plug_board, right_servo_plug_board, relay_board, bno055_board, ina228_board],
+        children=[
+            body,
+            *servo_instances,
+            rpi_board,
+            left_servo_plug_board,
+            right_servo_plug_board,
+            relay_board,
+            bno055_board,
+            ina228_board,
+        ],
     )
 
 

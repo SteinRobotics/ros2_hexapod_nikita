@@ -56,7 +56,7 @@ def build_assembly() -> Compound:
     body_layer_2_part.label = "body_layer_2"
     toe_part.label = "toe"
 
-    positions_for_toes = body_layer_0.holes_for_toes
+    positions_for_toes = body_layer_0.TOE_MOUNTING_HOLES
     positions_for_spacers = body_common.hole_locations
 
     # --- Z-stack the layers, separated by spacer lengths ---
