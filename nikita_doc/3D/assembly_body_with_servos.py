@@ -15,6 +15,7 @@ from body_layer_0 import (
     LOCATION_BNO055,
     LOCATION_INA228,
     LOCATION_SERVO_INTERFACE,
+    LOCATION_I2C_DISTRIBUTOR,
 )
 from utils.colors import COLOR_DARK_GRAY
 from utils.ocp_utils import show
@@ -28,6 +29,7 @@ import board_relay
 import board_bno055
 import board_ina228
 import board_servo_interface
+import board_i2c_distributor
 
 
 # Z height of the servo local origin so that:
@@ -101,6 +103,7 @@ def build_assembly() -> Compound:
     bno055_board = place_board(board_bno055, LOCATION_BNO055)
     ina228_board = place_board(board_ina228, LOCATION_INA228)
     servo_interface_board = place_board(board_servo_interface, LOCATION_SERVO_INTERFACE)
+    i2c_distributor_board = place_board(board_i2c_distributor, LOCATION_I2C_DISTRIBUTOR)
 
     return Compound(
         label="assembly_body_servo",
@@ -114,6 +117,7 @@ def build_assembly() -> Compound:
             bno055_board,
             ina228_board,
             servo_interface_board,
+            i2c_distributor_board,
         ],
     )
 

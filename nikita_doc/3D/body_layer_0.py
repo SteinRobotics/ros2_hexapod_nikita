@@ -15,6 +15,7 @@ import board_relay
 import board_ina228
 import board_bno055
 import board_servo_interface
+import board_i2c_distributor
 
 # orientation
 #         ^ x
@@ -39,6 +40,8 @@ LOCATION_RELAY = Placement(36.0, 32.0)  # links oben
 LOCATION_BNO055 = Placement(0.0, -2.0, 90.0)  # mitte, ggf leicht verschoben
 LOCATION_INA228 = Placement(-65.0, -6.0, 90.0)  # mitte unten
 LOCATION_SERVO_INTERFACE = Placement(35.0, 0.0)  # oben, mitte
+LOCATION_I2C_DISTRIBUTOR = Placement(35.0, -30.0)  # oben, rechts
+
 
 TOE_MOUNTING_HOLES = [
     (75.0, 37.0, 1.500),
@@ -136,6 +139,11 @@ def build_surface() -> Sketch:
             board_servo_interface.default_hole_positions(board_servo_interface.cfg),
             LOCATION_SERVO_INTERFACE,
             board_servo_interface.cfg.hole_diameter / 2,
+        )
+        place_board_holes(
+            board_i2c_distributor.default_hole_positions(board_i2c_distributor.cfg),
+            LOCATION_I2C_DISTRIBUTOR,
+            board_i2c_distributor.cfg.hole_diameter / 2,
         )
 
     return sketch.sketch

@@ -7,9 +7,9 @@ import utils.spacer as spacer
 from utils.colors import *
 
 cfg = PlateConfig(
-    length = 24.0,
-    width = 28.0,
-    thickness = 20.0,        # including power supply board
+    length = 40.0,
+    width = 20.0,
+    thickness = 10.0, 
     corner_radius = 1.0,
     hole_diameter = 2.2,
     hole_edge_offset = 2.0,

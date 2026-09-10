@@ -53,9 +53,5 @@ if __name__ == "__main__":
     Path("generated").mkdir(exist_ok=True)
     export_step(result, "generated/board_ina228.step")
 
-    dxf_export = ExportDXF()
-    dxf_export.add_shape(surface)
-    dxf_export.write("generated/board_ina228.dxf")
-
     show(result, name="board_ina228", clear=True)
     
