@@ -31,13 +31,13 @@
 
     <joint name="${prefix}_femur_joint" type="revolute">
       <parent link="${prefix}_coxa_link"/><child link="${prefix}_femur_link"/>
-      <origin xyz="0 ${coxa_length} 0" rpy="0 0 0"/><axis xyz="1 0 0"/>
+      <origin xyz="0 ${coxa_length} 0" rpy="${30 * pi / 180} 0 0"/><axis xyz="1 0 0"/>
       <limit lower="${-30 * pi / 180}" upper="${90 * pi / 180}" effort="3.0" velocity="6.0"/>
       <dynamics damping="0.1" friction="0.05"/>
     </joint>
     <link name="${prefix}_femur_link">
       <visual>
-        <origin xyz="0.015 0.043 0" rpy="${-pi / 2.0} ${-pi / 2.0} ${-pi}"/>
+        <origin xyz="0.015 0.043 0" rpy="${-90 * pi / 180} ${-90 * pi / 180} ${180 * pi / 180}"/>
         <geometry><mesh filename="package://nikita_description/meshes/assembly_femur.stl" scale="${mesh_scale}"/></geometry>
         <material name="dark_blue"/>
       </visual>
@@ -47,13 +47,13 @@
 
     <joint name="${prefix}_tibia_joint" type="revolute">
       <parent link="${prefix}_femur_link"/><child link="${prefix}_tibia_link"/>
-      <origin xyz="0 ${femur_length} 0" rpy="${-pi / 2.0} 0 0"/><axis xyz="1 0 0"/>
+      <origin xyz="0 ${femur_length} 0" rpy="${-120 * pi / 180} 0 0"/><axis xyz="1 0 0"/>
       <limit lower="${-90 * pi / 180}" upper="${90 * pi / 180}" effort="3.0" velocity="6.0"/>
       <dynamics damping="0.1" friction="0.05"/>
     </joint>
     <link name="${prefix}_tibia_link">
       <visual>
-        <origin xyz="0 0.04 0" rpy="${-pi / 2.0} 0 0"/>
+        <origin xyz="-0.015 0.04 0" rpy="${-90 * pi / 180} ${90 * pi / 180} ${180 * pi / 180}"/>
         <geometry><mesh filename="package://nikita_description/meshes/assembly_tibia.stl" scale="${mesh_scale}"/></geometry>
         <material name="light_blue"/>
       </visual>
