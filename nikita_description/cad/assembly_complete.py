@@ -8,6 +8,7 @@ from build123d import Compound, Pos, Rot, export_step
 import assembly_coxa
 import assembly_femur
 import assembly_tibia
+import assembly_head
 import assembly_body_with_servos
 import body_common
 from utils.ocp_utils import show
@@ -15,14 +16,16 @@ from utils.ocp_utils import show
 ANGLE_LEG_COXA = 0.0    # °
 ANGLE_LEG_FEMUR = 0.0   # °
 ANGLE_LEG_TIBIA = 0.0   # °
-ANGLE_HEAD_COXA = 0.0   # °
+ANGLE_HEAD_YAW = 0.0   # °
+ANGLE_HEAD_PITCH = -60.0   # °
 
 BRACKET_Y_OFFSET = 5.2  # mm
 
 ANGLE_LEG_COXA %= 360.00
 ANGLE_LEG_FEMUR %= 360.00
 ANGLE_LEG_TIBIA %= 360.00
-ANGLE_HEAD_COXA %= 360.00
+ANGLE_HEAD_YAW %= 360.00
+ANGLE_HEAD_PITCH %= 360.00
 
 # All 7 body servo positions minus "head", which is not a leg attachment.
 LEG_POSITIONS = [k for k in body_common.SERVO_CUTOUT_CONFIGS if k != "head"]
@@ -39,10 +42,10 @@ def build_assembly() -> Compound:
     # HEAD
     coxa_head = assembly_coxa.build_assembly()
     instance_servo_head = assembly_body_with_servos.servo_by_name[f"servo_head"]
-    
+
     instance_servo_head.joints["rotation"].connect_to(
         coxa_head.joints["body_to_coxa_fixed"],
-        angle=ANGLE_HEAD_COXA,
+        angle=ANGLE_HEAD_YAW,
     )
     p = coxa_head.joints["body_to_coxa_fixed"].location.position
     coxa_head = (
@@ -50,6 +53,18 @@ def build_assembly() -> Compound:
         * Rot(180, 180, 180)
         * Pos(-p.X, -p.Y, -p.Z + BRACKET_Y_OFFSET)
         * coxa_head
+    )
+
+    # The head carries its own servo and is mounted at the coxa's outer
+    # attachment point, just as the femur is mounted to each leg coxa.
+    head = assembly_head.build_assembly()
+    coxa_head.joints["coxa_to_femur_fixed"].connect_to(head.joints["servo_mount"])
+    p = head.joints["servo_mount"].location.position
+    head = (
+        Pos(p.X, p.Y, p.Z)
+        * Rot(0, ANGLE_HEAD_PITCH, 0)
+        * Pos(-p.X, -p.Y - BRACKET_Y_OFFSET, -p.Z)
+        * head
     )
 
     # LEGS
@@ -125,7 +140,7 @@ def build_assembly() -> Compound:
 
     return Compound(
         label="assembly_complete",
-        children=[body, coxa_head, *leg_instances],
+        children=[body, coxa_head, head, *leg_instances],
     )
 
 

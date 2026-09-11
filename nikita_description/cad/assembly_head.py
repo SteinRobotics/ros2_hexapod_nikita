@@ -67,7 +67,13 @@ def build_lidar_placeholders(head_polygon: Part) -> Part:
     return lidar_placeholders.part
 
 
-def build_assembly() -> Compound:
+def build_assembly(include_servo: bool = True) -> Compound:
+    """Build the head, optionally using a servo already present in a parent assembly.
+
+    ``servo_mount`` is located at the head servo's horn axis.  A parent
+    assembly can connect its placed servo's ``rotation`` joint to it while
+    omitting the local visual servo, avoiding a duplicate servo solid.
+    """
     servo = servo_simplified.build_model()
     servo.color = COLOR_DARK_GRAY
 
@@ -80,7 +86,12 @@ def build_assembly() -> Compound:
     lidar_placeholders = build_lidar_placeholders(head_polygon)
     lidar_placeholders.color = COLOR_DARK_GRAY
 
-    head = Compound(children=[servo, bracket_side_placed, head_polygon, lidar_placeholders])
+    head_children = [bracket_side_placed, head_polygon, lidar_placeholders]
+    if include_servo:
+        head_children.insert(0, servo)
+
+    head = Compound(children=head_children)
+    RigidJoint("servo_mount", head, servo.joints["rotation"].location)
     return head
 
 
