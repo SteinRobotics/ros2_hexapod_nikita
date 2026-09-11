@@ -2,37 +2,87 @@
 
 from pathlib import Path
 
-from build123d import Compound, Pos, Rot, export_step, export_stl, import_step, RigidJoint
+from build123d import *
 
 from utils.ocp_utils import show
 from utils.colors import COLOR_DARK_GRAY
 
 import servo_simplified
-import assembly_coxa
 
-ANGLE_COXA = 0.0  # degrees
+# The outer side-bracket mounting pair is 24.45 mm apart, matching one
+# vertical pair of servo M2 holes.  This placement maps that pair onto the
+# servo's front (-Y) face at X = +HOLE_X.
+SIDE_BRACKET_ROTATION = Rot(0, 0, 90)
+SIDE_BRACKET_OFFSET = Pos(29.999, -44.3795 + servo_simplified.BODY_Y + 1.5, -165.2392)
+HEAD_POLYGON_RADIUS = 30.0  # mm, circumradius
+HEAD_POLYGON_THICKNESS = 20.0  # mm
+LIDAR_PLACEHOLDER_RADIUS = 10.0  # mm 
+LIDAR_PLACEHOLDER_LENGTH = 25.0  # mm
+LIDAR_PLACEHOLDER_CENTER_SPACING = 30.0  # mm
 
-BRACKET_Y_OFFSET = 5.2  # mm
+
+def build_head_polygon(side_bracket: Part) -> Part:
+    """Build the octagonal head plate on the outer face of the side bracket."""
+    bracket_box = side_bracket.bounding_box()
+    center_y = (bracket_box.min.Y + bracket_box.max.Y) / 2
+    center_z = (bracket_box.min.Z + bracket_box.max.Z) / 2
+
+    # The bracket's outer face is its positive-X face after placement.  The
+    # sketch plane is oriented in YZ so extrusion grows away from the servo.
+    outer_face = Plane(
+        origin=(bracket_box.max.X, center_y, center_z),
+        x_dir=(0, 1, 0),
+        z_dir=(1, 0, 0),
+    )
+    with BuildPart() as head_polygon:
+        with BuildSketch(outer_face) as sk:
+            Rectangle(2 * HEAD_POLYGON_RADIUS, 2 * HEAD_POLYGON_RADIUS)
+            fillet(sk.vertices(), radius=HEAD_POLYGON_RADIUS / 4)
+        extrude(amount=HEAD_POLYGON_THICKNESS)
+
+    return head_polygon.part
+
+
+def build_lidar_placeholders(head_polygon: Part) -> Part:
+    """Build two Garmin lidar volume placeholders on the polygon's outer face."""
+    polygon_box = head_polygon.bounding_box()
+    center_y = (polygon_box.min.Y + polygon_box.max.Y) / 2
+    center_z = (polygon_box.min.Z + polygon_box.max.Z) / 2
+
+    # The local Z axis is global +X.  Cylinders are centered by default, so
+    # offset their center by half their length to place each base on the plate.
+    mounting_plane = Plane(
+        origin=(polygon_box.max.X + LIDAR_PLACEHOLDER_LENGTH / 2, center_y, center_z),
+        x_dir=(0, 1, 0),
+        z_dir=(1, 0, 0),
+    )
+    with BuildPart() as lidar_placeholders:
+        with Locations(Location(mounting_plane)):
+            with Locations(
+                (-LIDAR_PLACEHOLDER_CENTER_SPACING / 2, 0),
+                (LIDAR_PLACEHOLDER_CENTER_SPACING / 2, 0),
+            ):
+                Cylinder(LIDAR_PLACEHOLDER_RADIUS, LIDAR_PLACEHOLDER_LENGTH)
+
+    return lidar_placeholders.part
 
 
 def build_assembly() -> Compound:
     servo = servo_simplified.build_model()
     servo.color = COLOR_DARK_GRAY
-    coxa_assembly = assembly_coxa.build_assembly()
 
-    ##########################################################
-    ## Connect servo to coxa assembly
-    ##########################################################    
-    servo.joints["rotation"].connect_to(
-        coxa_assembly.joints["body_to_coxa_fixed"],
-        angle=ANGLE_COXA,
-    )
-    servo = Pos(0, BRACKET_Y_OFFSET, 0) * servo
+    bracket_side = import_step(str(Path(__file__).parent / "imported" / "HX-35HM Side Bracket.STEP"))
+    bracket_side.color = COLOR_DARK_GRAY
 
+    bracket_side_placed = SIDE_BRACKET_OFFSET * SIDE_BRACKET_ROTATION * bracket_side
+    head_polygon = build_head_polygon(bracket_side_placed)
+    head_polygon.color = COLOR_DARK_GRAY
+    lidar_placeholders = build_lidar_placeholders(head_polygon)
+    lidar_placeholders.color = COLOR_DARK_GRAY
 
+    head = Compound(children=[servo, bracket_side_placed, head_polygon, lidar_placeholders])
+    return head
 
-    leg = Compound(children=[servo, coxa_assembly])
-    return leg
 
 def main() -> None:
     assembly = build_assembly()
