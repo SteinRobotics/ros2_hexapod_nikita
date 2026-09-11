@@ -2,7 +2,25 @@
 
 from pathlib import Path
 
-from build123d import *
+from build123d import (
+    BuildPart,
+    BuildSketch,
+    Compound,
+    Cylinder,
+    Location,
+    Locations,
+    Part,
+    Plane,
+    Pos,
+    Rectangle,
+    RigidJoint,
+    Rot,
+    export_step,
+    export_stl,
+    extrude,
+    fillet,
+    import_step,
+)
 
 from utils.ocp_utils import show
 from utils.colors import COLOR_DARK_GRAY
@@ -16,7 +34,7 @@ SIDE_BRACKET_ROTATION = Rot(0, 0, 90)
 SIDE_BRACKET_OFFSET = Pos(29.999, -44.3795 + servo_simplified.BODY_Y + 1.5, -165.2392)
 HEAD_POLYGON_RADIUS = 30.0  # mm, circumradius
 HEAD_POLYGON_THICKNESS = 20.0  # mm
-LIDAR_PLACEHOLDER_RADIUS = 10.0  # mm 
+LIDAR_PLACEHOLDER_RADIUS = 10.0  # mm
 LIDAR_PLACEHOLDER_LENGTH = 25.0  # mm
 LIDAR_PLACEHOLDER_CENTER_SPACING = 30.0  # mm
 
@@ -68,16 +86,18 @@ def build_lidar_placeholders(head_polygon: Part) -> Part:
 
 
 def build_assembly(include_servo: bool = True) -> Compound:
-    """Build the head, optionally using a servo already present in a parent assembly.
+    """Build the head with an optional visual model of its pitch servo.
 
-    ``servo_mount`` is located at the head servo's horn axis.  A parent
-    assembly can connect its placed servo's ``rotation`` joint to it while
-    omitting the local visual servo, avoiding a duplicate servo solid.
+    ``servo_mount`` is located at the pitch servo's horn axis.  A parent
+    assembly attaches the yaw bracket to this interface.  Set
+    ``include_servo=False`` only when that pitch-servo solid is supplied by
+    the parent assembly.
     """
     servo = servo_simplified.build_model()
     servo.color = COLOR_DARK_GRAY
 
-    bracket_side = import_step(str(Path(__file__).parent / "imported" / "HX-35HM Side Bracket.STEP"))
+    bracket_side_path = Path(__file__).parent / "imported" / "HX-35HM Side Bracket.STEP"
+    bracket_side = import_step(str(bracket_side_path))
     bracket_side.color = COLOR_DARK_GRAY
 
     bracket_side_placed = SIDE_BRACKET_OFFSET * SIDE_BRACKET_ROTATION * bracket_side
@@ -91,6 +111,9 @@ def build_assembly(include_servo: bool = True) -> Compound:
         head_children.insert(0, servo)
 
     head = Compound(children=head_children)
+    # Preserve the horn's complete frame, including its Y-axis orientation.
+    # ``servo`` is built even when it is not a visible child so this interface
+    # remains valid with ``include_servo=False``.
     RigidJoint("servo_mount", head, servo.joints["rotation"].location)
     return head
 

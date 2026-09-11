@@ -52,6 +52,20 @@ SERVO_Z = _z_layer_2_center - (
 SERVO_Z_MID = (servo_simplified.HOLE_Z_LOW + servo_simplified.HOLE_Z_HIGH) / 2
 
 
+def servo_location(config: body_common.ServoCutoutConfig, z: float = SERVO_Z):
+    """Return the world transform for a servo at a body cutout.
+
+    ``config.offset_*`` locates the centre of the cutout, whereas a servo's
+    local origin is at the lower mounting-hole row.  Keeping that correction
+    here makes every consumer use the same convention.
+    """
+    angle = config.rotation_deg_clockwise
+    angle_rad = math.radians(angle)
+    x = config.offset_x - SERVO_Z_MID * math.sin(angle_rad)
+    y = config.offset_y - SERVO_Z_MID * math.cos(angle_rad)
+    return Pos(x, y, z) * Rot(0, 0, -angle) * Rot(-90, 0, 0)
+
+
 def place_board(board_module, placement: Placement):
     """Build a board-with-spacers assembly and place it (component-side down) on the body.
 
@@ -70,6 +84,9 @@ def place_board(board_module, placement: Placement):
 
 
 def build_assembly() -> Compound:
+    # This module-level mapping is a convenience for parent assemblies.  Do
+    # not retain instances from an earlier build.
+    servo_by_name.clear()
     body = assembly_body.build_assembly()
 
     # add servos
@@ -78,21 +95,7 @@ def build_assembly() -> Compound:
 
     servo_instances = []
     for name, config in body_common.SERVO_CUTOUT_CONFIGS.items():
-        rot = config.rotation_deg_clockwise
-        rad = math.radians(rot)
-
-        # Shift origin so the servo's Z_MID aligns with the body-layer cutout centre.
-        tx = config.offset_x - SERVO_Z_MID * math.sin(rad)
-        ty = config.offset_y - SERVO_Z_MID * math.cos(rad)
-
-        # Rot(X=-90): local Z → world outward, local Y → world -Z (horn downward).
-        # Rot(Z=-rot): spin the servo to face the correct outward direction.
-        instance = (
-            Pos(tx, ty, SERVO_Z)
-            * Rot(0, 0, -rot)
-            * Rot(-90, 0, 0)
-            * servo_part
-        )
+        instance = servo_location(config) * servo_part
         # TODO: add a rotation joint for each servo
         instance.label = f"servo_{name}"
         servo_instances.append(instance)
